@@ -3,13 +3,19 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Vector;
+import java.util.EmptyStackException;
 import java.util.LinkedList;
 import java.util.Stack;
 import javax.swing.ImageIcon;
@@ -67,6 +73,15 @@ public class ExpressionEvaluator {
 	public ExpressionEvaluator() {
 		initializeVariables();
 		initializeFrameContents();
+	}
+
+	/**
+	 * Initialize the variables for the program.
+	 */
+	private void initializeVariables() {
+		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
+		fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
 	/**
@@ -433,6 +448,15 @@ public class ExpressionEvaluator {
 
 			//String line = "x = 4 + 2";
 			String lexicalString = lexicalAnalyzer(line);
+			if (lexicalString.equals("err")) {
+
+				System.out.println("Im out");
+				CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+				cl.show(frame.getContentPane(), "homePanel");
+				break;
+
+			}
+			System.out.println(lexicalString);
 			String checker = syntaxAnalyzer(lexicalString);
 
 			LinkedList<String> postFix = new LinkedList<String>();
@@ -454,10 +478,10 @@ public class ExpressionEvaluator {
 				}
 
 				System.out.println("ITERATION #");
-					for (int index = 0; index < symbolTable.size(); index++) {
-						SymbolTable sb = symbolTable.get(index);
-						showSymbolTable(sb);
-					}
+				for (int index = 0; index < symbolTable.size(); index++) {
+					SymbolTable sb = symbolTable.get(index);
+					showSymbolTable(sb);
+				}
 			}
 
 			StyledDocument doc = tpOutput.getStyledDocument();
@@ -483,6 +507,8 @@ public class ExpressionEvaluator {
 			line = reader.readLine();
 		}
 		reader.close();
+		System.out.println(tpOutput.getText());
+		print(tpOutput.getText());
 		System.out.println(fileContent);
 		//}
 		//}
@@ -507,6 +533,24 @@ public class ExpressionEvaluator {
 		}
 	}
 
+	public void print(String output) throws IOException {
+		Writer writer = null;
+
+		try {
+			writer = new BufferedWriter(
+					new OutputStreamWriter(new FileOutputStream(getFileName().replace(".in", ".out")), "utf-8"));
+			writer.write(output);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} finally {
+			try {
+				writer.close();
+			} catch (Exception ex) {
+
+			}
+		}
+	}
+
 	/**
 	 * Return a string into its lexical form
 	 * 
@@ -519,32 +563,47 @@ public class ExpressionEvaluator {
 		String[] words = line.split("\\s");
 		String result = "";
 
-		wordsLoop: for (String word : words) {
+		for (String word : words) {
+			System.out.println(word);
 			String firstLetter = "" + word.charAt(0);
 			if (word.length() == 1 && operator.indexOf(word.charAt(0)) == 0) {
+
+				System.out.println("im in the op");
 				SymbolTable st = new SymbolTable(word, "operator", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <op-" + word + ">";
-			} else if (!firstLetter.equals("=") && (firstLetter.equals("_") || firstLetter.matches("[a-zA-Z ]+")
-					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))) {
+
+			} else if (
+
+			!firstLetter.equals("=") && (firstLetter.equals("_") || firstLetter.matches("[a-zA-Z ]+")
+					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
+
+			) {
+
+				System.out.println("im in the var or identifier");
 				SymbolTable st = new SymbolTable(word, "variable", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <var-" + word + ">";
+
 			} else if (word.matches("[0-9]+")) {
 				SymbolTable st = new SymbolTable(word, "integer", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <int-" + word + ">";
+
 			} else if (firstLetter.equals("=")) {
 				SymbolTable st = new SymbolTable(word, "=", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " =";
+
 			} else {
-				JOptionPane.showMessageDialog(frame, "Error type of token");
-				break wordsLoop;
+
+				JOptionPane.showMessageDialog(frame, "Error token: " + word);
+				return "err";
+
 			}
 		}
 
@@ -812,14 +871,6 @@ public class ExpressionEvaluator {
 		return s != null && s.matches("[-+]?\\d*\\.?\\d+");
 	}
 
-	/**
-	 * Initialize the variables for the program.
-	 */
-	private void initializeVariables() {
-		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
-		fileChooser.setAcceptAllFileFilterUsed(false);
-	}
 }
 
 class SymbolTable {
