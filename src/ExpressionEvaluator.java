@@ -509,7 +509,6 @@ public class ExpressionEvaluator {
 		reader.close();
 		System.out.println(tpOutput.getText());
 		print(tpOutput.getText());
-		System.out.println(fileContent);
 		//}
 		//}
 	}
@@ -521,7 +520,7 @@ public class ExpressionEvaluator {
 			i++;
 		}
 		String var = tokens[i].substring(5, tokens[i].length() - 1);
-
+		aa:
 		for (int index = 0; index < symbolTable.size(); index++) {
 			SymbolTable sb = symbolTable.get(index);
 			if (var.equals(sb.token)) {
@@ -529,6 +528,7 @@ public class ExpressionEvaluator {
 				symbolTable.set(index, sb);
 				System.out.println("Hello: ");
 				showSymbolTable(sb);
+				break aa;
 			}
 		}
 	}
@@ -580,8 +580,6 @@ public class ExpressionEvaluator {
 					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
 
 			) {
-
-				System.out.println("im in the var or identifier");
 				SymbolTable st = new SymbolTable(word, "variable", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
@@ -632,7 +630,7 @@ public class ExpressionEvaluator {
 	}
 
 	private boolean isUndefined(String expr) {
-		String[] tokens = expr.split(" ");
+		String[] tokens = expr.split("\\s");
 
 		for (int i = 0; i < tokens.length; i++) {
 			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
@@ -766,6 +764,8 @@ public class ExpressionEvaluator {
 				System.out.println("IN HERE");
 				showSymbolTable(sb);
 				number = sb.value;
+
+				
 
 				//AHJ: unimplemented; find variable in symbol; if not found, return error
 				// String number = var;
