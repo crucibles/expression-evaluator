@@ -377,7 +377,6 @@ public class ExpressionEvaluator {
 	 * Choose file from the directory
 	 */
 	private void chooseFile() {
-		System.out.println("choose file!");
 		int file = fileChooser.showOpenDialog(frame);
 		if (file == JFileChooser.APPROVE_OPTION) {
 			tfDocUrl.setText(fileChooser.getSelectedFile().getAbsolutePath().toString());
@@ -407,9 +406,8 @@ public class ExpressionEvaluator {
 	 */
 	private void loadFile() {
 		fileContent = "";
-		System.out.println("hello");
+		tpOutput.setText("");
 		if (tfDocUrl.getText().equals("")) {
-			System.out.println("Please choose a file first.");
 			JOptionPane.showMessageDialog(frame, "Please choose a file first.");
 			flag = false;
 		} else if (getExtension(getFileName()).equals("in")) {
@@ -428,13 +426,13 @@ public class ExpressionEvaluator {
 		selectedFile = new FileReader(fileChooser.getSelectedFile().getAbsolutePath());
 		reader = new BufferedReader(selectedFile);
 		String line = reader.readLine();
+		tpOutput.setText("");
 
 		while (line != null) {
 			fileContent += line + "\n";
 
 			//String line = "x = 4 + 2";
 			String lexicalString = lexicalAnalyzer(line);
-			System.out.println(lexicalString);
 			String checker = syntaxAnalyzer(lexicalString);
 
 			LinkedList<String> postFix = new LinkedList<String>();
@@ -445,10 +443,21 @@ public class ExpressionEvaluator {
 				System.out.println("Error in ordering the elements.");
 			} else {
 				String expr = getExpression(lexicalString);
-				postFix = toPostFix(expr);
-				strPostFix = toPostFixString(postFix);
-				result = evaluateExpression(postFix);
-				System.out.println("result = " + result);
+				if (!isUndefined(expr)) {
+					postFix = toPostFix(expr);
+					strPostFix = toPostFixString(postFix);
+					result = evaluateExpression(postFix);
+					storeResult(result, lexicalString);
+					System.out.println("result = " + result);
+				} else {
+					checker = "error";
+				}
+
+				System.out.println("ITERATION #");
+					for (int index = 0; index < symbolTable.size(); index++) {
+						SymbolTable sb = symbolTable.get(index);
+						showSymbolTable(sb);
+					}
 			}
 
 			StyledDocument doc = tpOutput.getStyledDocument();
@@ -457,7 +466,7 @@ public class ExpressionEvaluator {
 				doc.insertString(doc.getLength(), outputLine, null);
 
 				if (checker.substring(0, 3).equals("err")) {
-					outputLine = checker + "\n\n";
+					outputLine = "Result: " + checker + "\n\n";
 					doc.insertString(doc.getLength(), outputLine, null);
 					return;
 				} else {
@@ -479,6 +488,25 @@ public class ExpressionEvaluator {
 		//}
 	}
 
+	private void storeResult(int value, String stmt) {
+		String tokens[] = stmt.split(" ");
+		int i = 0;
+		while (tokens[i].isEmpty()) {
+			i++;
+		}
+		String var = tokens[i].substring(5, tokens[i].length() - 1);
+
+		for (int index = 0; index < symbolTable.size(); index++) {
+			SymbolTable sb = symbolTable.get(index);
+			if (var.equals(sb.token)) {
+				sb.setValue(sb, Integer.toString(value));
+				symbolTable.set(index, sb);
+				System.out.println("Hello: ");
+				showSymbolTable(sb);
+			}
+		}
+	}
+
 	/**
 	 * Return a string into its lexical form
 	 * 
@@ -492,29 +520,24 @@ public class ExpressionEvaluator {
 		String result = "";
 
 		wordsLoop: for (String word : words) {
-			System.out.println(word);
 			String firstLetter = "" + word.charAt(0);
 			if (word.length() == 1 && operator.indexOf(word.charAt(0)) == 0) {
-				System.out.println("im in the op");
 				SymbolTable st = new SymbolTable(word, "operator", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <op-" + word + ">";
 			} else if (!firstLetter.equals("=") && (firstLetter.equals("_") || firstLetter.matches("[a-zA-Z ]+")
 					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))) {
-				System.out.println("im in the var or identifier");
 				SymbolTable st = new SymbolTable(word, "variable", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <var-" + word + ">";
 			} else if (word.matches("[0-9]+")) {
-				System.out.println("im in the integer");
 				SymbolTable st = new SymbolTable(word, "integer", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <int-" + word + ">";
 			} else if (firstLetter.equals("=")) {
-				System.out.println("im in the equal sign");
 				SymbolTable st = new SymbolTable(word, "=", "");
 				showSymbolTable(st);
 				symbolTable.add(st);
@@ -523,9 +546,6 @@ public class ExpressionEvaluator {
 				JOptionPane.showMessageDialog(frame, "Error type of token");
 				break wordsLoop;
 			}
-
-			System.out.println("lexicalAnalyzer" + result);
-
 		}
 
 		/*
@@ -539,6 +559,40 @@ public class ExpressionEvaluator {
 		*/
 
 		return result;
+	}
+
+	private SymbolTable findVariable(String var) {
+		SymbolTable sb = new SymbolTable();
+		for (int index = 0; index < symbolTable.size(); index++) {
+			sb = symbolTable.get(index);
+			if (var.equals(sb.token)) {
+				return sb;
+			}
+		}
+		return null;
+	}
+
+	private boolean isUndefined(String expr) {
+		String[] tokens = expr.split(" ");
+
+		for (int i = 0; i < tokens.length; i++) {
+			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
+				String var = tokens[i].substring(5, tokens[i].length() - 1);
+
+				for (int j = 0; j < symbolTable.size(); j++) {
+					SymbolTable sb = symbolTable.get(j);
+					if (var.equals(sb.token) && sb.value.equals("")) {
+						showSymbolTable(sb);
+						System.out.println("sb.token: " + sb.token);
+						System.out.println("var: " + var);
+						System.out.println("sb.value: " + sb.value);
+						System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOORRRRRRR");
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -567,7 +621,7 @@ public class ExpressionEvaluator {
 		}
 		result.append("}");
 
-		System.out.println(result.toString());
+		System.out.println(result);
 	}
 
 	private String getExpression(String line) {
@@ -576,13 +630,12 @@ public class ExpressionEvaluator {
 	}
 
 	private String syntaxAnalyzer(String line) {
-		System.out.println(line);
 		String[] tokens = line.split("\\s");
 		int index = 0;
 		int eindex = 0;
 
 		for (String token : tokens) {
-			if(!token.isEmpty()){
+			if (!token.isEmpty()) {
 				eindex = index;
 				break;
 			}
@@ -590,7 +643,6 @@ public class ExpressionEvaluator {
 		}
 
 		if (line.contains("=")) {
-			System.out.println("Im: " + tokens[eindex]);
 			String var = tokens[eindex].substring(1, 4);
 			String eq = tokens[eindex + 1];
 			if (!var.equals("var") || !eq.equals("=")) {
@@ -612,7 +664,6 @@ public class ExpressionEvaluator {
 			- adjacent variables
 			*/
 			if (i == tokens.length - 1) {
-				System.out.println();
 				if (!tokens[i].substring(1, 4).equals("int") && !tokens[i].substring(1, 4).equals("var")) {
 					return "error1";
 				} else {
@@ -651,9 +702,15 @@ public class ExpressionEvaluator {
 				postFix.add(number);
 			} else if (tokens[i].substring(1, 4).equals("var")) {
 				String var = tokens[i].substring(5, tokens[i].length() - 1);
+				String number = "";
+				SymbolTable sb = findVariable(var);
+				System.out.println("IN HERE");
+				showSymbolTable(sb);
+				number = sb.value;
+
 				//AHJ: unimplemented; find variable in symbol; if not found, return error
 				// String number = var;
-				String number = "21";
+				//String number = "21";
 				postFix.add(number);
 			} else if (tokens[i].substring(1, 3).equals("op")) {
 				String op = "" + tokens[i].charAt(4);
@@ -667,7 +724,9 @@ public class ExpressionEvaluator {
 			}
 		}
 
-		while (!stack.isEmpty()) {
+		while (!stack.isEmpty())
+
+		{
 			String poppedElem = stack.pop();
 			postFix.add(poppedElem);
 		}
@@ -798,6 +857,7 @@ class SymbolTable {
 
 	public void setValue(SymbolTable st, String value) {
 		st.value = value;
+		this.value = value;
 	}
 
 }
