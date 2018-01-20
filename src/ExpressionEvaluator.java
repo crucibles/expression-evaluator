@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Vector;
+import java.util.LinkedList;
+import java.util.Stack;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -20,13 +22,15 @@ import java.awt.Color;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.StyledDocument;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import java.awt.SystemColor;
 import javax.swing.JTextField;
 import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 
-public class ExpressionEvaluator extends MouseAdapter {
+public class ExpressionEvaluator {
 
 	private JFrame frame;
 
@@ -34,19 +38,12 @@ public class ExpressionEvaluator extends MouseAdapter {
 	private BufferedReader reader;
 	private FileReader selectedFile;
 	private JFileChooser fileChooser = new JFileChooser();
-	private JButton btnOpenFile = new JButton();
-	private JButton btnViewOutput = new JButton();
-	private JButton btnLoadFile = new JButton();
-	private JButton btnChooseFile = new JButton();
-	private JButton btnLoadFile_1 = new JButton();
-	private JButton btnProcess = new JButton();
-	private JLabel btnsmHome_1 = new JLabel("");
-	private JLabel btnsmHome = new JLabel("");
 	private String operator = new String("+-/*%");
 	private Vector<SymbolTable> symbolTable = new Vector<SymbolTable>();
 
-	private JTextField tfDocUrl;
 	private String fileContent = new String("");
+	private JTextField tfDocUrl;
+	private JTextPane tpOutput = new JTextPane();
 
 	/**
 	 * Launch the application.
@@ -85,6 +82,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 		initializeHomePanel();
 		initializeOpenFilePanel();
 		initializeViewOutputPanel();
+		initializeDescriptionPanel();
 	}
 
 	/**
@@ -96,21 +94,32 @@ public class ExpressionEvaluator extends MouseAdapter {
 		frame.getContentPane().add(homePanel, "homePanel");
 		homePanel.setLayout(null);
 
+		JButton btnOpenFile = new JButton();
 		btnOpenFile.setText("Open File");
 		btnOpenFile.setForeground(Color.DARK_GRAY);
 		btnOpenFile.setFont(new Font("Franklin Gothic Book", Font.BOLD, 15));
-		btnOpenFile.setBounds(173, 193, 160, 45);
+		btnOpenFile.setBounds(173, 146, 160, 45);
 		btnOpenFile.setHorizontalAlignment(SwingConstants.CENTER);
 		btnOpenFile.setVerticalTextPosition(JLabel.CENTER);
 		homePanel.add(btnOpenFile);
 
+		JButton btnViewOutput = new JButton();
 		btnViewOutput.setText("View Output");
 		btnViewOutput.setForeground(Color.DARK_GRAY);
 		btnViewOutput.setFont(new Font("Franklin Gothic Book", Font.BOLD, 15));
-		btnViewOutput.setBounds(173, 249, 160, 45);
+		btnViewOutput.setBounds(173, 197, 160, 45);
 		btnViewOutput.setHorizontalAlignment(SwingConstants.CENTER);
 		btnViewOutput.setVerticalTextPosition(JLabel.CENTER);
 		homePanel.add(btnViewOutput);
+
+		JButton btnDescription = new JButton();
+		btnDescription.setVerticalTextPosition(SwingConstants.CENTER);
+		btnDescription.setText("Description");
+		btnDescription.setHorizontalAlignment(SwingConstants.CENTER);
+		btnDescription.setForeground(Color.DARK_GRAY);
+		btnDescription.setFont(new Font("Franklin Gothic Book", Font.BOLD, 15));
+		btnDescription.setBounds(173, 249, 160, 45);
+		homePanel.add(btnDescription);
 
 		JLabel welcomeText = new JLabel("Expression Evaluator Program");
 		welcomeText.setForeground(Color.DARK_GRAY);
@@ -119,8 +128,31 @@ public class ExpressionEvaluator extends MouseAdapter {
 		welcomeText.setBounds(70, 56, 353, 57);
 		homePanel.add(welcomeText);
 
-		btnOpenFile.addMouseListener(this);
-		btnViewOutput.addMouseListener(this);
+		btnOpenFile.addMouseListener(new MouseAdapter() {
+			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				cl.show(frame.getContentPane(), "openFilePanel");
+			}
+		});
+
+		btnViewOutput.addMouseListener(new MouseAdapter() {
+			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				cl.show(frame.getContentPane(), "viewOutputPanel");
+			}
+		});
+		btnDescription.addMouseListener(new MouseAdapter() {
+			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				cl.show(frame.getContentPane(), "descriptionPanel");
+			}
+		});
 	}
 
 	/**
@@ -138,8 +170,9 @@ public class ExpressionEvaluator extends MouseAdapter {
 		programTitle.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 18));
 		programTitle.setBounds(70, 0, 353, 51);
 		openFilePanel.add(programTitle);
-		btnsmHome_1.setBackground(SystemColor.inactiveCaption);
 
+		JLabel btnsmHome_1 = new JLabel("");
+		btnsmHome_1.setBackground(SystemColor.inactiveCaption);
 		btnsmHome_1.setVerticalTextPosition(SwingConstants.CENTER);
 		btnsmHome_1.setHorizontalTextPosition(SwingConstants.CENTER);
 		btnsmHome_1.setForeground(Color.WHITE);
@@ -149,6 +182,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 		btnsmHome_1.setIcon(new ImageIcon(new ImageIcon(this.getClass().getResource("/ts_backButton.png")).getImage()));
 		openFilePanel.add(btnsmHome_1);
 
+		JButton btnLoadFile = new JButton();
 		btnLoadFile.setVerticalTextPosition(SwingConstants.CENTER);
 		btnLoadFile.setText("Load File");
 		btnLoadFile.setHorizontalAlignment(SwingConstants.CENTER);
@@ -157,6 +191,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 		btnLoadFile.setBounds(265, 174, 160, 45);
 		openFilePanel.add(btnLoadFile);
 
+		JButton btnChooseFile = new JButton();
 		btnChooseFile.setVerticalTextPosition(SwingConstants.CENTER);
 		btnChooseFile.setText("Choose File");
 		btnChooseFile.setHorizontalAlignment(SwingConstants.CENTER);
@@ -172,9 +207,29 @@ public class ExpressionEvaluator extends MouseAdapter {
 		openFilePanel.add(tfDocUrl);
 		tfDocUrl.setColumns(10);
 
-		btnChooseFile.addMouseListener(this);
-		btnLoadFile.addMouseListener(this);
-		btnsmHome_1.addMouseListener(this);
+		btnChooseFile.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				chooseFile();
+			}
+		});
+		btnLoadFile.addMouseListener(new MouseAdapter() {
+			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				cl.show(frame.getContentPane(), "viewOutputPanel");
+				loadFile();
+			}
+		});
+		btnsmHome_1.addMouseListener(new MouseAdapter() {
+			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				cl.show(frame.getContentPane(), "homePanel");
+			}
+		});
 	}
 
 	/**
@@ -186,6 +241,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 		viewOutputPanel.setBackground(SystemColor.inactiveCaption);
 		viewOutputPanel.setLayout(null);
 
+		JLabel btnsmHome = new JLabel("");
 		btnsmHome.setVerticalTextPosition(SwingConstants.CENTER);
 		btnsmHome.setHorizontalTextPosition(SwingConstants.CENTER);
 		btnsmHome.setForeground(Color.WHITE);
@@ -194,8 +250,6 @@ public class ExpressionEvaluator extends MouseAdapter {
 		btnsmHome.setToolTipText("Click if you want to go back to the home menu.");
 		btnsmHome.setIcon(new ImageIcon(new ImageIcon(this.getClass().getResource("/ts_backButton.png")).getImage()));
 		viewOutputPanel.add(btnsmHome);
-
-		btnsmHome.addMouseListener(this);
 
 		JLabel programTitle = new JLabel("Expression Evaluator Program");
 		programTitle.setBounds(74, 0, 345, 51);
@@ -212,15 +266,17 @@ public class ExpressionEvaluator extends MouseAdapter {
 		lblOutput.setBounds(20, 42, 85, 27);
 		viewOutputPanel.add(lblOutput);
 
-		btnLoadFile_1.setVerticalTextPosition(SwingConstants.CENTER);
-		btnLoadFile_1.setText("Load File");
-		btnLoadFile_1.setHorizontalAlignment(SwingConstants.CENTER);
-		btnLoadFile_1.setForeground(Color.DARK_GRAY);
-		btnLoadFile_1.setFont(new Font("Franklin Gothic Book", Font.BOLD, 15));
-		btnLoadFile_1.setBounds(20, 260, 160, 34);
-		btnLoadFile_1.setToolTipText("Click here if you made changes to the input file and want to load it again.");
-		viewOutputPanel.add(btnLoadFile_1);
+		JButton btnLoadFile = new JButton();
+		btnLoadFile.setVerticalTextPosition(SwingConstants.CENTER);
+		btnLoadFile.setText("Load File");
+		btnLoadFile.setHorizontalAlignment(SwingConstants.CENTER);
+		btnLoadFile.setForeground(Color.DARK_GRAY);
+		btnLoadFile.setFont(new Font("Franklin Gothic Book", Font.BOLD, 15));
+		btnLoadFile.setBounds(20, 260, 160, 34);
+		btnLoadFile.setToolTipText("Click here if you made changes to the input file and want to load it again.");
+		viewOutputPanel.add(btnLoadFile);
 
+		JButton btnProcess = new JButton();
 		btnProcess.setVerticalTextPosition(SwingConstants.CENTER);
 		btnProcess.setText("Process");
 		btnProcess.setHorizontalAlignment(SwingConstants.CENTER);
@@ -230,12 +286,89 @@ public class ExpressionEvaluator extends MouseAdapter {
 		btnProcess.setToolTipText("Click here if you want to process the most recently opened file.");
 		viewOutputPanel.add(btnProcess);
 
-		JScrollPane spOutput = new JScrollPane();
+		JScrollPane spOutput;
+		spOutput = new JScrollPane();
 		spOutput.setBounds(20, 80, 447, 176);
 		viewOutputPanel.add(spOutput);
 
-		btnLoadFile_1.addMouseListener(this);
-		btnProcess.addMouseListener(this);
+		tpOutput.setEditable(false);
+		tpOutput.setFont(new Font("Arial", Font.PLAIN, 13));
+		spOutput.setViewportView(tpOutput);
+
+		btnLoadFile.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				loadFile();
+			}
+		});
+		btnProcess.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+					process();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnsmHome.addMouseListener(new MouseAdapter() {
+			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				cl.show(frame.getContentPane(), "homePanel");
+			}
+		});
+	}
+
+	private void initializeDescriptionPanel() {
+		JPanel descriptionPanel = new JPanel();
+		descriptionPanel.setLayout(null);
+		descriptionPanel.setBackground(SystemColor.inactiveCaption);
+		frame.getContentPane().add(descriptionPanel, "descriptionPanel");
+
+		JLabel smbtnHome = new JLabel("");
+		smbtnHome.setVerticalTextPosition(SwingConstants.CENTER);
+		smbtnHome.setToolTipText("Click if you want to go back to the home menu.");
+		smbtnHome.setHorizontalTextPosition(SwingConstants.CENTER);
+		smbtnHome.setForeground(Color.WHITE);
+		smbtnHome.setFont(new Font("BubbleGum", Font.PLAIN, 20));
+		smbtnHome.setIcon(new ImageIcon(new ImageIcon(this.getClass().getResource("/ts_backButton.png")).getImage()));
+		smbtnHome.setBounds(443, 11, 40, 40);
+		descriptionPanel.add(smbtnHome);
+
+		smbtnHome.addMouseListener(new MouseAdapter() {
+			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				cl.show(frame.getContentPane(), "homePanel");
+			}
+		});
+
+		JLabel label_1 = new JLabel("Expression Evaluator Program");
+		label_1.setHorizontalAlignment(SwingConstants.CENTER);
+		label_1.setForeground(Color.DARK_GRAY);
+		label_1.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 18));
+		label_1.setBounds(74, 0, 345, 51);
+		descriptionPanel.add(label_1);
+
+		JLabel lblDescrpt = new JLabel("Program Description:");
+		lblDescrpt.setHorizontalAlignment(SwingConstants.LEFT);
+		lblDescrpt.setForeground(Color.DARK_GRAY);
+		lblDescrpt.setFont(new Font("Franklin Gothic Book", Font.PLAIN, 15));
+		lblDescrpt.setBounds(20, 42, 145, 27);
+		descriptionPanel.add(lblDescrpt);
+
+		JScrollPane spDescription = new JScrollPane();
+		spDescription.setBounds(20, 80, 447, 214);
+		descriptionPanel.add(spDescription);
+
+		JTextPane tpDescription = new JTextPane();
+		tpDescription.setEditable(false);
+		tpDescription.setFont(new Font("Arial", Font.PLAIN, 13));
+		spDescription.setViewportView(tpDescription);
 	}
 
 	/**
@@ -301,24 +434,43 @@ public class ExpressionEvaluator extends MouseAdapter {
 			String lexicalString = lexicalAnalyzer(line);
 			System.out.println(lexicalString);
 			String checker = syntaxAnalyzer(lexicalString);
-			if (checker.equals("err")) {
+
+			LinkedList<String> postFix = new LinkedList<String>();
+			int result = 0;
+
+			if (checker.substring(0, 3).equals("err")) {
 				System.out.println("Error in ordering the elements.");
 			} else {
-				//String expr = getExpression(lexicalString);
-				//String postFix = toPostFix(expr);
-				//int result = evaluateExpression(postFix);
+				String expr = getExpression(lexicalString);
+				postFix = toPostFix(expr);
+				result = evaluateExpression(postFix);
+				System.out.println("result = " + result);
 			}
+
+			StyledDocument doc = tpOutput.getStyledDocument();
+			try {
+				String outputLine = "Line1: " + line + "\n";
+				doc.insertString(doc.getLength(), outputLine, null);
+
+				if (checker.substring(0, 3).equals("err")) {
+					outputLine = checker + "\n\n";
+					doc.insertString(doc.getLength(), outputLine, null);
+					return;
+				} else {
+					outputLine = "Postfix: " + postFix + "\n";
+					doc.insertString(doc.getLength(), outputLine, null);
+
+					outputLine = "Result: " + result + "\n\n";
+					doc.insertString(doc.getLength(), outputLine, null);
+				}
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+
 			line = reader.readLine();
 		}
 		reader.close();
 		System.out.println(fileContent);
-		//AHJ: unimplemented; checks if there is a local file already stored. If yes, process. If no, show error message
-
-		//<---- codes here for file checking
-
-		//AHJ: loop here the lines of codes
-		//for(){
-
 		//}
 		//}
 	}
@@ -326,15 +478,16 @@ public class ExpressionEvaluator extends MouseAdapter {
 	/**
 	 * Return a string into its lexical form
 	 * 
-	 * @input String:  x = 2 + 2 
-	 * @Output String: <var-x> = <int-2> <op-+> <int-2>
+	 * @param String:  x = 2 + 2 
+	 * @return String: with a format <var-x> = <int-2> <op-+> <int-2>
+	 * @see wordsLoop, is a loop that iterates each word found in each line of the .in file
 	 * 
 	 */
 	private String lexicalAnalyzer(String line) {
 		String[] words = line.split("\\s");
 		String result = "";
 
-		for (String word : words) {
+		wordsLoop: for (String word : words) {
 			System.out.println(word);
 			String firstLetter = "" + word.charAt(0);
 			if (word.length() == 1 && operator.indexOf(word.charAt(0)) == 0) {
@@ -356,11 +509,18 @@ public class ExpressionEvaluator extends MouseAdapter {
 				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <int-" + word + ">";
+			} else if (firstLetter.equals("=")) {
+				System.out.println("im in the equal sign");
+				SymbolTable st = new SymbolTable(word, "=", "");
+				showSymbolTable(st);
+				symbolTable.add(st);
+				result += " =";
 			} else {
-				System.out.println("What is this word?!!!");
+				JOptionPane.showMessageDialog(frame, "Error type of token");
+				break wordsLoop;
 			}
 
-			System.out.println(result);
+			System.out.println("lexicalAnalyzer" + result);
 
 		}
 
@@ -374,7 +534,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 		
 		*/
 
-		return "done";
+		return result;
 	}
 
 	/**
@@ -406,6 +566,179 @@ public class ExpressionEvaluator extends MouseAdapter {
 		System.out.println(result.toString());
 	}
 
+	private String getExpression(String line) {
+		int index = line.lastIndexOf("=");
+		return line.substring(index + 1, line.length());
+	}
+
+	private String syntaxAnalyzer(String line) {
+		System.out.println(line);
+		String[] tokens = line.split(" ");
+		int index = 0;
+		int eindex = 0;
+		
+		for (String token : tokens) {
+			System.out.println(token);
+			if(!token.isEmpty()){
+				eindex = index;
+			}
+			index++;
+		}
+
+		if (line.contains("=")) {
+			System.out.println("Im: "+tokens[eindex]);
+			String var = tokens[eindex].substring(1, 4);
+			String eq = tokens[eindex+1];
+			if (!var.equals("var") || !eq.equals("=")) {
+				return "err";
+			}
+		}
+
+		tokens = getExpression(line).split(" ");
+		for (int i = 0; i < tokens.length; i++) {
+
+			if (tokens[i].isEmpty()) {
+				continue;
+			}
+
+			/*
+			returns error if...
+			- end of the expression is not a variable or a number
+			- operator not surround by number/var
+			- adjacent variables
+			*/
+			if (i == tokens.length - 1) {
+				System.out.println();
+				if (!tokens[i].substring(1, 4).equals("int") && !tokens[i].substring(1, 4).equals("var")) {
+					return "error1";
+				} else {
+					return "accept";
+				}
+			} else if (tokens[i].substring(1, 3).equals("op")
+					&& !(tokens[i - 1].substring(1, 4).equals("int") || tokens[i - 1].substring(1, 4).equals("var"))
+					&& !(tokens[i + 1].substring(1, 4).equals("int") || tokens[i + 1].substring(1, 4).equals("var"))) {
+				return "error2";
+			} else if ((tokens[i].substring(1, 4).equals("var") || tokens[i].substring(1, 4).equals("int"))
+					&& (tokens[i + 1].substring(1, 4).equals("var") || tokens[i + 1].substring(1, 4).equals("int"))) {
+				return "error3";
+			}
+
+		}
+		return "accept";
+
+	}
+
+	/**
+	 * Returns the postfix form of an expression
+	 * @
+	 */
+	private LinkedList<String> toPostFix(String expr) {
+		Stack<String> stack = new Stack<String>();
+		LinkedList<String> postFix = new LinkedList<String>();
+		String[] tokens = expr.split(" ");
+		for (int i = 0; i < tokens.length; i++) {
+
+			if (tokens[i].isEmpty()) {
+				continue;
+			}
+
+			if (tokens[i].substring(1, 4).equals("int")) {
+				String number = tokens[i].substring(5, tokens[i].length() - 1);
+				postFix.add(number);
+			} else if (tokens[i].substring(1, 4).equals("var")) {
+				String var = tokens[i].substring(5, tokens[i].length() - 1);
+				//AHJ: unimplemented; find variable in symbol; if not found, return error
+				// String number = var;
+				String number = "21";
+				postFix.add(number);
+			} else if (tokens[i].substring(1, 3).equals("op")) {
+				String op = "" + tokens[i].charAt(4);
+				if (!stack.isEmpty()) {
+					while (!stack.isEmpty() && isHighOrEqualPrecedence(stack.peek(), op)) {
+						String poppedElem = stack.pop();
+						postFix.add(poppedElem);
+					}
+				}
+				stack.push(op);
+			}
+		}
+
+		while (!stack.isEmpty()) {
+			String poppedElem = stack.pop();
+			postFix.add(poppedElem);
+		}
+
+		return postFix;
+	}
+
+	private boolean isHighOrEqualPrecedence(String firstElem, String secondElem) {
+		int firstPrec = 0;
+		switch (firstElem) {
+		case "/":
+		case "*":
+			firstPrec = 2;
+			break;
+		case "+":
+		case "-":
+			firstPrec = 1;
+			break;
+		}
+
+		int secondPrec = 0;
+		switch (secondElem) {
+		case "/":
+		case "*":
+			secondPrec = 2;
+			break;
+		case "+":
+		case "-":
+			secondPrec = 1;
+			break;
+		}
+
+		if (firstPrec >= secondPrec) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private int evaluateExpression(LinkedList<String> postFix) {
+		Stack<String> stack = new Stack<String>();
+		while (!postFix.isEmpty()) {
+			String poppedElem = postFix.pop().toString();
+			if (isNumeric(poppedElem)) {
+				stack.push(poppedElem);
+			} else {
+				int firstElem = Integer.parseInt(stack.pop());
+				int secondElem = Integer.parseInt(stack.pop());
+				int result = 0;
+				switch (poppedElem) {
+				case "+":
+					result = firstElem + secondElem;
+					break;
+				case "-":
+					result = firstElem - secondElem;
+					break;
+				case "*":
+					result = firstElem * secondElem;
+					break;
+				case "/":
+					result = firstElem / secondElem;
+					break;
+				}
+				stack.push(Integer.toString(result));
+			}
+		}
+
+		int answer = Integer.parseInt(stack.pop());
+		return answer;
+	}
+
+	public boolean isNumeric(String s) {
+		return s != null && s.matches("[-+]?\\d*\\.?\\d+");
+	}
+
 	/**
 	 * Initialize the variables for the program.
 	 */
@@ -413,51 +746,6 @@ public class ExpressionEvaluator extends MouseAdapter {
 		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
 		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
 		fileChooser.setAcceptAllFileFilterUsed(false);
-	}
-
-	private String syntaxAnalyzer(String lexString) {
-		return "err";
-	}
-
-	private boolean semanticAnalyzer() {
-		return false;
-	}
-
-	/**
-	 * Returns the postfix form of an expression
-	 */
-	private String toPostFix() {
-		return "String";
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
-		if (e.getSource() == btnOpenFile) {
-			cl.show(frame.getContentPane(), "openFilePanel");
-		} else if (e.getSource() == btnViewOutput) {
-			cl.show(frame.getContentPane(), "viewOutputPanel");
-		} else if (e.getSource() == btnsmHome_1 || e.getSource() == btnsmHome) {
-			cl.show(frame.getContentPane(), "homePanel");
-		}
-
-		if (e.getSource() == btnChooseFile) {
-			chooseFile();
-		}
-		if (e.getSource() == btnProcess) {
-			try {
-				process();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-		if (e.getSource() == btnLoadFile || e.getSource() == btnLoadFile_1) {
-			loadFile();
-			if (e.getSource() == btnLoadFile && flag == true) {
-				cl.show(frame.getContentPane(), "viewOutputPanel");
-			}
-		}
 	}
 }
 
