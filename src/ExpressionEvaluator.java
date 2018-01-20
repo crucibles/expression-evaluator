@@ -218,8 +218,10 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				cl.show(frame.getContentPane(), "viewOutputPanel");
 				loadFile();
+				if (flag == true) {
+					cl.show(frame.getContentPane(), "viewOutputPanel");
+				}
 			}
 		});
 		btnsmHome_1.addMouseListener(new MouseAdapter() {
@@ -453,7 +455,7 @@ public class ExpressionEvaluator {
 				String outputLine = "Line1: " + line + "\n";
 				outputLine = "Postfix: " + strPostFix + "\n";
 				doc.insertString(doc.getLength(), outputLine, null);
-				
+
 				outputLine = "Result: " + result + "\n\n";
 				doc.insertString(doc.getLength(), outputLine, null);
 
@@ -578,22 +580,23 @@ public class ExpressionEvaluator {
 
 	private String syntaxAnalyzer(String line) {
 		System.out.println(line);
-		String[] tokens = line.split(" ");
+		String[] tokens = line.split("\\s");
 		int index = 0;
 		int eindex = 0;
-		
+
 		for (String token : tokens) {
 			System.out.println(token);
-			if(!token.isEmpty()){
+			if (!token.isEmpty()) {
 				eindex = index;
+				break;
 			}
 			index++;
 		}
 
 		if (line.contains("=")) {
-			System.out.println("Im: "+tokens[eindex]);
+			System.out.println("Im: " + tokens[eindex]);
 			String var = tokens[eindex].substring(1, 4);
-			String eq = tokens[eindex+1];
+			String eq = tokens[eindex + 1];
 			if (!var.equals("var") || !eq.equals("=")) {
 				return "err";
 			}
@@ -676,10 +679,10 @@ public class ExpressionEvaluator {
 		return postFix;
 	}
 
-	private String toPostFixString(LinkedList<String> postFix){
+	private String toPostFixString(LinkedList<String> postFix) {
 		String strPostFix = "";
-		
-		for(int i = 0; i < postFix.size(); i++){
+
+		for (int i = 0; i < postFix.size(); i++) {
 			strPostFix += postFix.get(i) + " ";
 		}
 
