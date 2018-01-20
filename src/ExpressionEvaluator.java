@@ -2,12 +2,8 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.nio.file.Files;
-import java.util.LinkedList;
-
-import javax.swing.JFileChooser;
-import java.io.File;
-import java.lang.reflect.Array;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -18,9 +14,6 @@ import java.awt.Color;
 
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
-
 import javax.swing.JButton;
 import java.awt.SystemColor;
 import javax.swing.JTextField;
@@ -31,8 +24,6 @@ public class ExpressionEvaluator extends MouseAdapter {
 	private JFrame frame;
 	private Files inputFile;
 
-	private JFileChooser fileChooser = new JFileChooser();
-
 	private JButton btnOpenFile = new JButton();
 	private JButton btnViewOutput = new JButton();
 	private JButton btnLoadFile = new JButton();
@@ -42,7 +33,6 @@ public class ExpressionEvaluator extends MouseAdapter {
 	private JLabel btnsmHome_1 = new JLabel("");
 	private JLabel btnsmHome = new JLabel("");
 
-	private JLabel grid[][] = new JLabel[3][3];
 	private JTextField tfDocUrl;
 
 	/**
@@ -65,17 +55,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 	 * Create the application.
 	 */
 	public ExpressionEvaluator() {
-		initializeVariables();
 		initializeFrameContents();
-	}
-
-	/**
-	 * Initialize the variables for the program.
-	 */
-	private void initializeVariables() {
-		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
-		fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
 	/**
@@ -224,6 +204,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 		btnLoadFile_1.setForeground(Color.DARK_GRAY);
 		btnLoadFile_1.setFont(new Font("Franklin Gothic Book", Font.BOLD, 15));
 		btnLoadFile_1.setBounds(20, 260, 160, 34);
+		btnLoadFile_1.setToolTipText("Click here if you made changes to the input file and want to load it again.");
 		viewOutputPanel.add(btnLoadFile_1);
 
 		btnProcess.setVerticalTextPosition(SwingConstants.CENTER);
@@ -232,6 +213,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 		btnProcess.setForeground(Color.DARK_GRAY);
 		btnProcess.setFont(new Font("Franklin Gothic Book", Font.BOLD, 15));
 		btnProcess.setBounds(306, 259, 160, 36);
+		btnProcess.setToolTipText("Click here if you want to process the most recently opened file.");
 		viewOutputPanel.add(btnProcess);
 
 		JScrollPane spOutput = new JScrollPane();
@@ -247,24 +229,6 @@ public class ExpressionEvaluator extends MouseAdapter {
 	 */
 	private void chooseFile() {
 		System.out.println("choose file!");
-		int file = fileChooser.showOpenDialog(frame);
-		if (file == JFileChooser.APPROVE_OPTION) {
-			System.out.println("You chose to open this file: " + fileChooser.getSelectedFile().getAbsolutePath());
-			File selectedFile = new File(fileChooser.getSelectedFile().getAbsolutePath());
-			//get the extension of the file
-			System.out.println(getExtension(fileChooser.getSelectedFile().getName()));
-
-			tfDocUrl.setText(fileChooser.getSelectedFile().getAbsolutePath().toString());
-		}
-	}
-
-	/**
-	 * Gets the extension of the file selected.
-	 */
-	private String getExtension(String fileName) {
-		System.out.println(fileName);
-		int index = fileName.indexOf(".");
-		return fileName.substring(index + 1, fileName.length());
 	}
 
 	/**
@@ -275,15 +239,35 @@ public class ExpressionEvaluator extends MouseAdapter {
 	}
 
 	/**
-	 * Processes the most recently opened valid file.
-	 * @description Processes the most recently opened valid file. Only works if there has bee a valid file opened.
+	 * Processes the most recently opened valid file. Only works if there has been a valid file opened.
 	 */
 	private void process() {
+		//AHJ: unimplemented; checks if there is a local file already stored. If yes, process. If no, show error message
+
+		//<---- codes here for file checking
+
+		//AHJ: loop here the lines of codes
+		//for(){
+		syntaxAnalyzer();
+		semanticAnalyzer();
+		toPostFix();
+		//}
+	}
+
+	private boolean syntaxAnalyzer() {
+		return false;
 
 	}
 
-	private void lexicalAnalyzer() {
-		
+	private boolean semanticAnalyzer() {
+		return false;
+	}
+
+	/**
+	 * Returns the postfix form of an expression
+	 */
+	private String toPostFix(){
+		return "String";
 	}
 
 	@Override
