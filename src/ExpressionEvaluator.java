@@ -3,6 +3,7 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
+import java.io.File;
 import java.nio.file.Files;
 
 import javax.swing.ImageIcon;
@@ -14,7 +15,9 @@ import java.awt.Color;
 
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import java.awt.SystemColor;
 import javax.swing.JTextField;
 import javax.swing.JScrollPane;
@@ -23,6 +26,8 @@ public class ExpressionEvaluator extends MouseAdapter {
 
 	private JFrame frame;
 	private Files inputFile;
+
+	private JFileChooser fileChooser;
 
 	private JButton btnOpenFile = new JButton();
 	private JButton btnViewOutput = new JButton();
@@ -55,6 +60,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 	 * Create the application.
 	 */
 	public ExpressionEvaluator() {
+		initializeVariables();
 		initializeFrameContents();
 	}
 
@@ -229,6 +235,24 @@ public class ExpressionEvaluator extends MouseAdapter {
 	 */
 	private void chooseFile() {
 		System.out.println("choose file!");
+		int file = fileChooser.showOpenDialog(frame);
+		if (file == JFileChooser.APPROVE_OPTION) {
+			System.out.println("You chose to open this file: " + fileChooser.getSelectedFile().getAbsolutePath());
+			File selectedFile = new File(fileChooser.getSelectedFile().getAbsolutePath());
+			//get the extension of the file
+			System.out.println(getExtension(fileChooser.getSelectedFile().getName()));
+
+			tfDocUrl.setText(fileChooser.getSelectedFile().getAbsolutePath().toString());
+		}
+	}
+
+	/**
+	 * Gets the extension of the file selected.
+	 */
+	private String getExtension(String fileName) {
+		System.out.println(fileName);
+		int index = fileName.indexOf(".");
+		return fileName.substring(index + 1, fileName.length());
 	}
 
 	/**
@@ -252,6 +276,15 @@ public class ExpressionEvaluator extends MouseAdapter {
 		semanticAnalyzer();
 		toPostFix();
 		//}
+	}
+
+	/**
+	 * Initialize the variables for the program.
+	 */
+	private void initializeVariables() {
+		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
+		fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
 	private boolean syntaxAnalyzer() {
