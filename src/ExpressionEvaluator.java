@@ -7,8 +7,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
-
+import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -41,6 +42,8 @@ public class ExpressionEvaluator extends MouseAdapter {
 	private JButton btnProcess = new JButton();
 	private JLabel btnsmHome_1 = new JLabel("");
 	private JLabel btnsmHome = new JLabel("");
+	private String operator = new String("+-/*%");
+	private Vector<SymbolTable> symbolTable = new Vector<SymbolTable>();
 
 	private JTextField tfDocUrl;
 	private String fileContent = new String("");
@@ -282,7 +285,9 @@ public class ExpressionEvaluator extends MouseAdapter {
 
 	/**
 	 * Processes the most recently opened valid file. Only works if there has been a valid file opened.
+	 * 
 	 * @throws IOException
+	 * @return <var-x> = <int-10> <op-+> <int-31>
 	 */
 	private void process() throws IOException {
 		selectedFile = new FileReader(fileChooser.getSelectedFile().getAbsolutePath());
@@ -290,7 +295,19 @@ public class ExpressionEvaluator extends MouseAdapter {
 		String line = reader.readLine();
 
 		while (line != null) {
-			fileContent += line;
+			fileContent += line + "\n";
+
+			//String line = "x = 4 + 2";
+			String lexicalString = lexicalAnalyzer(line);
+			System.out.println(lexicalString);
+			String checker = syntaxAnalyzer(lexicalString);
+			if (checker.equals("err")) {
+				System.out.println("Error in ordering the elements.");
+			} else {
+				//String expr = getExpression(lexicalString);
+				//String postFix = toPostFix(expr);
+				//int result = evaluateExpression(postFix);
+			}
 			line = reader.readLine();
 		}
 		reader.close();
@@ -301,10 +318,92 @@ public class ExpressionEvaluator extends MouseAdapter {
 
 		//AHJ: loop here the lines of codes
 		//for(){
-		syntaxAnalyzer();
-		semanticAnalyzer();
-		toPostFix();
+
 		//}
+		//}
+	}
+
+	/**
+	 * Return a string into its lexical form
+	 * 
+	 * @input String:  x = 2 + 2 
+	 * @Output String: <var-x> = <int-2> <op-+> <int-2>
+	 * 
+	 */
+	private String lexicalAnalyzer(String line) {
+		String[] words = line.split("\\s");
+		String result = "";
+
+		for (String word : words) {
+			System.out.println(word);
+			String firstLetter = "" + word.charAt(0);
+			if (word.length() == 1 && operator.indexOf(word.charAt(0)) == 0) {
+				System.out.println("im in the op");
+				SymbolTable st = new SymbolTable(word, "operator", "");
+				showSymbolTable(st);
+				symbolTable.add(st);
+				result += " <op-" + word + ">";
+			} else if (!firstLetter.equals("=") && (firstLetter.equals("_") || firstLetter.matches("[a-zA-Z ]+")
+					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))) {
+				System.out.println("im in the var or identifier");
+				SymbolTable st = new SymbolTable(word, "variable", "");
+				showSymbolTable(st);
+				symbolTable.add(st);
+				result += " <var-" + word + ">";
+			} else if (word.matches("[0-9]+")) {
+				System.out.println("im in the integer");
+				SymbolTable st = new SymbolTable(word, "integer", "");
+				showSymbolTable(st);
+				symbolTable.add(st);
+				result += " <int-" + word + ">";
+			} else {
+				System.out.println("What is this word?!!!");
+			}
+
+			System.out.println(result);
+
+		}
+
+		/*
+		Sample snippet for accessing/updating the symbol table
+		
+		for (int index = 0; index < symbolTable.size(); index++) {
+			SymbolTable sb = symbolTable.get(index);
+			System.out.println("The current token" + sb.token);
+		}
+		
+		*/
+
+		return "done";
+	}
+
+	/**
+	 * Accessing the fields of a symbol table in a string
+	 */
+	private void showSymbolTable(SymbolTable st) {
+
+		StringBuilder result = new StringBuilder();
+		String newLine = System.getProperty("line.separator");
+
+		result.append(st.getClass().getName());
+		result.append(" Object {");
+		result.append(newLine);
+
+		Field[] fields = st.getClass().getDeclaredFields();
+		for (Field field : fields) {
+			result.append("  ");
+			try {
+				result.append(field.getName());
+				result.append(": ");
+				result.append(field.get(st));
+			} catch (IllegalAccessException ex) {
+				System.out.println(ex);
+			}
+			result.append(newLine);
+		}
+		result.append("}");
+
+		System.out.println(result.toString());
 	}
 
 	/**
@@ -316,8 +415,8 @@ public class ExpressionEvaluator extends MouseAdapter {
 		fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
-	private boolean syntaxAnalyzer() {
-		return false;
+	private String syntaxAnalyzer(String lexString) {
+		return "err";
 	}
 
 	private boolean semanticAnalyzer() {
@@ -346,7 +445,12 @@ public class ExpressionEvaluator extends MouseAdapter {
 			chooseFile();
 		}
 		if (e.getSource() == btnProcess) {
-			process();
+			try {
+				process();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 		if (e.getSource() == btnLoadFile || e.getSource() == btnLoadFile_1) {
 			loadFile();
@@ -355,4 +459,43 @@ public class ExpressionEvaluator extends MouseAdapter {
 			}
 		}
 	}
+}
+
+class SymbolTable {
+	String token;
+	String type;
+	String value;
+
+	public SymbolTable() {
+
+	}
+
+	public SymbolTable(String token, String type, String value) {
+		this.token = token;
+		this.type = type;
+		this.value = value;
+	}
+
+	public SymbolTable(String token, String type) {
+		this.token = token;
+		this.type = type;
+		this.value = "";
+	}
+
+	public String getToken(SymbolTable st) {
+		return st.token;
+	}
+
+	public String getType(SymbolTable st) {
+		return st.type;
+	}
+
+	public String getValue(SymbolTable st) {
+		return st.value;
+	}
+
+	public void setValue(SymbolTable st, String value) {
+		st.value = value;
+	}
+
 }
