@@ -444,6 +444,7 @@ public class ExpressionEvaluator {
 			} else {
 				String expr = getExpression(lexicalString);
 				postFix = toPostFix(expr);
+				strPostFix = toPostFixString(postFix);
 				result = evaluateExpression(postFix);
 				System.out.println("result = " + result);
 			}
@@ -451,10 +452,6 @@ public class ExpressionEvaluator {
 			StyledDocument doc = tpOutput.getStyledDocument();
 			try {
 				String outputLine = "Line1: " + line + "\n";
-				outputLine = "Postfix: " + strPostFix + "\n";
-				doc.insertString(doc.getLength(), outputLine, null);
-				
-				outputLine = "Result: " + result + "\n\n";
 				doc.insertString(doc.getLength(), outputLine, null);
 
 				if (checker.substring(0, 3).equals("err")) {
@@ -462,7 +459,7 @@ public class ExpressionEvaluator {
 					doc.insertString(doc.getLength(), outputLine, null);
 					return;
 				} else {
-					outputLine = "Postfix: " + postFix + "\n";
+					outputLine = "Postfix: " + strPostFix + "\n";
 					doc.insertString(doc.getLength(), outputLine, null);
 
 					outputLine = "Result: " + result + "\n\n";
@@ -583,9 +580,9 @@ public class ExpressionEvaluator {
 		int eindex = 0;
 		
 		for (String token : tokens) {
-			System.out.println(token);
 			if(!token.isEmpty()){
 				eindex = index;
+				break;
 			}
 			index++;
 		}
