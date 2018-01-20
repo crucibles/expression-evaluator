@@ -4,12 +4,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-
+import javax.swing.JOptionPane;
 import java.awt.CardLayout;
 import java.awt.Color;
 
@@ -25,10 +28,11 @@ import javax.swing.JScrollPane;
 public class ExpressionEvaluator extends MouseAdapter {
 
 	private JFrame frame;
-	private Files inputFile;
 
-	private JFileChooser fileChooser;
-
+	private boolean flag = true;
+	private BufferedReader reader;
+	private FileReader selectedFile;
+	private JFileChooser fileChooser = new JFileChooser();
 	private JButton btnOpenFile = new JButton();
 	private JButton btnViewOutput = new JButton();
 	private JButton btnLoadFile = new JButton();
@@ -39,6 +43,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 	private JLabel btnsmHome = new JLabel("");
 
 	private JTextField tfDocUrl;
+	private String fileContent = new String("");
 
 	/**
 	 * Launch the application.
@@ -237,35 +242,59 @@ public class ExpressionEvaluator extends MouseAdapter {
 		System.out.println("choose file!");
 		int file = fileChooser.showOpenDialog(frame);
 		if (file == JFileChooser.APPROVE_OPTION) {
-			System.out.println("You chose to open this file: " + fileChooser.getSelectedFile().getAbsolutePath());
-			File selectedFile = new File(fileChooser.getSelectedFile().getAbsolutePath());
-			//get the extension of the file
-			System.out.println(getExtension(fileChooser.getSelectedFile().getName()));
-
 			tfDocUrl.setText(fileChooser.getSelectedFile().getAbsolutePath().toString());
+		} else {
+
 		}
+	}
+
+	/**
+	 * Gets the name of the file selected.
+	 */
+	private String getFileName() {
+		return fileChooser.getSelectedFile().getName();
 	}
 
 	/**
 	 * Gets the extension of the file selected.
 	 */
 	private String getExtension(String fileName) {
-		System.out.println(fileName);
-		int index = fileName.indexOf(".");
+		int index = fileName.lastIndexOf(".");
 		return fileName.substring(index + 1, fileName.length());
 	}
 
 	/**
 	 * Load the file of the given url
+	 * 
 	 */
 	private void loadFile() {
-		System.out.println("load file!");
+		fileContent = "";
+		System.out.println("hello");
+		if (tfDocUrl.getText().equals("")) {
+			System.out.println("Please choose a file first.");
+			JOptionPane.showMessageDialog(frame, "Please choose a file first.");
+			flag = false;
+		} else if (getExtension(getFileName()).equals("in")) {
+			flag = true;
+			System.out.println("loading a valid file...");
+		}
 	}
 
 	/**
 	 * Processes the most recently opened valid file. Only works if there has been a valid file opened.
+	 * @throws IOException
 	 */
-	private void process() {
+	private void process() throws IOException {
+		selectedFile = new FileReader(fileChooser.getSelectedFile().getAbsolutePath());
+		reader = new BufferedReader(selectedFile);
+		String line = reader.readLine();
+
+		while (line != null) {
+			fileContent += line;
+			line = reader.readLine();
+		}
+		reader.close();
+		System.out.println(fileContent);
 		//AHJ: unimplemented; checks if there is a local file already stored. If yes, process. If no, show error message
 
 		//<---- codes here for file checking
@@ -289,7 +318,6 @@ public class ExpressionEvaluator extends MouseAdapter {
 
 	private boolean syntaxAnalyzer() {
 		return false;
-
 	}
 
 	private boolean semanticAnalyzer() {
@@ -299,7 +327,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 	/**
 	 * Returns the postfix form of an expression
 	 */
-	private String toPostFix(){
+	private String toPostFix() {
 		return "String";
 	}
 
@@ -322,7 +350,7 @@ public class ExpressionEvaluator extends MouseAdapter {
 		}
 		if (e.getSource() == btnLoadFile || e.getSource() == btnLoadFile_1) {
 			loadFile();
-			if (e.getSource() == btnLoadFile) {
+			if (e.getSource() == btnLoadFile && flag == true) {
 				cl.show(frame.getContentPane(), "viewOutputPanel");
 			}
 		}
