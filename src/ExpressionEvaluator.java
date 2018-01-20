@@ -401,7 +401,7 @@ public class ExpressionEvaluator{
 		String checker = syntaxAnalyzer(lexicalString);
 		System.out.println(checker);
 		
-		LinkedList<String> postFix = new LinkedList<String>();
+		String strPostFix = "";
 		int result = 0;
 		if (checker.substring(0, 3).equals("err")) {
 			System.out.println("Error in ordering the elements.");
@@ -409,12 +409,12 @@ public class ExpressionEvaluator{
 			//continue;
 		} else {
 			String expr = getExpression(lexicalString);
-			postFix = toPostFix(expr);
+			LinkedList<String> postFix = toPostFix(expr);
+			strPostFix = toPostFixString(postFix);
 			result = evaluateExpression(postFix);
 			System.out.println("result = " + result);
+			System.out.println(strPostFix);
 		}
-		
-		System.out.println(postFix);
 		
 		StyledDocument doc = tpOutput.getStyledDocument();
 		try
@@ -427,7 +427,7 @@ public class ExpressionEvaluator{
 				doc.insertString(doc.getLength(), outputLine, null);
 				return;
 			} else {
-				outputLine = "Postfix: " + postFix + "\n";
+				outputLine = "Postfix: " + strPostFix + "\n";
 				doc.insertString(doc.getLength(), outputLine, null);
 				
 				outputLine = "Result: " + result + "\n\n";
@@ -532,6 +532,16 @@ public class ExpressionEvaluator{
 		}
 
 		return postFix;
+	}
+
+	private String toPostFixString(LinkedList<String> postFix){
+		String strPostFix = "";
+		
+		for(int i = 0; i < postFix.size(); i++){
+			strPostFix += postFix.get(i) + " ";
+		}
+
+		return strPostFix;
 	}
 
 	private boolean isHighOrEqualPrecedence(String firstElem, String secondElem) {
