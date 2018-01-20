@@ -1,0 +1,8 @@
+Line1: x = 2 + 5
+Postfix: 2 5 + 
+Result: 7
+
+Line1: y = x + 12
+Postfix: 7 12 + 
+Result: 19
+

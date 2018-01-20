@@ -467,20 +467,17 @@ public class ExpressionEvaluator {
 				System.out.println("Error in ordering the elements.");
 			} else {
 				String expr = getExpression(lexicalString);
+				System.out.println("size: " + symbolTable.size());
 				if (!isUndefined(expr)) {
 					postFix = toPostFix(expr);
 					strPostFix = toPostFixString(postFix);
 					result = evaluateExpression(postFix);
+					System.out.println(symbolTable.size());
 					storeResult(result, lexicalString);
+					System.out.println(symbolTable.size());
 					System.out.println("result = " + result);
 				} else {
 					checker = "error";
-				}
-
-				System.out.println("ITERATION #");
-				for (int index = 0; index < symbolTable.size(); index++) {
-					SymbolTable sb = symbolTable.get(index);
-					showSymbolTable(sb);
 				}
 			}
 
@@ -515,7 +512,7 @@ public class ExpressionEvaluator {
 	}
 
 	private void storeResult(int value, String stmt) {
-		String tokens[] = stmt.split(" ");
+		String tokens[] = stmt.split("\\s");
 		int i = 0;
 		while (tokens[i].isEmpty()) {
 			i++;
@@ -527,7 +524,7 @@ public class ExpressionEvaluator {
 			if (var.equals(sb.token)) {
 				sb.setValue(sb, Integer.toString(value));
 				symbolTable.set(index, sb);
-				System.out.println("Hello: ");
+				System.out.println("Store Result: ");
 				showSymbolTable(sb);
 			}
 		}
@@ -567,10 +564,7 @@ public class ExpressionEvaluator {
 			System.out.println(word);
 			String firstLetter = "" + word.charAt(0);
 			if (word.length() == 1 && operator.indexOf(word.charAt(0)) == 0) {
-
-				System.out.println("im in the op");
 				SymbolTable st = new SymbolTable(word, "operator", "");
-				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <op-" + word + ">";
 
@@ -580,22 +574,19 @@ public class ExpressionEvaluator {
 					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
 
 			) {
-
-				System.out.println("im in the var or identifier");
-				SymbolTable st = new SymbolTable(word, "variable", "");
-				showSymbolTable(st);
-				symbolTable.add(st);
+				if(findVariable(word) == null){
+					SymbolTable st = new SymbolTable(word, "variable", "");
+					symbolTable.add(st);
+				}
 				result += " <var-" + word + ">";
 
 			} else if (word.matches("[0-9]+")) {
 				SymbolTable st = new SymbolTable(word, "integer", "");
-				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " <int-" + word + ">";
 
 			} else if (firstLetter.equals("=")) {
 				SymbolTable st = new SymbolTable(word, "=", "");
-				showSymbolTable(st);
 				symbolTable.add(st);
 				result += " =";
 
@@ -632,19 +623,26 @@ public class ExpressionEvaluator {
 	}
 
 	private boolean isUndefined(String expr) {
-		String[] tokens = expr.split(" ");
+		String[] tokens = expr.split("\\s");
 
 		for (int i = 0; i < tokens.length; i++) {
 			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
 				String var = tokens[i].substring(5, tokens[i].length() - 1);
-
+				SymbolTable st = findVariable(var);
+				System.out.println("Finding x: ");
+				showSymbolTable(st);
+				System.out.println("Hello=========");
+				System.out.println("size: " + symbolTable.size());
 				for (int j = 0; j < symbolTable.size(); j++) {
 					SymbolTable sb = symbolTable.get(j);
+					showSymbolTable(sb);
 					if (var.equals(sb.token) && sb.value.equals("")) {
-						showSymbolTable(sb);
+						if (var.equals("x")) {
+							System.out.println("WHATTTT");
+						}
 						System.out.println("sb.token: " + sb.token);
 						System.out.println("var: " + var);
-						System.out.println("sb.value: " + sb.value);
+						System.out.println("sb.value: " + sb.getValue());
 						System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOORRRRRRR");
 						return true;
 					}
@@ -709,7 +707,7 @@ public class ExpressionEvaluator {
 			}
 		}
 
-		tokens = getExpression(line).split(" ");
+		tokens = getExpression(line).split("\\s");
 		for (int i = 0; i < tokens.length; i++) {
 
 			if (tokens[i].isEmpty()) {
@@ -749,7 +747,7 @@ public class ExpressionEvaluator {
 	private LinkedList<String> toPostFix(String expr) {
 		Stack<String> stack = new Stack<String>();
 		LinkedList<String> postFix = new LinkedList<String>();
-		String[] tokens = expr.split(" ");
+		String[] tokens = expr.split("\\s");
 		for (int i = 0; i < tokens.length; i++) {
 
 			if (tokens[i].isEmpty()) {
@@ -763,7 +761,7 @@ public class ExpressionEvaluator {
 				String var = tokens[i].substring(5, tokens[i].length() - 1);
 				String number = "";
 				SymbolTable sb = findVariable(var);
-				System.out.println("IN HERE");
+				System.out.println("Changed var to num: ");
 				showSymbolTable(sb);
 				number = sb.value;
 
@@ -902,8 +900,8 @@ class SymbolTable {
 		return st.type;
 	}
 
-	public String getValue(SymbolTable st) {
-		return st.value;
+	public String getValue() {
+		return this.value;
 	}
 
 	public void setValue(SymbolTable st, String value) {
