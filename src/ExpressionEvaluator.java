@@ -464,7 +464,7 @@ public class ExpressionEvaluator {
 			String strPostFix = "";
 
 			if (checker.substring(0, 3).equals("err")) {
-				System.out.println("Error in ordering the elements.");
+				JOptionPane.showMessageDialog(frame, "Syntax error!");
 			} else {
 				String expr = getExpression(lexicalString);
 				System.out.println("size: " + symbolTable.size());
@@ -506,7 +506,6 @@ public class ExpressionEvaluator {
 		reader.close();
 		System.out.println(tpOutput.getText());
 		print(tpOutput.getText());
-		System.out.println(fileContent);
 		//}
 		//}
 	}
@@ -518,14 +517,14 @@ public class ExpressionEvaluator {
 			i++;
 		}
 		String var = tokens[i].substring(5, tokens[i].length() - 1);
-
-		for (int index = 0; index < symbolTable.size(); index++) {
+		aa: for (int index = 0; index < symbolTable.size(); index++) {
 			SymbolTable sb = symbolTable.get(index);
 			if (var.equals(sb.token)) {
 				sb.setValue(sb, Integer.toString(value));
 				symbolTable.set(index, sb);
 				System.out.println("Store Result: ");
 				showSymbolTable(sb);
+				break aa;
 			}
 		}
 	}
@@ -574,7 +573,7 @@ public class ExpressionEvaluator {
 					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
 
 			) {
-				if(findVariable(word) == null){
+				if (findVariable(word) == null) {
 					SymbolTable st = new SymbolTable(word, "variable", "");
 					symbolTable.add(st);
 				}
@@ -637,13 +636,7 @@ public class ExpressionEvaluator {
 					SymbolTable sb = symbolTable.get(j);
 					showSymbolTable(sb);
 					if (var.equals(sb.token) && sb.value.equals("")) {
-						if (var.equals("x")) {
-							System.out.println("WHATTTT");
-						}
-						System.out.println("sb.token: " + sb.token);
-						System.out.println("var: " + var);
-						System.out.println("sb.value: " + sb.getValue());
-						System.out.println("ERROOOOOOOOOOOOOOOOOOOOOOORRRRRRR");
+						JOptionPane.showMessageDialog(frame, "Undefined variable: " + var);
 						return true;
 					}
 				}
@@ -726,13 +719,15 @@ public class ExpressionEvaluator {
 				} else {
 					return "accept";
 				}
+			} else if (tokens[i].substring(1, 3).equals("op") && tokens[i+1].substring(1, 3).equals("op")){
+				return "error2";
 			} else if (tokens[i].substring(1, 3).equals("op")
 					&& !(tokens[i - 1].substring(1, 4).equals("int") || tokens[i - 1].substring(1, 4).equals("var"))
 					&& !(tokens[i + 1].substring(1, 4).equals("int") || tokens[i + 1].substring(1, 4).equals("var"))) {
-				return "error2";
+				return "error3";
 			} else if ((tokens[i].substring(1, 4).equals("var") || tokens[i].substring(1, 4).equals("int"))
 					&& (tokens[i + 1].substring(1, 4).equals("var") || tokens[i + 1].substring(1, 4).equals("int"))) {
-				return "error3";
+				return "error4";
 			}
 
 		}
