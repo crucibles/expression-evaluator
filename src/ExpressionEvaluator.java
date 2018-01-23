@@ -5,17 +5,13 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
 import java.util.Vector;
-import java.util.EmptyStackException;
 import java.util.LinkedList;
 import java.util.Stack;
 import javax.swing.ImageIcon;
@@ -104,11 +100,13 @@ public class ExpressionEvaluator {
 	 * Initializes the contents of the home panel
 	 */
 	private void initializeHomePanel() {
+		//home panel
 		JPanel homePanel = new JPanel();
 		homePanel.setBackground(SystemColor.inactiveCaption);
 		frame.getContentPane().add(homePanel, "homePanel");
 		homePanel.setLayout(null);
 
+		//button for going to 'Open File' panel
 		JButton btnOpenFile = new JButton();
 		btnOpenFile.setText("Open File");
 		btnOpenFile.setForeground(Color.DARK_GRAY);
@@ -118,6 +116,7 @@ public class ExpressionEvaluator {
 		btnOpenFile.setVerticalTextPosition(JLabel.CENTER);
 		homePanel.add(btnOpenFile);
 
+		//button for going to 'View Output' panel
 		JButton btnViewOutput = new JButton();
 		btnViewOutput.setText("View Output");
 		btnViewOutput.setForeground(Color.DARK_GRAY);
@@ -127,6 +126,7 @@ public class ExpressionEvaluator {
 		btnViewOutput.setVerticalTextPosition(JLabel.CENTER);
 		homePanel.add(btnViewOutput);
 
+		//button for going to 'Description' panel
 		JButton btnDescription = new JButton();
 		btnDescription.setVerticalTextPosition(SwingConstants.CENTER);
 		btnDescription.setText("Description");
@@ -136,6 +136,7 @@ public class ExpressionEvaluator {
 		btnDescription.setBounds(173, 249, 160, 45);
 		homePanel.add(btnDescription);
 
+		//welcoming text
 		JLabel welcomeText = new JLabel("Expression Evaluator Program");
 		welcomeText.setForeground(Color.DARK_GRAY);
 		welcomeText.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 18));
@@ -143,6 +144,7 @@ public class ExpressionEvaluator {
 		welcomeText.setBounds(70, 56, 353, 57);
 		homePanel.add(welcomeText);
 
+		//mouse listener for 'Open File' button
 		btnOpenFile.addMouseListener(new MouseAdapter() {
 			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
@@ -152,6 +154,7 @@ public class ExpressionEvaluator {
 			}
 		});
 
+		//mouse listener for 'View Output' button
 		btnViewOutput.addMouseListener(new MouseAdapter() {
 			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
@@ -160,6 +163,8 @@ public class ExpressionEvaluator {
 				cl.show(frame.getContentPane(), "viewOutputPanel");
 			}
 		});
+
+		//mouse listener for 'Description' button
 		btnDescription.addMouseListener(new MouseAdapter() {
 			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
@@ -179,6 +184,7 @@ public class ExpressionEvaluator {
 		openFilePanel.setLayout(null);
 		frame.getContentPane().add(openFilePanel, "openFilePanel");
 
+		// program title
 		JLabel programTitle = new JLabel("Expression Evaluator Program");
 		programTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		programTitle.setForeground(Color.DARK_GRAY);
@@ -186,17 +192,19 @@ public class ExpressionEvaluator {
 		programTitle.setBounds(70, 0, 353, 51);
 		openFilePanel.add(programTitle);
 
-		JLabel btnsmHome_1 = new JLabel("");
-		btnsmHome_1.setBackground(SystemColor.inactiveCaption);
-		btnsmHome_1.setVerticalTextPosition(SwingConstants.CENTER);
-		btnsmHome_1.setHorizontalTextPosition(SwingConstants.CENTER);
-		btnsmHome_1.setForeground(Color.WHITE);
-		btnsmHome_1.setFont(new Font("BubbleGum", Font.PLAIN, 20));
-		btnsmHome_1.setBounds(443, 11, 40, 40);
-		btnsmHome_1.setToolTipText("Click if you want to go back to the home menu.");
-		btnsmHome_1.setIcon(new ImageIcon(new ImageIcon(this.getClass().getResource("/ts_backButton.png")).getImage()));
-		openFilePanel.add(btnsmHome_1);
+		// the small arrow button in the upperright corner
+		JLabel btnsmHome = new JLabel("");
+		btnsmHome.setBackground(SystemColor.inactiveCaption);
+		btnsmHome.setVerticalTextPosition(SwingConstants.CENTER);
+		btnsmHome.setHorizontalTextPosition(SwingConstants.CENTER);
+		btnsmHome.setForeground(Color.WHITE);
+		btnsmHome.setFont(new Font("BubbleGum", Font.PLAIN, 20));
+		btnsmHome.setBounds(443, 11, 40, 40);
+		btnsmHome.setToolTipText("Click if you want to go back to the home menu.");
+		btnsmHome.setIcon(new ImageIcon(new ImageIcon(this.getClass().getResource("/ts_backButton.png")).getImage()));
+		openFilePanel.add(btnsmHome);
 
+		// button for loading file
 		JButton btnLoadFile = new JButton();
 		btnLoadFile.setVerticalTextPosition(SwingConstants.CENTER);
 		btnLoadFile.setText("Load File");
@@ -206,6 +214,7 @@ public class ExpressionEvaluator {
 		btnLoadFile.setBounds(265, 174, 160, 45);
 		openFilePanel.add(btnLoadFile);
 
+		// button for choosing file
 		JButton btnChooseFile = new JButton();
 		btnChooseFile.setVerticalTextPosition(SwingConstants.CENTER);
 		btnChooseFile.setText("Choose File");
@@ -215,6 +224,7 @@ public class ExpressionEvaluator {
 		btnChooseFile.setBounds(58, 174, 160, 45);
 		openFilePanel.add(btnChooseFile);
 
+		// textfield for the document url
 		tfDocUrl = new JTextField();
 		tfDocUrl.setEditable(false);
 		tfDocUrl.setEnabled(false);
@@ -222,29 +232,33 @@ public class ExpressionEvaluator {
 		openFilePanel.add(tfDocUrl);
 		tfDocUrl.setColumns(10);
 
+		//mouse listener for choosing file
 		btnChooseFile.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				chooseFile();
 			}
 		});
+
+		//mouse listener for loading file
 		btnLoadFile.addMouseListener(new MouseAdapter() {
 			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				loadFile();
+				// only goes to the output panel if the extension is correct (.in)
 				if (flag == true) {
 					cl.show(frame.getContentPane(), "viewOutputPanel");
 				}
 			}
 		});
-		btnsmHome_1.addMouseListener(new MouseAdapter() {
-			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
+		//mouse listener for small arrow home button
+		btnsmHome.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				cl.show(frame.getContentPane(), "homePanel");
+				goToHomePanel();
 			}
 		});
 	}
@@ -253,11 +267,12 @@ public class ExpressionEvaluator {
 	 * Initializes the contents of the viewoutput panel
 	 */
 	private void initializeViewOutputPanel() {
-
+		// 'View Output' panel
 		JPanel viewOutputPanel = new JPanel();
 		viewOutputPanel.setBackground(SystemColor.inactiveCaption);
 		viewOutputPanel.setLayout(null);
 
+		// small arrow button for home
 		JLabel btnsmHome = new JLabel("");
 		btnsmHome.setVerticalTextPosition(SwingConstants.CENTER);
 		btnsmHome.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -268,6 +283,7 @@ public class ExpressionEvaluator {
 		btnsmHome.setIcon(new ImageIcon(new ImageIcon(this.getClass().getResource("/ts_backButton.png")).getImage()));
 		viewOutputPanel.add(btnsmHome);
 
+		// program title
 		JLabel programTitle = new JLabel("Expression Evaluator Program");
 		programTitle.setBounds(74, 0, 345, 51);
 		viewOutputPanel.add(programTitle);
@@ -276,6 +292,7 @@ public class ExpressionEvaluator {
 		programTitle.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 18));
 		frame.getContentPane().add(viewOutputPanel, "viewOutputPanel");
 
+		// output label
 		JLabel lblOutput = new JLabel("Output:");
 		lblOutput.setHorizontalAlignment(SwingConstants.LEFT);
 		lblOutput.setForeground(Color.DARK_GRAY);
@@ -283,6 +300,7 @@ public class ExpressionEvaluator {
 		lblOutput.setBounds(20, 42, 85, 27);
 		viewOutputPanel.add(lblOutput);
 
+		// button for loading file
 		JButton btnLoadFile = new JButton();
 		btnLoadFile.setVerticalTextPosition(SwingConstants.CENTER);
 		btnLoadFile.setText("Load File");
@@ -293,6 +311,7 @@ public class ExpressionEvaluator {
 		btnLoadFile.setToolTipText("Click here if you made changes to the input file and want to load it again.");
 		viewOutputPanel.add(btnLoadFile);
 
+		// button for processing
 		JButton btnProcess = new JButton();
 		btnProcess.setVerticalTextPosition(SwingConstants.CENTER);
 		btnProcess.setText("Process");
@@ -303,21 +322,26 @@ public class ExpressionEvaluator {
 		btnProcess.setToolTipText("Click here if you want to process the most recently opened file.");
 		viewOutputPanel.add(btnProcess);
 
+		//scroll pane for the output text
 		JScrollPane spOutput;
 		spOutput = new JScrollPane();
 		spOutput.setBounds(20, 80, 447, 176);
 		viewOutputPanel.add(spOutput);
 
+		//text pane for the output text
 		tpOutput.setEditable(false);
 		tpOutput.setFont(new Font("Arial", Font.PLAIN, 13));
 		spOutput.setViewportView(tpOutput);
 
+		//loads file on click
 		btnLoadFile.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				loadFile();
 			}
 		});
+
+		//process on click
 		btnProcess.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -329,48 +353,43 @@ public class ExpressionEvaluator {
 				}
 			}
 		});
-		btnsmHome.addMouseListener(new MouseAdapter() {
-			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
+		//goes to Home panel on click
+		btnsmHome.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				cl.show(frame.getContentPane(), "homePanel");
+				goToHomePanel();
 			}
 		});
 	}
 
 	private void initializeDescriptionPanel() {
+		// description panel
 		JPanel descriptionPanel = new JPanel();
 		descriptionPanel.setLayout(null);
 		descriptionPanel.setBackground(SystemColor.inactiveCaption);
 		frame.getContentPane().add(descriptionPanel, "descriptionPanel");
 
-		JLabel smbtnHome = new JLabel("");
-		smbtnHome.setVerticalTextPosition(SwingConstants.CENTER);
-		smbtnHome.setToolTipText("Click if you want to go back to the home menu.");
-		smbtnHome.setHorizontalTextPosition(SwingConstants.CENTER);
-		smbtnHome.setForeground(Color.WHITE);
-		smbtnHome.setFont(new Font("BubbleGum", Font.PLAIN, 20));
-		smbtnHome.setIcon(new ImageIcon(new ImageIcon(this.getClass().getResource("/ts_backButton.png")).getImage()));
-		smbtnHome.setBounds(443, 11, 40, 40);
-		descriptionPanel.add(smbtnHome);
+		// small arrow home button
+		JLabel btnsmHome = new JLabel("");
+		btnsmHome.setVerticalTextPosition(SwingConstants.CENTER);
+		btnsmHome.setToolTipText("Click if you want to go back to the home menu.");
+		btnsmHome.setHorizontalTextPosition(SwingConstants.CENTER);
+		btnsmHome.setForeground(Color.WHITE);
+		btnsmHome.setFont(new Font("BubbleGum", Font.PLAIN, 20));
+		btnsmHome.setIcon(new ImageIcon(new ImageIcon(this.getClass().getResource("/ts_backButton.png")).getImage()));
+		btnsmHome.setBounds(443, 11, 40, 40);
+		descriptionPanel.add(btnsmHome);
 
-		smbtnHome.addMouseListener(new MouseAdapter() {
-			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+		// program title
+		JLabel programTitle = new JLabel("Expression Evaluator Program");
+		programTitle.setHorizontalAlignment(SwingConstants.CENTER);
+		programTitle.setForeground(Color.DARK_GRAY);
+		programTitle.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 18));
+		programTitle.setBounds(74, 0, 345, 51);
+		descriptionPanel.add(programTitle);
 
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				cl.show(frame.getContentPane(), "homePanel");
-			}
-		});
-
-		JLabel label_1 = new JLabel("Expression Evaluator Program");
-		label_1.setHorizontalAlignment(SwingConstants.CENTER);
-		label_1.setForeground(Color.DARK_GRAY);
-		label_1.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 18));
-		label_1.setBounds(74, 0, 345, 51);
-		descriptionPanel.add(label_1);
-
+		// description label
 		JLabel lblDescrpt = new JLabel("Program Description:");
 		lblDescrpt.setHorizontalAlignment(SwingConstants.LEFT);
 		lblDescrpt.setForeground(Color.DARK_GRAY);
@@ -378,14 +397,24 @@ public class ExpressionEvaluator {
 		lblDescrpt.setBounds(20, 42, 145, 27);
 		descriptionPanel.add(lblDescrpt);
 
+		// scroll pane for descrption text
 		JScrollPane spDescription = new JScrollPane();
 		spDescription.setBounds(20, 80, 447, 214);
 		descriptionPanel.add(spDescription);
 
+		// text pane for description text
 		JTextPane tpDescription = new JTextPane();
 		tpDescription.setEditable(false);
 		tpDescription.setFont(new Font("Arial", Font.PLAIN, 13));
 		spDescription.setViewportView(tpDescription);
+
+		// goes to home panel on click
+		btnsmHome.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				goToHomePanel();
+			}
+		});
 	}
 
 	/**
@@ -409,6 +438,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Gets the extension of the file selected.
+	 * @return file's extension
 	 */
 	private String getExtension(String fileName) {
 		int index = fileName.lastIndexOf(".");
@@ -417,7 +447,6 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Load the file of the given url
-	 * 
 	 */
 	private void loadFile() {
 		fileContent = "";
@@ -432,12 +461,15 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Processes the most recently opened valid file. Only works if there has been a valid file opened.
-	 * 
+	 * Processes the most recently opened valid file. Only works if there has been a valid file opened. 
+	 * This function contains the lexical, syntax and semantic analyzer as well as the execution of the file
 	 * @throws IOException
-	 * @return <var-x> = <int-10> <op-+> <int-31>
 	 */
 	private void process() throws IOException {
+		LinkedList<String> postFix = new LinkedList<String>();
+		int result = 0;
+		String strPostFix = "";
+
 		selectedFile = new FileReader(fileChooser.getSelectedFile().getAbsolutePath());
 		reader = new BufferedReader(selectedFile);
 		String line = reader.readLine();
@@ -446,61 +478,29 @@ public class ExpressionEvaluator {
 		while (line != null) {
 			fileContent += line + "\n";
 
-			//String line = "x = 4 + 2";
 			String lexicalString = lexicalAnalyzer(line);
-			if (lexicalString.equals("err")) {
-
-				System.out.println("Im out");
-				CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
-				cl.show(frame.getContentPane(), "homePanel");
+			if (lexicalString.equals("err")) { //returns to home panel if loaded file has lexical errors
+				goToHomePanel();
 				break;
-
 			}
-			System.out.println(lexicalString);
+
 			String checker = syntaxAnalyzer(lexicalString);
-
-			LinkedList<String> postFix = new LinkedList<String>();
-			int result = 0;
-			String strPostFix = "";
-
-			if (checker.substring(0, 3).equals("err")) {
+			if (checker.substring(0, 3).equals("err")) { // prompts user of error when encountered
 				JOptionPane.showMessageDialog(frame, "Syntax error!");
 			} else {
+				//AHJ: unimplemented; error checking for dual '=' sign
 				String expr = getExpression(lexicalString);
-				System.out.println("size: " + symbolTable.size());
-				if (!isUndefined(expr)) {
+				if (!isUndefined(expr)) { // if the variables on the RHS has values
 					postFix = toPostFix(expr);
 					strPostFix = toPostFixString(postFix);
 					result = evaluateExpression(postFix);
-					System.out.println(symbolTable.size());
 					storeResult(result, lexicalString);
-					System.out.println(symbolTable.size());
-					System.out.println("result = " + result);
 				} else {
-					checker = "error";
+					checker = "error: Variable does not have value yet.";
 				}
 			}
 
-			StyledDocument doc = tpOutput.getStyledDocument();
-			try {
-				String outputLine = "Line1: " + line + "\n";
-				doc.insertString(doc.getLength(), outputLine, null);
-
-				if (checker.substring(0, 3).equals("err")) {
-					outputLine = "Result: " + checker + "\n\n";
-					doc.insertString(doc.getLength(), outputLine, null);
-					return;
-				} else {
-					outputLine = "Postfix: " + strPostFix + "\n";
-					doc.insertString(doc.getLength(), outputLine, null);
-
-					outputLine = "Result: " + result + "\n\n";
-					doc.insertString(doc.getLength(), outputLine, null);
-				}
-			} catch (Exception e) {
-				System.out.println(e);
-			}
-
+			displayOutput(line, checker, strPostFix, result);
 			line = reader.readLine();
 		}
 		reader.close();
@@ -510,23 +510,47 @@ public class ExpressionEvaluator {
 		//}
 	}
 
+	private void displayOutput(String line, String checker, String strPostFix, int result) {
+		StyledDocument doc = tpOutput.getStyledDocument();
+		try {
+			String outputLine = "Line1: " + line + "\n";
+			doc.insertString(doc.getLength(), outputLine, null);
+
+			if (checker.substring(0, 3).equals("err")) {
+				outputLine = "Result: " + checker + "\n\n";
+				doc.insertString(doc.getLength(), outputLine, null);
+				return;
+			} else {
+				outputLine = "Postfix: " + getLHS(line) + " " + strPostFix + "\n";
+				doc.insertString(doc.getLength(), outputLine, null);
+
+				outputLine = "Result: " + result + "\n\n";
+				doc.insertString(doc.getLength(), outputLine, null);
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+	}
+
 	private void storeResult(int value, String stmt) {
 		String tokens[] = stmt.split("\\s");
-		int i = 0;
-		while (tokens[i].isEmpty()) {
+		for (int i = 0; i < tokens.length; i++) {
+			if (!tokens[i].isEmpty() && tokens[i].equals("=")) {
+				String var = tokens[i - 1].substring(5, tokens[i-1].length() - 1);
+				for (int index = 0; index < symbolTable.size(); index++) {
+					SymbolTable sb = symbolTable.get(index);
+					if (var.equals(sb.token)) {
+						sb.setValue(sb, Integer.toString(value));
+						symbolTable.set(index, sb);
+						System.out.println("Store Result: ");
+						showSymbolTable(sb);
+						break;
+					}
+				}
+			}
 			i++;
 		}
-		String var = tokens[i].substring(5, tokens[i].length() - 1);
-		aa: for (int index = 0; index < symbolTable.size(); index++) {
-			SymbolTable sb = symbolTable.get(index);
-			if (var.equals(sb.token)) {
-				sb.setValue(sb, Integer.toString(value));
-				symbolTable.set(index, sb);
-				System.out.println("Store Result: ");
-				showSymbolTable(sb);
-				break aa;
-			}
-		}
+
 	}
 
 	public void print(String output) throws IOException {
@@ -679,25 +703,25 @@ public class ExpressionEvaluator {
 		return line.substring(index + 1, line.length());
 	}
 
+	private String getLHS(String line) {
+		int index = line.lastIndexOf("=");
+		return line.substring(0, index + 1);
+	}
+
 	private String syntaxAnalyzer(String line) {
+		//AHJ: unimplemented; no error checking for multiple valid LHS
 		String[] tokens = line.split("\\s");
 		int index = 0;
-		int eindex = 0;
 
 		for (String token : tokens) {
-			if (!token.isEmpty()) {
-				eindex = index;
-				break;
+			if (!token.isEmpty() && token.equals("=")) {
+				String var = tokens[index - 1].substring(1, 4);
+				String eq = tokens[index];
+				if (!var.equals("var") || !eq.equals("=")) {
+					return "error5: Syntax error - Incorrect left-hand side element.";
+				}
 			}
 			index++;
-		}
-
-		if (line.contains("=")) {
-			String var = tokens[eindex].substring(1, 4);
-			String eq = tokens[eindex + 1];
-			if (!var.equals("var") || !eq.equals("=")) {
-				return "err";
-			}
 		}
 
 		tokens = getExpression(line).split("\\s");
@@ -715,19 +739,21 @@ public class ExpressionEvaluator {
 			*/
 			if (i == tokens.length - 1) {
 				if (!tokens[i].substring(1, 4).equals("int") && !tokens[i].substring(1, 4).equals("var")) {
-					return "error1";
+					return "error1: Hanging operator not allowed";
 				} else {
 					return "accept";
 				}
-			} else if (tokens[i].substring(1, 3).equals("op") && tokens[i+1].substring(1, 3).equals("op")){
-				return "error2";
+			} /*else if (tokens[i].equals("=")) {
+				return "error5: Syntax error - Incorrect left-hand side element.";
+				}*/else if (tokens[i].substring(1, 3).equals("op") && tokens[i + 1].substring(1, 3).equals("op")) {
+				return "error2: Syntax error - Invalid operator";
 			} else if (tokens[i].substring(1, 3).equals("op")
 					&& !(tokens[i - 1].substring(1, 4).equals("int") || tokens[i - 1].substring(1, 4).equals("var"))
 					&& !(tokens[i + 1].substring(1, 4).equals("int") || tokens[i + 1].substring(1, 4).equals("var"))) {
-				return "error3";
+				return "error3: Syntax error - Operator not surrounded by valid numbers/variables";
 			} else if ((tokens[i].substring(1, 4).equals("var") || tokens[i].substring(1, 4).equals("int"))
 					&& (tokens[i + 1].substring(1, 4).equals("var") || tokens[i + 1].substring(1, 4).equals("int"))) {
-				return "error4";
+				return "error4: Syntax error - Consecutive order variable or number";
 			}
 
 		}
@@ -862,6 +888,11 @@ public class ExpressionEvaluator {
 
 	public boolean isNumeric(String s) {
 		return s != null && s.matches("[-+]?\\d*\\.?\\d+");
+	}
+
+	private void goToHomePanel() {
+		CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
+		cl.show(frame.getContentPane(), "homePanel");
 	}
 
 }
