@@ -20,7 +20,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import java.awt.CardLayout;
 import java.awt.Color;
-
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -43,7 +42,6 @@ public class ExpressionEvaluator {
 	private String operator = new String("+-/*%");
 	private Vector<SymbolTable> symbolTable = new Vector<SymbolTable>();
 
-	private String fileContent = new String("");
 	private JTextField tfDocUrl;
 	private JTextPane tpOutput = new JTextPane();
 
@@ -449,7 +447,6 @@ public class ExpressionEvaluator {
 	 * Load the file of the given url
 	 */
 	private void loadFile() {
-		fileContent = "";
 		tpOutput.setText("");
 		if (tfDocUrl.getText().equals("")) {
 			JOptionPane.showMessageDialog(frame, "Please choose a file first.");
@@ -476,7 +473,6 @@ public class ExpressionEvaluator {
 		tpOutput.setText("");
 
 		while (line != null) {
-			fileContent += line + "\n";
 
 			String lexicalString = lexicalAnalyzer(line);
 			if (lexicalString.equals("err")) { //returns to home panel if loaded file has lexical errors
@@ -586,27 +582,39 @@ public class ExpressionEvaluator {
 		for (String word : words) {
 			System.out.println(word);
 			String firstLetter = "" + word.charAt(0);
-			if (word.length() == 1 && operator.indexOf(word.charAt(0)) == 0) {
+			if (word.length() == 1 && operator.indexOf(word.charAt(0)) >= 0) {
 				SymbolTable st = new SymbolTable(word, "operator", "");
 				symbolTable.add(st);
 				result += " <op-" + word + ">";
 
 			} else if (
-
-			!firstLetter.equals("=") && (firstLetter.equals("_") || firstLetter.matches("[a-zA-Z ]+")
-					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
-
+				(
+					operator.indexOf(word.charAt(0))>=0 && 
+					word.length()>1? word.substring(1, word.length()).matches("[0-9]+"): false
+				) || (
+					word.matches("[0-9]+")
+				)			
 			) {
-				if (findVariable(word) == null) {
-					SymbolTable st = new SymbolTable(word, "variable", "");
-					symbolTable.add(st);
-				}
-				result += " <var-" + word + ">";
-
-			} else if (word.matches("[0-9]+")) {
 				SymbolTable st = new SymbolTable(word, "integer", "");
 				symbolTable.add(st);
 				result += " <int-" + word + ">";
+
+			} else if (
+
+			!firstLetter.equals("=") && (word.substring(0, word.length() - 1).matches("[0-9 ]+") == false
+					|| firstLetter.equals("-") || firstLetter.equals("+") || firstLetter.equals("_")
+					|| firstLetter.matches("[a-zA-Z ]+") || word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
+
+			) {
+				result += " <var-" + word + ">";
+				if(word.indexOf("+") >= 0 || word.indexOf("-") >= 0){
+					word = word.substring(1, word.length());
+				}
+				if (findVariable(word) == null) {
+					System.out.println("inserting new var");
+					SymbolTable st = new SymbolTable(word, "variable", "");
+					symbolTable.add(st);
+				}
 
 			} else if (firstLetter.equals("=")) {
 				SymbolTable st = new SymbolTable(word, "=", "");
@@ -620,16 +628,6 @@ public class ExpressionEvaluator {
 
 			}
 		}
-
-		/*
-		Sample snippet for accessing/updating the symbol table
-		
-		for (int index = 0; index < symbolTable.size(); index++) {
-			SymbolTable sb = symbolTable.get(index);
-			System.out.println("The current token" + sb.token);
-		}
-		
-		*/
 
 		return result;
 	}
@@ -651,14 +649,8 @@ public class ExpressionEvaluator {
 		for (int i = 0; i < tokens.length; i++) {
 			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
 				String var = tokens[i].substring(5, tokens[i].length() - 1);
-				SymbolTable st = findVariable(var);
-				System.out.println("Finding x: ");
-				showSymbolTable(st);
-				System.out.println("Hello=========");
-				System.out.println("size: " + symbolTable.size());
 				for (int j = 0; j < symbolTable.size(); j++) {
 					SymbolTable sb = symbolTable.get(j);
-					showSymbolTable(sb);
 					if (var.equals(sb.token) && sb.value.equals("")) {
 						JOptionPane.showMessageDialog(frame, "Undefined variable: " + var);
 						return true;
@@ -766,11 +758,12 @@ public class ExpressionEvaluator {
 	 * @
 	 */
 	private LinkedList<String> toPostFix(String expr) {
+		System.out.println(expr);
 		Stack<String> stack = new Stack<String>();
 		LinkedList<String> postFix = new LinkedList<String>();
 		String[] tokens = expr.split("\\s");
 		for (int i = 0; i < tokens.length; i++) {
-
+			System.out.println(tokens[i]);
 			if (tokens[i].isEmpty()) {
 				continue;
 			}
@@ -779,12 +772,17 @@ public class ExpressionEvaluator {
 				String number = tokens[i].substring(5, tokens[i].length() - 1);
 				postFix.add(number);
 			} else if (tokens[i].substring(1, 4).equals("var")) {
-				String var = tokens[i].substring(5, tokens[i].length() - 1);
-				String number = "";
+				boolean isPositive = tokens[i].charAt(5) != '-';
+				System.out.println(isPositive);
+				String var = isPositive? tokens[i].substring(5, tokens[i].length() - 1): tokens[i].substring(6, tokens[i].length() - 1);
 				SymbolTable sb = findVariable(var);
-				System.out.println("Changed var to num: ");
-				showSymbolTable(sb);
-				number = sb.value;
+				
+				String number = sb.value;
+				if(!isPositive && sb.value.charAt(0) != '-'){
+					number = "-" + sb.value;
+				} else if(!isPositive && sb.value.charAt(0) == '-'){
+					number = sb.value.substring(1);
+				}
 
 				//AHJ: unimplemented; find variable in symbol; if not found, return error
 				// String number = var;
