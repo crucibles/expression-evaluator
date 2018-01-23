@@ -5,17 +5,13 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
 import java.util.Vector;
-import java.util.EmptyStackException;
 import java.util.LinkedList;
 import java.util.Stack;
 import javax.swing.ImageIcon;
@@ -24,7 +20,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import java.awt.CardLayout;
 import java.awt.Color;
-
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -47,7 +42,6 @@ public class ExpressionEvaluator {
 	private String operator = new String("+-/*%");
 	private Vector<SymbolTable> symbolTable = new Vector<SymbolTable>();
 
-	private String fileContent = new String("");
 	private JTextField tfDocUrl;
 	private JTextPane tpOutput = new JTextPane();
 
@@ -420,7 +414,6 @@ public class ExpressionEvaluator {
 	 * 
 	 */
 	private void loadFile() {
-		fileContent = "";
 		tpOutput.setText("");
 		if (tfDocUrl.getText().equals("")) {
 			JOptionPane.showMessageDialog(frame, "Please choose a file first.");
@@ -444,7 +437,6 @@ public class ExpressionEvaluator {
 		tpOutput.setText("");
 
 		while (line != null) {
-			fileContent += line + "\n";
 
 			//String line = "x = 4 + 2";
 			String lexicalString = lexicalAnalyzer(line);
@@ -562,27 +554,39 @@ public class ExpressionEvaluator {
 		for (String word : words) {
 			System.out.println(word);
 			String firstLetter = "" + word.charAt(0);
-			if (word.length() == 1 && operator.indexOf(word.charAt(0)) == 0) {
+			if (word.length() == 1 && operator.indexOf(word.charAt(0)) >= 0) {
 				SymbolTable st = new SymbolTable(word, "operator", "");
 				symbolTable.add(st);
 				result += " <op-" + word + ">";
 
 			} else if (
-
-			!firstLetter.equals("=") && (firstLetter.equals("_") || firstLetter.matches("[a-zA-Z ]+")
-					|| word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
-
+				(
+					operator.indexOf(word.charAt(0))>=0 && 
+					word.length()>1? word.substring(1, word.length()).matches("[0-9]+"): false
+				) || (
+					word.matches("[0-9]+")
+				)			
 			) {
-				if (findVariable(word) == null) {
-					SymbolTable st = new SymbolTable(word, "variable", "");
-					symbolTable.add(st);
-				}
-				result += " <var-" + word + ">";
-
-			} else if (word.matches("[0-9]+")) {
 				SymbolTable st = new SymbolTable(word, "integer", "");
 				symbolTable.add(st);
 				result += " <int-" + word + ">";
+
+			} else if (
+
+			!firstLetter.equals("=") && (word.substring(0, word.length() - 1).matches("[0-9 ]+") == false
+					|| firstLetter.equals("-") || firstLetter.equals("+") || firstLetter.equals("_")
+					|| firstLetter.matches("[a-zA-Z ]+") || word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
+
+			) {
+				result += " <var-" + word + ">";
+				if(word.indexOf("+") >= 0 || word.indexOf("-") >= 0){
+					word = word.substring(1, word.length());
+				}
+				if (findVariable(word) == null) {
+					System.out.println("inserting new var");
+					SymbolTable st = new SymbolTable(word, "variable", "");
+					symbolTable.add(st);
+				}
 
 			} else if (firstLetter.equals("=")) {
 				SymbolTable st = new SymbolTable(word, "=", "");
@@ -596,16 +600,6 @@ public class ExpressionEvaluator {
 
 			}
 		}
-
-		/*
-		Sample snippet for accessing/updating the symbol table
-		
-		for (int index = 0; index < symbolTable.size(); index++) {
-			SymbolTable sb = symbolTable.get(index);
-			System.out.println("The current token" + sb.token);
-		}
-		
-		*/
 
 		return result;
 	}
@@ -628,7 +622,7 @@ public class ExpressionEvaluator {
 			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
 				String var = tokens[i].substring(5, tokens[i].length() - 1);
 				SymbolTable st = findVariable(var);
-				System.out.println("Finding x: ");
+				System.out.println("Finding x: "+ var);
 				showSymbolTable(st);
 				System.out.println("Hello=========");
 				System.out.println("size: " + symbolTable.size());
@@ -719,7 +713,7 @@ public class ExpressionEvaluator {
 				} else {
 					return "accept";
 				}
-			} else if (tokens[i].substring(1, 3).equals("op") && tokens[i+1].substring(1, 3).equals("op")){
+			} else if (tokens[i].substring(1, 3).equals("op") && tokens[i + 1].substring(1, 3).equals("op")) {
 				return "error2";
 			} else if (tokens[i].substring(1, 3).equals("op")
 					&& !(tokens[i - 1].substring(1, 4).equals("int") || tokens[i - 1].substring(1, 4).equals("var"))
