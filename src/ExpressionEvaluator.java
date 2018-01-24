@@ -23,6 +23,7 @@ import java.awt.Color;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.metal.MetalRootPaneUI;
 import javax.swing.text.StyledDocument;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -95,7 +96,7 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Initializes the contents of the home panel
+	 * Initializes the contents of the Home panel
 	 */
 	private void initializeHomePanel() {
 		//home panel
@@ -142,7 +143,7 @@ public class ExpressionEvaluator {
 		welcomeText.setBounds(70, 56, 353, 57);
 		homePanel.add(welcomeText);
 
-		//mouse listener for 'Open File' button
+		//goes to 'Open File' panel on click
 		btnOpenFile.addMouseListener(new MouseAdapter() {
 			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
@@ -152,7 +153,7 @@ public class ExpressionEvaluator {
 			}
 		});
 
-		//mouse listener for 'View Output' button
+		//goes to 'View Output' panel on click
 		btnViewOutput.addMouseListener(new MouseAdapter() {
 			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
@@ -162,7 +163,7 @@ public class ExpressionEvaluator {
 			}
 		});
 
-		//mouse listener for 'Description' button
+		//goes to 'Description' panel on click
 		btnDescription.addMouseListener(new MouseAdapter() {
 			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
@@ -174,7 +175,7 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Initializes the contents of the openfile panel
+	 * Initializes the contents of the 'Open File' panel
 	 */
 	private void initializeOpenFilePanel() {
 		JPanel openFilePanel = new JPanel();
@@ -230,7 +231,7 @@ public class ExpressionEvaluator {
 		openFilePanel.add(tfDocUrl);
 		tfDocUrl.setColumns(10);
 
-		//mouse listener for choosing file
+		//choose file on click
 		btnChooseFile.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -238,7 +239,7 @@ public class ExpressionEvaluator {
 			}
 		});
 
-		//mouse listener for loading file
+		//loads file and navigates to 'View Output' panel on click
 		btnLoadFile.addMouseListener(new MouseAdapter() {
 			private CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 
@@ -252,7 +253,7 @@ public class ExpressionEvaluator {
 			}
 		});
 
-		//mouse listener for small arrow home button
+		//goes to Home panel on click
 		btnsmHome.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -339,7 +340,7 @@ public class ExpressionEvaluator {
 			}
 		});
 
-		//process on click
+		//process file on click
 		btnProcess.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -361,6 +362,9 @@ public class ExpressionEvaluator {
 		});
 	}
 
+	/**
+	 * Initializes the contents of the 'Description' panel
+	 */
 	private void initializeDescriptionPanel() {
 		// description panel
 		JPanel descriptionPanel = new JPanel();
@@ -416,7 +420,7 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Choose file from the directory
+	 * Choose file from the user's home directory
 	 */
 	private void chooseFile() {
 		int file = fileChooser.showOpenDialog(frame);
@@ -429,6 +433,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Gets the name of the file selected.
+	 * @return name of the file received
 	 */
 	private String getFileName() {
 		return fileChooser.getSelectedFile().getName();
@@ -778,15 +783,12 @@ public class ExpressionEvaluator {
 				SymbolTable sb = findVariable(var);
 				
 				String number = sb.value;
-				if(!isPositive && sb.value.charAt(0) != '-'){
+				if(!isPositive && sb.value.charAt(0) != '-'){ // place '-' sign if variable is negative and the value in symbol table is positive
 					number = "-" + sb.value;
-				} else if(!isPositive && sb.value.charAt(0) == '-'){
+				} else if(!isPositive && sb.value.charAt(0) == '-'){ // remove '-' sign if variable is negative and the value in symbol table is negative
 					number = sb.value.substring(1);
 				}
 
-				//AHJ: unimplemented; find variable in symbol; if not found, return error
-				// String number = var;
-				//String number = "21";
 				postFix.add(number);
 			} else if (tokens[i].substring(1, 3).equals("op")) {
 				String op = "" + tokens[i].charAt(4);
@@ -823,6 +825,7 @@ public class ExpressionEvaluator {
 	private boolean isHighOrEqualPrecedence(String firstElem, String secondElem) {
 		int firstPrec = 0;
 		switch (firstElem) {
+		case "%":
 		case "/":
 		case "*":
 			firstPrec = 2;
@@ -874,6 +877,9 @@ public class ExpressionEvaluator {
 					break;
 				case "/":
 					result = firstElem / secondElem;
+					break;
+				case "%":
+					result = firstElem % secondElem;
 					break;
 				}
 				stack.push(Integer.toString(result));
