@@ -39,7 +39,6 @@ public class ExpressionEvaluator {
 	private BufferedReader reader;
 	private FileReader selectedFile;
 	private JFileChooser fileChooser = new JFileChooser();
-	private String operator = new String("+-/*%");
 	private Vector<SymbolTable> symbolTable = new Vector<SymbolTable>();
 
 	private JTextField tfDocUrl;
@@ -578,6 +577,7 @@ public class ExpressionEvaluator {
 	private String lexicalAnalyzer(String line) {
 		String[] words = line.split("\\s");
 		String result = "";
+		String operator = "*+-/%";
 
 		for (String word : words) {
 			System.out.println(word);
@@ -601,9 +601,12 @@ public class ExpressionEvaluator {
 
 			} else if (
 
-			!firstLetter.equals("=") && (word.substring(0, word.length() - 1).matches("[0-9 ]+") == false
-					|| firstLetter.equals("-") || firstLetter.equals("+") || firstLetter.equals("_")
-					|| firstLetter.matches("[a-zA-Z ]+") || word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+"))
+				word.length()>1? 
+				(firstLetter.equals("-") || firstLetter.equals("+") || firstLetter.equals("_") || firstLetter.matches("[a-zA-Z ]+")) && 
+				word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+")
+				:
+				word.matches("[a-zA-Z]+")
+
 
 			) {
 				result += " <var-" + word + ">";
