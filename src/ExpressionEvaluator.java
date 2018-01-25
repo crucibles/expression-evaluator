@@ -406,6 +406,11 @@ public class ExpressionEvaluator {
 		JTextPane tpDescription = new JTextPane();
 		tpDescription.setEditable(false);
 		tpDescription.setFont(new Font("Arial", Font.PLAIN, 13));
+		String description = "This program is able to evaluate expressions. It is also capable of storing variables and error checking.\n\n"
+				+ "Error checking includes...\n" + " - Lexical error\n" + " - Syntax error\n" + " - Semantic error\n"
+				+ "-------------------------------------------------\n" + "Authors:\n" + "Alvaro, Cedric Y.\n"
+				+ "Sumandang, AJ Ruth H.\n" + "-------------------------------------------------\n";
+		tpDescription.setText(description);
 		spDescription.setViewportView(tpDescription);
 
 		// goes to home panel on click
@@ -424,7 +429,7 @@ public class ExpressionEvaluator {
 		int file = fileChooser.showOpenDialog(frame);
 		if (file == JFileChooser.APPROVE_OPTION) {
 			File selectedFile = fileChooser.getSelectedFile();
-			if(selectedFile.isFile()){
+			if (selectedFile.isFile()) {
 				tfDocUrl.setText(fileChooser.getSelectedFile().getAbsolutePath().toString());
 			} else {
 				JOptionPane.showMessageDialog(frame, "This file does not exist.");
@@ -457,6 +462,7 @@ public class ExpressionEvaluator {
 	 */
 	private void loadFile() {
 		tpOutput.setText("");
+		symbolTable.clear();
 		if (tfDocUrl.getText().equals("")) {
 			JOptionPane.showMessageDialog(frame, "Please choose a file first.");
 			flag = false;
@@ -485,27 +491,25 @@ public class ExpressionEvaluator {
 		while (line != null) {
 
 			String lexicalString = lexicalAnalyzer(line);
-			if (lexicalString.equals("err")) { //returns to home panel if loaded file has lexical errors
-				goToHomePanel();
-				break;
-			}
-
-			String checker = syntaxAnalyzer(lexicalString); // checks for syntax errors
-
-			if (checker.substring(0, 3).equals("err")) { // prompts user of error when encountered
-				JOptionPane.showMessageDialog(frame, "Syntax error!");
+			String checker = "";
+			if (lexicalString.substring(0, 3).equals("err")) { //returns to home panel if loaded file has lexical errors
+				checker = lexicalString;
 			} else {
-				String expr = getRHS(lexicalString); // obtains the expression part of the line
+				checker = syntaxAnalyzer(lexicalString); // checks for syntax errors
 
-				if (!hasEmptyValues(expr)) { // if the variables on the RHS has values
+				if (checker.substring(0, 3).equals("err")) { // prompts user of error when encountered
+					JOptionPane.showMessageDialog(frame, "Syntax error!");
+				} else {
+					String expr = getRHS(lexicalString); // obtains the expression part of the line
 
 					postFix = toPostFix(expr); // converts to postfix
 					strPostFix = convertToString(postFix); // converts postfix to string
-					result = evaluateExpression(postFix); // evaluate postfix
-					storeResult(result, lexicalString); // store result in symbol table
-
-				} else { // if some variables are undefined
-					checker = "error: Variable does not have value yet.";
+					if (!hasEmptyValues(expr)) { // if the variables on the RHS has values
+						result = evaluateExpression(postFix); // evaluate postfix
+						storeResult(result, lexicalString); // store result in symbol table
+					} else { // if some variables are undefined
+						checker = "Warning: Variable does not have value yet.";
+					}
 				}
 			}
 
@@ -538,13 +542,20 @@ public class ExpressionEvaluator {
 				doc.insertString(doc.getLength(), outputLine, null);
 
 			} else { // if no errors found in the source code
-
 				//outputs the resulting postfix of the expression
 				outputLine = "Postfix: " + getLHS(line) + " " + strPostFix + "\n";
 				doc.insertString(doc.getLength(), outputLine, null);
 
 				//outputs the result/answer of the expression
-				outputLine = "Result: " + result + "\n\n";
+				if (checker.substring(0, 4).equals("Warn")) {
+					outputLine = checker + "\n\n";
+				} else {
+					outputLine = "Result: " + getLHS(line) + " " + result + "\n\n";
+					if(!flag){
+						outputLine = "Result: " + getLHS(line) + " " + "undefined" + "\n\n";
+						flag = true;	
+					}
+				}
 				doc.insertString(doc.getLength(), outputLine, null);
 
 			}
@@ -571,6 +582,7 @@ public class ExpressionEvaluator {
 					SymbolTable sb = symbolTable.get(index);
 					if (var.equals(sb.token)) { // sets the value of the variable if found
 						sb.setValue(sb, Integer.toString(value));
+						if(flag == false) sb.setValue(sb, "");
 						symbolTable.set(index, sb);
 						break;
 					}
@@ -603,6 +615,28 @@ public class ExpressionEvaluator {
 		}
 	}
 
+	public boolean isVariable(String word) {
+		String firstLetter = "" + word.charAt(0);
+		if (word.length() > 1
+				? !firstLetter.matches("[0-9]+") && word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+")
+				: word.matches("[a-zA-Z]+")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Determines whether the received word is an operator or not
+	 * @param word word to be checked
+	 * @return true if word is an operator; false if not
+	 */
+	private boolean isOperator(String word) {
+		String operator = new String("+-/*%");
+
+		return word.length() == 1 && operator.contains(word);
+	}
+
 	/**
 	 * Return a string into its lexical form
 	 * 
@@ -612,36 +646,24 @@ public class ExpressionEvaluator {
 	 * 
 	 */
 	private String lexicalAnalyzer(String line) {
-		String operator = new String("+-/*%");
-		String[] words = line.split("\\s");
+
+		String[] words = line.trim().split("\\s");
 		String result = "";
 
 		for (String word : words) {
 			String firstLetter = "" + word.charAt(0);
-			if (word.length() == 1 && operator.indexOf(word.charAt(0)) >= 0) { // if token is an operator
-				SymbolTable st = new SymbolTable(word, "operator", "");
-				symbolTable.add(st);
+			if (isOperator(word)) { // if token is an operator
+
 				result += " <op-" + word + ">";
 
-			} else if ((operator.indexOf(word.charAt(0)) >= 0 && word.length() > 1
-					? word.substring(1, word.length()).matches("[0-9]+")
-					: false) || (word.matches("[0-9]+"))) { // if token is an integer
-				SymbolTable st = new SymbolTable(word, "integer", "");
-				symbolTable.add(st);
+			} else if (isNumeric(word)) { // if token is an integer
+
 				result += " <int-" + word + ">";
 
-			} else if (
+			} else if (isVariable(word)) { // if token is a variable
 
-				word.length()>1? 
-				(firstLetter.equals("-") || firstLetter.equals("+") || firstLetter.equals("_") || firstLetter.matches("[a-zA-Z ]+")) && 
-				word.substring(1, word.length()).matches("[^a-zA-Z0-9 ]+")
-				:
-				word.matches("[a-zA-Z]+")
-
-
-			) { // if token is a variable
 				result += " <var-" + word + ">";
-				if (word.indexOf("+") >= 0 || word.indexOf("-") >= 0) {
+				if (word.indexOf("+") == 0 || word.indexOf("-") == 0) {
 					word = word.substring(1, word.length());
 				}
 				if (findVariable(word) == null) {
@@ -657,7 +679,7 @@ public class ExpressionEvaluator {
 			} else { // if the token does not fall in the previous categories, hence, encountering an unidentifiable symbol
 
 				JOptionPane.showMessageDialog(frame, "Error token: " + word);
-				return "err";
+				return "error: Lexical error - " + word;
 
 			}
 		}
@@ -686,11 +708,11 @@ public class ExpressionEvaluator {
 	 * @return true if a variable with empty value has been found; false if all variables has values
 	 */
 	private boolean hasEmptyValues(String expr) {
-		String[] tokens = expr.split("\\s");
+		String[] tokens = expr.trim().split("\\s");
 
 		for (int i = 0; i < tokens.length; i++) {
 			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) { // if the token is not empty and is a variable/identifier
-				String var = tokens[i].substring(5, tokens[i].length() - 1);
+				String var = getAbsoluteValue(tokens[i].substring(5, tokens[i].length() - 1));
 				SymbolTable sb = findVariable(var);
 				if (sb.value.equals("")) { // if the variable has no value stored in the symbol table
 					JOptionPane.showMessageDialog(frame, "Undefined variable: " + var);
@@ -699,6 +721,18 @@ public class ExpressionEvaluator {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Gets the absolute value of a number string by removing the negative sign
+	 * @param num the number string whose absoluate value is to be retrieved
+	 * @return the absolute value of the received string
+	 */
+	private String getAbsoluteValue(String num) {
+		if (num.charAt(0) == '-') {
+			num = num.substring(1);
+		}
+		return num;
 	}
 
 	/**
@@ -755,13 +789,13 @@ public class ExpressionEvaluator {
 	 * @return string of either acceptance (if no error is found) or error message of the received error
 	 */
 	private String syntaxAnalyzer(String line) {
-		String[] tokens = getLHS(line).split("\\s");
+		String[] tokens = getLHS(line).trim().split("\\s");
 		int index = 0;
 
 		//AHJ: unimplemented; no error checking for multiple valid LHS
 		for (String token : tokens) {
 			if (!token.isEmpty() && token.equals("=")) { // if a '=' is located
-				String var = tokens[index - 1].substring(1, 4);
+				String var = tokens[index - 1].length() > 4 ? tokens[index - 1].substring(1, 4) : "";
 				String eq = tokens[index];
 				if (!var.equals("var") || !eq.equals("=")) { // checks if a preceding element to the assignment symbol is correct (if it's a variable)
 					return "error5: Syntax error - Incorrect left-hand side element.";
@@ -769,13 +803,15 @@ public class ExpressionEvaluator {
 			}
 			index++;
 		}
-
-		tokens = getRHS(line).split("\\s");
+		System.out.println(line);
+		tokens = getRHS(line).trim().split("\\s");
 		for (int i = 0; i < tokens.length; i++) {
 
 			if (tokens[i].isEmpty()) { // skip if token is empty
 				continue;
 			}
+
+			System.out.println(tokens[i]);
 
 			if (i == tokens.length - 1) { // if end of the expression is not a variable or a number
 				if (!tokens[i].substring(1, 4).equals("int") && !tokens[i].substring(1, 4).equals("var")) {
@@ -783,11 +819,13 @@ public class ExpressionEvaluator {
 				} else {
 					return "accept";
 				}
-			} else if (tokens[i].substring(1, 3).equals("op") && tokens[i + 1].substring(1, 3).equals("op")) { // if operator not surround by number/variable
+			} else if (tokens[i].substring(1, 3).equals("op") && tokens[i + 1].substring(1, 3).equals("op")) { // if consecutive operator found
 				return "error2: Syntax error - Invalid operator";
-			} else if (tokens[i].substring(1, 3).equals("op") // if operator is not surrounded by valid numbers/variables
-					&& !(tokens[i - 1].substring(1, 4).equals("int") || tokens[i - 1].substring(1, 4).equals("var"))
-					&& !(tokens[i + 1].substring(1, 4).equals("int") || tokens[i + 1].substring(1, 4).equals("var"))) {
+			} else if (tokens[i].substring(1, 3).equals("op") && (!(tokens[i - 1].length() > 4
+					&& (tokens[i - 1].substring(1, 4).equals("int") || tokens[i - 1].substring(1, 4).equals("var")))
+					|| !(tokens[i + 1].length() > 4 && (tokens[i + 1].substring(1, 4).equals("int")
+							|| tokens[i + 1].substring(1, 4).equals("var"))))) {
+				System.out.println("HERE!");
 				return "error3: Syntax error - Operator not surrounded by valid numbers/variables";
 			} else if ((tokens[i].substring(1, 4).equals("var") || tokens[i].substring(1, 4).equals("int")) // if adjacent variables/number found
 					&& (tokens[i + 1].substring(1, 4).equals("var") || tokens[i + 1].substring(1, 4).equals("int"))) {
@@ -807,50 +845,31 @@ public class ExpressionEvaluator {
 	private LinkedList<String> toPostFix(String expr) {
 		Stack<String> stack = new Stack<String>();
 		LinkedList<String> postFix = new LinkedList<String>();
-		String[] tokens = expr.split("\\s");
+		String[] tokens = expr.trim().split("\\s");
 		for (int i = 0; i < tokens.length; i++) {
 
 			if (tokens[i].isEmpty()) { // skip if token is empty
 				continue;
 			}
-			if (tokens[i].substring(1, 4).equals("int")) { // if integer encountered, add to postfix
+			if (tokens[i].substring(1, 4).equals("int") || tokens[i].substring(1, 4).equals("var")) { // if integer encountered, add to postfix
 
 				String number = tokens[i].substring(5, tokens[i].length() - 1);
 				postFix.add(number);
 
-			} else if (tokens[i].substring(1, 4).equals("var")) { // if variable encountered, push to stack its value in the symbol table
-				boolean isPositive = tokens[i].charAt(5) != '-'; // determines if variable in the source code is positive or not
-
-				// obtains variable name and search for it in the symbol table
-				String var = isPositive ? tokens[i].substring(5, tokens[i].length() - 1)
-						: tokens[i].substring(6, tokens[i].length() - 1);
-				SymbolTable sb = findVariable(var);
-
-				String number = sb.value;
-				if (!isPositive && sb.value.charAt(0) != '-') {
-					// place '-' sign if variable is negative and the value in symbol table is positive
-					number = "-" + sb.value;
-				} else if (!isPositive && sb.value.charAt(0) == '-') {
-					// remove '-' sign if variable is negative and the value in symbol table is negative
-					// note: this is done to avoid having double negative sign that causes error in the code
-					number = sb.value.substring(1); // removed negative sign (double negative = positive)
-				}
-
-				postFix.add(number); // push number to stack
 			} else if (tokens[i].substring(1, 3).equals("op")) { // if operator encountered, push it to the stack
 				String op = "" + tokens[i].charAt(4);
 				if (!stack.isEmpty()) { // if stack is not empty
-					while (!stack.isEmpty() && isHighOrEqualPrecedence(stack.peek(), op)) { 
+					while (!stack.isEmpty() && isHighOrEqualPrecedence(stack.peek(), op)) {
 						// add to postfix if operator in the stack is of higher or equal precedence than the current operator
 						String poppedElem = stack.pop();
 						postFix.add(poppedElem);
 					}
-				} 
-				stack.push(op); 
+				}
+				stack.push(op);
 			}
 		}
 
-		while (!stack.isEmpty()){ // pop all of the remaining elements in the stack and add it to the postfix
+		while (!stack.isEmpty()) { // pop all of the remaining elements in the stack and add it to the postfix
 			String poppedElem = stack.pop();
 			postFix.add(poppedElem);
 		}
@@ -919,32 +938,63 @@ public class ExpressionEvaluator {
 	 */
 	private int evaluateExpression(LinkedList<String> postFix) {
 		Stack<String> stack = new Stack<String>();
-		while (!postFix.isEmpty()) { 
+		while (!postFix.isEmpty()) {
 			String poppedElem = postFix.pop().toString();
+			System.out.println(poppedElem);
 			if (isNumeric(poppedElem)) { // if popped element from postfix is a number, push it to stack
+				System.out.println("num: " + poppedElem);
 				stack.push(poppedElem);
+			} else if (findVariable(getAbsoluteValue(poppedElem)) != null) { // if popped element from postfix is a number, push it to stack
+				System.out.println("var: " + poppedElem);
+				boolean isPositive = poppedElem.charAt(0) != '-'; // determines if variable in the source code is positive or not
+
+				// obtains variable name and search for it in the symbol table
+				String var = isPositive ? poppedElem : poppedElem.substring(1);
+				SymbolTable sb = findVariable(var);
+
+				String number = sb.value;
+				if (!isPositive && sb.value.charAt(0) != '-') {
+					// place '-' sign if variable is negative and the value in symbol table is positive
+					number = "-" + sb.value;
+				} else if (!isPositive && sb.value.charAt(0) == '-') {
+					// remove '-' sign if variable is negative and the value in symbol table is negative
+					// note: this is done to avoid having double negative sign that causes error in the code
+					number = sb.value.substring(1); // removed negative sign (double negative = positive)
+				}
+				stack.push(number);
 			} else { // if popped element from postfix is encountered, pop two element from stack and evaluate based on the popped operator
 				int secondElem = Integer.parseInt(stack.pop());
 				int firstElem = Integer.parseInt(stack.pop());
+
 				int result = 0;
 				switch (poppedElem) {
 				case "+":
 					result = firstElem + secondElem;
+					flag = true;
 					break;
 				case "-":
 					result = firstElem - secondElem;
+					flag = true;
 					break;
 				case "*":
 					result = firstElem * secondElem;
+					flag = true;
 					break;
 				case "/":
-					result = firstElem / secondElem;
+					try {
+						result = firstElem / secondElem;
+					} catch (ArithmeticException e) {
+						System.out.println("Divided a zero as a denominator.");
+						flag = false;
+					}
 					break;
 				case "%":
 					result = firstElem % secondElem;
+					flag = true;
 					break;
 				}
 				stack.push(Integer.toString(result)); // push the result into the stack
+
 			}
 		}
 
@@ -959,13 +1009,15 @@ public class ExpressionEvaluator {
 	 */
 	public boolean isNumeric(String check) {
 		String number = new String("0123456789");
-		for(int i = 0; i < check.length(); i++){
+		for (int i = 0; i < check.length(); i++) {
 			String symbol = "" + check.charAt(i);
-			if(!number.contains(symbol)){
+			if (i == 0 && (symbol.equals("-") || symbol.equals("+")) && check.length() > 1) {
+				continue;
+			} else if (!number.contains(symbol)) {
 				return false;
 			}
 		}
-		return true;
+		return check != null && true;
 	}
 
 	/**
