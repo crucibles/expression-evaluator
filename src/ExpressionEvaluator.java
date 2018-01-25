@@ -615,7 +615,6 @@ public class ExpressionEvaluator {
 		String operator = new String("+-/*%");
 		String[] words = line.split("\\s");
 		String result = "";
-		String operator = "*+-/%";
 
 		for (String word : words) {
 			String firstLetter = "" + word.charAt(0);
