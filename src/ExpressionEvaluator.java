@@ -140,6 +140,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Initializes the contents of the Home panel
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void initializeHomePanel() {
 		//home panel
@@ -219,6 +220,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Initializes the contents of the 'Open File' panel
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void initializeOpenFilePanel() {
 		JPanel openFilePanel = new JPanel();
@@ -308,6 +310,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Initializes the contents of the viewoutput panel
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void initializeViewOutputPanel() {
 		// 'View Output' panel
@@ -413,6 +416,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Initializes the contents of the 'Description' panel
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void initializeDescriptionPanel() {
 		// description panel
@@ -568,9 +572,9 @@ public class ExpressionEvaluator {
 		reader = new BufferedReader(selectedFile);
 		String line = reader.readLine();
 		tpOutput.setText("");
-		
+
 		for (int lineNum = 1; line != null; lineNum++) {
-			if(line.equals("")){ // if current line read is empty
+			if (line.equals("")) { // if current line read is empty
 				line = reader.readLine();
 				continue;
 			}
@@ -900,12 +904,12 @@ public class ExpressionEvaluator {
 				continue;
 			}
 
-			if(i < tokens.length - 1){
-				nextToken = tokens[i + 1].length() > 4? tokens[i + 1].substring(1, 4): tokens[i + 1].substring(1, 3);
+			if (i < tokens.length - 1) {
+				nextToken = tokens[i + 1].length() > 4 ? tokens[i + 1].substring(1, 4) : tokens[i + 1].substring(1, 3);
 			}
-			
-			if(i > 0){
-				prevToken = tokens[i - 1].length() > 4? tokens[i - 1].substring(1, 4): tokens[i - 1].substring(1, 3);
+
+			if (i > 0) {
+				prevToken = tokens[i - 1].length() > 4 ? tokens[i - 1].substring(1, 4) : tokens[i - 1].substring(1, 3);
 			}
 
 			if (i == tokens.length - 1) { // if end of the expression is not a variable or a number
@@ -937,6 +941,8 @@ public class ExpressionEvaluator {
 	 * Returns the postfix form of an expression
 	 * @param expr the expression to be converted into postfix
 	 * @return postfix form of the received expression
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private LinkedList<String> toPostFix(String expr) {
 		Stack<String> stack = new Stack<String>();
@@ -977,6 +983,8 @@ public class ExpressionEvaluator {
 	 * Converts linkedlist type to its string
 	 * @param linkedList linkedlist to be converted into string
 	 * @return the string of the received linkedlist
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private String convertToString(LinkedList<String> linkedList) {
 		String strPostFix = "";
@@ -993,6 +1001,8 @@ public class ExpressionEvaluator {
 	 * @param firstElem the element to be determined if it is of higher or equal precedence
 	 * @param secondElem the element to be compared to the first element
 	 * @return true if first element (first parameter) is higher in precedence than second element; false if first element is lower in precedence
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private boolean isHighOrEqualPrecedence(String firstElem, String secondElem) {
 		int firstPrec = 0;
@@ -1028,6 +1038,9 @@ public class ExpressionEvaluator {
 	 * Evaluate the received postfix and returns its result
 	 * @param postFix postfix to be evaluated
 	 * @return result of evaluating the expression
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 * @author Alvaro, Cedric Y.
 	 */
 	private int evaluateExpression(LinkedList<String> postFix) {
 		Stack<String> stack = new Stack<String>();
@@ -1094,6 +1107,8 @@ public class ExpressionEvaluator {
 	 * Determines whether the received word is a valid variable or not
 	 * @param word word to be checked
 	 * @return true if word is a valid variable; false if not
+	 * 
+	 * @author Alvaro, Cedric Y.
 	 */
 	public boolean isVariable(String word) {
 		String firstLetter = "" + word.charAt(0);
@@ -1110,6 +1125,8 @@ public class ExpressionEvaluator {
 	 * Determines whether the received word is an operator or not
 	 * @param word word to be checked
 	 * @return true if word is an operator; false if not
+	 * 
+	 * @author Alvaro, Cedric Y.
 	 */
 	private boolean isOperator(String word) {
 		String operator = new String("+-/*%");
@@ -1121,6 +1138,8 @@ public class ExpressionEvaluator {
 	 * Determines whether received element is numeric or not
 	 * @param check the element to be checked
 	 * @return true if the received element is numeric; false if not
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	public boolean isNumeric(String check) {
 		String number = new String("0123456789");
@@ -1137,44 +1156,20 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Redirect to the Home panel
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void goToHomePanel() {
 		CardLayout cl = (CardLayout) (frame.getContentPane().getLayout());
 		cl.show(frame.getContentPane(), "homePanel");
 	}
 
-	/**
-	 * Accessing the fields of a symbol table in a string
-	 * @param sb symbol table whose fields are to be accessed
-	 */
-	private void showSymbolTable(SymbolTable sb) {
-
-		StringBuilder result = new StringBuilder();
-		String newLine = System.getProperty("line.separator");
-
-		result.append(sb.getClass().getName());
-		result.append(" Object {");
-		result.append(newLine);
-
-		Field[] fields = sb.getClass().getDeclaredFields();
-		for (Field field : fields) {
-			result.append("  ");
-			try {
-				result.append(field.getName());
-				result.append(": ");
-				result.append(field.get(sb));
-			} catch (IllegalAccessException ex) {
-				System.out.println(ex);
-			}
-			result.append(newLine);
-		}
-		result.append("}");
-
-		System.out.println(result);
-	}
-
 }
 
+/**
+ * Class that represent an instance of a symboltable
+ * 
+ * @author Alvaro, Cedric Y.
+ */
 class SymbolTable {
 	String token;
 	String type;
