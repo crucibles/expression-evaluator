@@ -389,7 +389,12 @@ public class ExpressionEvaluator {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					process();
+					if (tfDocUrl.getText().equals("")) {
+						JOptionPane.showMessageDialog(frame, "Please choose a file first. Go to 'Open File' panel.");
+						goToHomePanel();
+					} else {
+						process();
+					}
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -489,6 +494,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Choose file from the user's home directory. Checks if file exists
+	 * @author Alvaro, Cedric Y.
 	 */
 	private void chooseFile() {
 		int file = fileChooser.showOpenDialog(frame);
@@ -507,6 +513,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Load the file of the given url
+	 * @author Alvaro, Cedric Y.
 	 */
 	private void loadFile() {
 		tpOutput.setText("");
@@ -522,9 +529,12 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	* Gets the name of the file selected.
-	* @return name of the file received
-	*/
+	 * 
+	 * Gets the name of the file selected.
+	 * @return name of the file received
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
 	private String getFileName() {
 		return fileChooser.getSelectedFile().getName();
 	}
@@ -532,6 +542,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Gets the extension of the file selected.
 	 * @return file's extension (.e.g. in (file.in), out (file.out))
+	 * 
+	 * @author Alvaro, Cedric Y.
 	 */
 	private String getFileExtension(String fileName) {
 		int index = fileName.lastIndexOf(".");
@@ -542,6 +554,9 @@ public class ExpressionEvaluator {
 	 * Processes the most recently opened valid file.
 	 * This function contains the lexical, syntax and semantic analyzer as well as the execution of the file
 	 * @throws IOException
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void process() throws IOException {
 		LinkedList<String> postFix = new LinkedList<String>();
@@ -553,7 +568,12 @@ public class ExpressionEvaluator {
 		reader = new BufferedReader(selectedFile);
 		String line = reader.readLine();
 		tpOutput.setText("");
+		
 		for (int lineNum = 1; line != null; lineNum++) {
+			if(line.equals("")){ // if current line read is empty
+				line = reader.readLine();
+				continue;
+			}
 
 			String lexicalString = lexicalAnalyzer(line, lineNum);
 			String checker = "";
@@ -590,6 +610,8 @@ public class ExpressionEvaluator {
 	 * @param checker the error in the result (if the source code has errors)
 	 * @param strPostFix the postfix string of the expression (if no errors has been found in the source code)
 	 * @param result the result of the expression (if no errors has been found in the source code)
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void displayOutput(String line, String checker, String strPostFix, int result, int lineNum) {
 		StyledDocument doc = tpOutput.getStyledDocument();
@@ -625,24 +647,25 @@ public class ExpressionEvaluator {
 		}
 	}
 
-		/**
+	/**
 	 * Display addition output such as variables declared and errors encountered
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void displayAdditionalOutput() {
 		StyledDocument doc = tpOutput.getStyledDocument();
 		try {
-			String outputLine = "-------------------------\n" + "Variables:\n";
+			String outputLine = "-------------------------\n" + "Variables Used:\n";
 			doc.insertString(doc.getLength(), outputLine, null);
 
 			for (int i = 0; i < symbolTable.size(); i++) {
-				outputLine = "- " + symbolTable.get(i).token + "\n";
+				outputLine = symbolTable.get(i).token + "\n";
 				doc.insertString(doc.getLength(), outputLine, null);
 			}
 
-			outputLine = "-------------------------\n" + "Errors:\n";
+			outputLine = "-------------------------\n" + "Errors found:\n";
 			doc.insertString(doc.getLength(), outputLine, null);
 
-			outputLine = !errorMsg.equals("") ? errorMsg + "\n" : "- No errors encountered\n";
+			outputLine = !errorMsg.equals("") ? errorMsg + "\n" : "No errors encountered\n";
 			doc.insertString(doc.getLength(), outputLine, null);
 
 		} catch (Exception e) {
@@ -654,6 +677,8 @@ public class ExpressionEvaluator {
 	 * Stores value of variables in the LHS (left-hand side) in the symbol table.
 	 * @param value value to be stored to the variable
 	 * @param stmt statement that contains the variable whose value is to be stored
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void storeResult(int value, String stmt) {
 		//AHJ: optimizstion unimplemented; since Ced has tried looking for duplicate variables; why not use a separate function for this
@@ -683,6 +708,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Creates the .out file of the resulting output
 	 * @param output the text to be stored in the .out file
+	 * 
+	 * @author Alvaro, Cedric Y.
 	 */
 	public void createOutFile(String output) throws IOException {
 		Writer writer = null;
@@ -706,6 +733,8 @@ public class ExpressionEvaluator {
 	 * Locates the received variable in the symbol table
 	 * @param var variable to be searched in the symbol table
 	 * @return symbol table containing the received variable; null if not found
+	 * 
+	 * @author Alvaro, Cedric Y.
 	 */
 	private SymbolTable findVariable(String var) {
 		for (int index = 0; index < symbolTable.size(); index++) { // loops through the symbol table
@@ -721,6 +750,8 @@ public class ExpressionEvaluator {
 	 * Looks for any variables with no assigned values
 	 * @param expr the line whose variables are to be checked
 	 * @return true if a variable with empty value has been found; false if all variables has values
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private boolean hasEmptyValues(String expr, int lineNum) {
 		String[] tokens = expr.trim().split("\\s");
@@ -742,6 +773,8 @@ public class ExpressionEvaluator {
 	 * Gets the absolute value of a number string by removing the negative sign
 	 * @param num the number string whose absoluate value is to be retrieved
 	 * @return the absolute value of the received string
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private String getAbsoluteValue(String num) {
 		if (num.charAt(0) == '-') {
@@ -753,6 +786,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Returns the left-hand side of the received line (for assignment statements)
 	 * @param line line whose LHS is to be returned
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private String getLHS(String line) {
 		int index = line.lastIndexOf("=");
@@ -762,6 +797,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Returns the right-hand side of the received line (for assignment statements)
 	 * @param line line whose RHS is to be returned
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private String getRHS(String line) {
 		int index = line.lastIndexOf("=");
@@ -775,6 +812,7 @@ public class ExpressionEvaluator {
 	 * @return the lexical string of the received line/statement (e.g. : <var-x> = <int-2> <op-+> <int-2>)
 	 * @see wordsLoop, is a loop that iterates each word found in each line of the .in file
 	 * 
+	 * @author Alvaro, Cedric Y.
 	 */
 	private String lexicalAnalyzer(String line, int lineNum) {
 
@@ -821,6 +859,8 @@ public class ExpressionEvaluator {
 	 * Checks the received line for syntax
 	 * @param line lexical string/line whose syntax is to be checked
 	 * @return string of either acceptance (if no error is found) or error message of the received error
+	 * 
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	private String syntaxAnalyzer(String line, int lineNum) {
 		String[] tokens = getLHS(line).trim().split("\\s");
@@ -852,29 +892,38 @@ public class ExpressionEvaluator {
 		// checking of expression/RHS syntax
 		tokens = getRHS(line).trim().split("\\s");
 		for (int i = 0; i < tokens.length; i++) {
+			String currToken = tokens[i].substring(1, 4);
+			String nextToken = "";
+			String prevToken = "";
 
-			if (tokens[i].isEmpty()) { // skip if token is empty
+			if (currToken.isEmpty()) { // skip if token is empty
 				continue;
 			}
 
+			if(i < tokens.length - 1){
+				nextToken = tokens[i + 1].length() > 4? tokens[i + 1].substring(1, 4): tokens[i + 1].substring(1, 3);
+			}
+			
+			if(i > 0){
+				prevToken = tokens[i - 1].length() > 4? tokens[i - 1].substring(1, 4): tokens[i - 1].substring(1, 3);
+			}
+
 			if (i == tokens.length - 1) { // if end of the expression is not a variable or a number
-				if (!tokens[i].substring(1, 4).equals("int") && !tokens[i].substring(1, 4).equals("var")) {
+				if (!currToken.equals("int") && !currToken.equals("var")) {
 					errorMsg += "Hanging operator not allowed" + " (line " + lineNum + ")\n";
 					return "error1: Hanging operator not allowed";
 				} else {
 					return "accept";
 				}
-			} else if (tokens[i].substring(1, 3).equals("op") && tokens[i + 1].substring(1, 3).equals("op")) { // if consecutive operator found
+			} else if (currToken.equals("op") && nextToken.equals("op")) { // if consecutive operator found
 				errorMsg += "Invalid operator" + " (line " + lineNum + ")\n";
 				return "error2: Syntax error - Invalid operator";
-			} else if (tokens[i].substring(1, 3).equals("op") && (!(tokens[i - 1].length() > 4
-					&& (tokens[i - 1].substring(1, 4).equals("int") || tokens[i - 1].substring(1, 4).equals("var")))
-					|| !(tokens[i + 1].length() > 4 && (tokens[i + 1].substring(1, 4).equals("int")
-							|| tokens[i + 1].substring(1, 4).equals("var"))))) {
+			} else if (currToken.equals("op") && (!(prevToken.equals("int") || prevToken.equals("var"))
+					|| !(nextToken.equals("int") || nextToken.equals("var")))) { // if operator not surrounded with var/num
 				errorMsg += "Operator not surrounded by valid numbers/variables" + " (line " + lineNum + ")\n";
 				return "error3: Syntax error - Operator not surrounded by valid numbers/variables";
-			} else if ((tokens[i].substring(1, 4).equals("var") || tokens[i].substring(1, 4).equals("int")) // if adjacent variables/number found
-					&& (tokens[i + 1].substring(1, 4).equals("var") || tokens[i + 1].substring(1, 4).equals("int"))) {
+			} else if ((currToken.equals("var") || currToken.equals("int")) // if adjacent variables/number found
+					&& (nextToken.equals("var") || nextToken.equals("int"))) {
 				errorMsg += "Consecutive order variable or number" + " (line " + lineNum + ")\n";
 				return "error4: Syntax error - Consecutive order variable or number";
 			}
