@@ -13,6 +13,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 public class GUI {
@@ -20,6 +22,7 @@ public class GUI {
 	public JFrame descriptionFrame;
 	public JMenuItem mntmNew;
 	public JMenuItem mntmOpenFile;
+	public JMenuItem mntmClose;
 	public JMenuItem mntmSave;
 	public JMenuItem mntmSaveAs;
 	public JMenuItem mntmCompile;
@@ -61,6 +64,9 @@ public class GUI {
 		
 		mntmOpenFile = new JMenuItem("Open File");
 		mnFile.add(mntmOpenFile);
+		
+		mntmClose = new JMenuItem("Close");
+		mnFile.add(mntmClose);
 		
 		mntmSave = new JMenuItem("Save");
 		mnFile.add(mntmSave);
@@ -159,6 +165,27 @@ public class GUI {
 		tpEditor.setText("");
 		tpEditor.setFont(new Font("Arial", Font.PLAIN, 13));
 		tpEditor.setEditable(true);
+		tpEditor.getDocument().addDocumentListener(new DocumentListener(){
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				//added '*' to current tab title if user typed into the editor
+				int selectedIndex = tbpEditor.getSelectedIndex();
+				String title = tbpEditor.getTitleAt(selectedIndex);
+				if(title.charAt(0) != '*'){
+					title = '*' + title;
+					tbpEditor.setTitleAt(selectedIndex, title);
+				}
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {}
+			
+		});
+	    tpEditor.getDocument().putProperty("name", "Text Area");
 		
 		tbpEditor = new JTabbedPane(JTabbedPane.TOP);
 		tbpEditor.setBounds(20, 11, 420, 281);

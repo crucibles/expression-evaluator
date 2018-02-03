@@ -67,12 +67,14 @@ import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class ExpressionEvaluator {
 	public GUI gui;
 
 	private JFrame frame;
-	private Vector<SymbolTable> symbolTables =  new Vector<SymbolTable>();
+	private Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
 	private boolean flag = true;
 	private BufferedReader reader;
 	private JFileChooser fileChooser = new JFileChooser();
@@ -111,9 +113,7 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				gui.tbpEditor.addTab("*New.in", new JTextPane());
-				int lastIndex = gui.tbpEditor.getTabCount() - 1;
-				gui.tbpEditor.setSelectedIndex(lastIndex);
+				addNewTab("*New.in");
 			}
 		};
 		newAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
@@ -143,10 +143,40 @@ public class ExpressionEvaluator {
 		};
 		saveAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmSave.setAction(saveAction);
+		
+		Action closeAction = new AbstractAction("Close") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				closeCurrentTab();
+			}
+		};
+		closeAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
+		gui.mntmClose.setAction(closeAction);
 
 		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
 		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
 		fileChooser.setAcceptAllFileFilterUsed(false);
+	}
+	
+	private void closeCurrentTab(){
+		int selectedIndex = gui.tbpEditor.getSelectedIndex();
+		if(selectedIndex >= 0){
+			String title = gui.tbpEditor.getTitleAt(selectedIndex);
+			if(title.charAt(0) != '*'){
+				gui.tbpEditor.remove(selectedIndex);							
+			} else {
+				String msg = "'" + title.substring(1) + "'" + " has been modified. Save changes?";
+				int result = JOptionPane.showConfirmDialog(gui.frame, msg, "Save", JOptionPane.YES_NO_CANCEL_OPTION);
+				if(result == JOptionPane.YES_OPTION){
+					saveFile();
+					//AHJ: unimplemented; remove tab after proper saving
+				} else if(result == JOptionPane.NO_OPTION){
+					gui.tbpEditor.remove(selectedIndex);
+				}
+			}
+		}
 	}
 
 	private void saveFile() {
@@ -167,8 +197,8 @@ public class ExpressionEvaluator {
 		if (file == JFileChooser.APPROVE_OPTION) {
 			File selectedFile = fileChooser.getSelectedFile();
 			if (selectedFile.isFile()) {
-				//AHJ: unimplemented; surround textpane with scrollpane
-				gui.tbpEditor.addTab(selectedFile.getName(), new JTextPane());
+				// AHJ: unimplemented; surround textpane with scrollpane
+				addNewTab(selectedFile.getName());
 				return true;
 			} else {
 				JOptionPane.showMessageDialog(frame, "This file does not exist.");
@@ -177,6 +207,37 @@ public class ExpressionEvaluator {
 		} else {
 			return false;
 		}
+	}
+	
+	private void addNewTab(String title){
+		JTextPane tpEditor = new JTextPane();
+		tpEditor.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				// added '*' to current tab title if user typed into the
+				// editor
+				int selectedIndex = gui.tbpEditor.getSelectedIndex();
+				String title = gui.tbpEditor.getTitleAt(selectedIndex);
+				if (title.charAt(0) != '*') {
+					title = '*' + title;
+					gui.tbpEditor.setTitleAt(selectedIndex, title);
+				}
+			}
+		});
+		gui.tbpEditor.addTab(title, tpEditor);
+		int lastIndex = gui.tbpEditor.getTabCount() - 1;
+		gui.tbpEditor.setSelectedIndex(lastIndex);
+		/*AHJ: unimplemented; there may be something wrong here; check if mawagtang ang storing the symbol table*/
+		symbolTables.add(new SymbolTable());
 	}
 
 	/**
@@ -188,7 +249,9 @@ public class ExpressionEvaluator {
 		gui.tpEditor.setText("");
 		errorMsg = "";
 		// when loading a new file, clears the symbolTable of the previous file
-		symbolTables.get(1).getVector().clear();
+		int selectedIndex = gui.tbpEditor.getSelectedIndex();
+		
+		//symbolTables.get(selectedIndex).getVector().clear();
 		if (getFileExtension(getFileName()).equals("in")) {
 			flag = true;
 			System.out.println("loading a valid file...");
@@ -248,52 +311,50 @@ public class ExpressionEvaluator {
 
 			String lexicalString = lexicalAnalyzer(line, lineNum);
 			String checker = "";
-			if (!lexicalString.substring(0, 3).equals("err")) { // if lexical
-																// error
-																// encountered
+
+			/* if lexical error is not encountered */
+			if (!lexicalString.substring(0, 3).equals("err")) {
 				checker = syntaxAnalyzer(lexicalString, lineNum);
 
-				if (!checker.substring(0, 3).equals("err")) { // if syntax error
-																// encountered
-					String expr = getRHS(lexicalString); // obtains the
-															// expression part
-															// (or RHS) of the
-															// line
+				// if syntax error encountered
+				if (!checker.substring(0, 3).equals("err")) {
+					// obtains the expression part (or RHS) of the line
+					String expr = getRHS(lexicalString);
 
 					postFix = toPostFix(expr);
-					strPostFix = convertToString(postFix); // converts postfix
-															// linkedlist to
-															// string
-					if (!hasEmptyValues(expr, lineNum)) { // if RHS has
-															// undefined
-															// variables or
-															// variables with
-															// empty values
+
+					/* converts postfix linkedlist to string */
+					strPostFix = convertToString(postFix);
+
+					/*
+					 * if RHS has undefined variables or variables with empty
+					 * values
+					 */
+					if (!hasEmptyValues(expr, lineNum)) {
 						result = evaluateExpression(postFix);
-						// insert index at the get(index) for the specified tab of editor
-						symbolTables.get(1).storeResult(result, lexicalString, true); // store result in
-															// symbol table
+						/* AHJ: unimplemeted; (to Ced) tama akung pag-ilis? */
+						/*
+						 * insert index at the get(index) for the specified tab
+						 * of editor
+						 */
+						/* store in symbol table */
+						int selectedIndex = gui.tbpEditor.getSelectedIndex();
+						symbolTables.get(selectedIndex).storeResult(result, lexicalString, true);
 					} else { // if some variables are undefined
 						checker = "Warning: Variable does not have value yet.";
 					}
 				}
 			}
 
-			displayOutput(line, checker, strPostFix, result, lineNum); // displays
-																		// the
-																		// result
-																		// in
-																		// the
-																		// 'Output'
-																		// text
-																		// pane
+			/* display the result in the output text pane */
+			displayOutput(line, checker, strPostFix, result, lineNum);
 			line = reader.readLine(); // reads next line
 		}
 
 		displayAdditionalOutput();
 
 		reader.close();
-		createOutFile(gui.tpEditor.getText()); // create the .out file
+		createOutFile(gui.tpEditor.getText());
 	}
 
 	/**
@@ -319,31 +380,24 @@ public class ExpressionEvaluator {
 			String outputLine = "Line" + lineNum + ": " + line + "\n";
 			doc.insertString(doc.getLength(), outputLine, null);
 
-			if (checker.substring(0, 3).equals("err")) { // if error has been
-															// detected
+			/* if error has been detected*/
+			if (checker.substring(0, 3).equals("err")) {
 
 				// outputs the error that had occurred
 				outputLine = "Result: " + checker + "\n\n";
 				doc.insertString(doc.getLength(), outputLine, null);
-
-			} else { // if no errors found in the source code
+			/* if no errors found in the source code*/
+			} else {
 				outputLine = "Postfix: " + getLHS(line) + " " + strPostFix + "\n"; // postfix
 				doc.insertString(doc.getLength(), outputLine, null);
 
 				if (checker.substring(0, 4).equals("Warn")) {
-					outputLine = checker + "\n\n"; // warning (for lines
-													// containing undefined
-													// variables)
+					outputLine = checker + "\n\n"; /* warning (for lines containing undefined variables) */
 				} else {
 					outputLine = "Result: " + getLHS(line) + " " + result + "\n\n"; // result/answer
 					if (!flag) {
-						outputLine = "Result: " + getLHS(line) + " " + "undefined" + "\n\n"; // if
-																								// result
-																								// is
-																								// undefined
-																								// (for
-																								// zero
-																								// divisors)
+						/* if result is undefined (for zero divisors) */
+						outputLine = "Result: " + getLHS(line) + " " + "undefined" + "\n\n";
 						flag = true;
 					}
 				}
@@ -382,8 +436,6 @@ public class ExpressionEvaluator {
 		}
 	}
 
-	
-
 	/**
 	 * Creates the .out file of the resulting output
 	 * 
@@ -410,8 +462,6 @@ public class ExpressionEvaluator {
 		}
 	}
 
-	
-
 	/**
 	 * Looks for any variables with no assigned values
 	 * 
@@ -426,20 +476,12 @@ public class ExpressionEvaluator {
 		String[] tokens = expr.trim().split("\\s");
 
 		for (int i = 0; i < tokens.length; i++) {
-			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) { // if
-																					// the
-																					// token
-																					// is
-																					// not
-																					// empty
-																					// and
-																					// is
-																					// a
-																					// variable/identifier
+			/* if token is not empty and is a variable/identifier*/
+			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) { 
 				String var = getAbsoluteValue(tokens[i].substring(5, tokens[i].length() - 1));
 				SymbolTable sb = symbolTables.get(1).findVariable(var);
 				if (sb.getValue().equals("")) { // if the variable has no value
-											// stored in the symbol table
+					// stored in the symbol table
 					errorMsg += "Undefined variable: " + var + " (line " + lineNum + ")\n";
 					return true;
 				}
@@ -567,36 +609,20 @@ public class ExpressionEvaluator {
 			if (!token.isEmpty() && token.equals("=")) { // if a '=' is located
 				String var = tokens[index - 1].length() > 4 ? tokens[index - 1].substring(1, 4) : "";
 				String eq = tokens[index];
-				if (!var.equals("var") || !eq.equals("=")) { // checks if a
-																// preceding
-																// element to
-																// the
-																// assignment
-																// symbol is
-																// correct (if
-																// it's a
-																// variable)
+				/* checks if preceding element to the assignment symbol is correct (if it's a variable)*/
+				if (!var.equals("var") || !eq.equals("=")) {
 					errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
 					return "error5: Syntax error - Incorrect left-hand side element.";
 				}
+			/* if operator or number is found in LHS */
 			} else if (!token.isEmpty() && (token.length() > 3
-					&& (token.substring(1, 4).equals("int") || token.substring(1, 3).equals("op")))) { // if
-																																							// operator
-																																							// or
-																																							// number
-																																							// found
-																																							// in
-																																							// LHS
+					&& (token.substring(1, 4).equals("int") || token.substring(1, 3).equals("op")))) {
 				errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
 				return "error5: Syntax error - Incorrect left-hand side element.";
+			/* if adjacent variables found in LHS */
 			} else if (!token.isEmpty() && !nextToken.isEmpty()
 					&& (token.length() > 4 && token.substring(1, 4).equals("var"))
-					&& (nextToken.length() > 4 && nextToken.substring(1, 4).equals("var"))) { // if
-																																																					// adjacent
-																																																					// variables
-																																																					// found
-																																																					// in
-																																																					// LHS
+					&& (nextToken.length() > 4 && nextToken.substring(1, 4).equals("var"))) {
 				errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
 				return "error5: Syntax error - Incorrect left-hand side element.";
 			}
@@ -630,25 +656,17 @@ public class ExpressionEvaluator {
 				} else {
 					return "accept";
 				}
-			} else if (currToken.equals("op") && nextToken.equals("op")) { // if
-																			// consecutive
-																			// operator
-																			// found
+			/* if consecutive operator found */
+			} else if (currToken.equals("op") && nextToken.equals("op")) {
 				errorMsg += "Invalid operator" + " (line " + lineNum + ")\n";
 				return "error2: Syntax error - Invalid operator";
+			/* if operator not surrounded with var/num */
 			} else if (currToken.equals("op") && (!(prevToken.equals("int") || prevToken.equals("var"))
-					|| !(nextToken.equals("int") || nextToken.equals("var")))) { // if
-																																												// operator
-																																												// not
-																																												// surrounded
-																																												// with
-																																												// var/num
+					|| !(nextToken.equals("int") || nextToken.equals("var")))) {
 				errorMsg += "Operator not surrounded by valid numbers/variables" + " (line " + lineNum + ")\n";
 				return "error3: Syntax error - Operator not surrounded by valid numbers/variables";
-			} else if ((currToken.equals("var") || currToken.equals("int")) // if
-					// adjacent
-					// variables/number
-					// found
+			/* if adjacent variables/number found */
+			} else if ((currToken.equals("var") || currToken.equals("int"))
 					&& (nextToken.equals("var") || nextToken.equals("int"))) {
 				errorMsg += "Consecutive order variable or number" + " (line " + lineNum + ")\n";
 				return "error4: Syntax error - Consecutive order variable or number";
@@ -796,17 +814,17 @@ public class ExpressionEvaluator {
 											// number, push it to stack
 				stack.push(poppedElem);
 			} else if (symbolTables.get(1).findVariable(getAbsoluteValue(poppedElem)) != null) { // if
-																				// popped
-																				// element
-																				// from
-																				// postfix
-																				// is
-																				// a
-																				// number,
-																				// push
-																				// it
-																				// to
-																				// stack
+				// popped
+				// element
+				// from
+				// postfix
+				// is
+				// a
+				// number,
+				// push
+				// it
+				// to
+				// stack
 				boolean isPositive = poppedElem.charAt(0) != '-'; // determines
 																	// if
 																	// variable
@@ -821,17 +839,19 @@ public class ExpressionEvaluator {
 				SymbolTable sb = symbolTables.get(1).findVariable(var);
 
 				String number = sb.getValue();
-				if (!isPositive && sb.getValue().charAt(0) != '-') { // for single
-																// negative
+				if (!isPositive && sb.getValue().charAt(0) != '-') { // for
+																		// single
+					// negative
 					number = "-" + sb.getValue();
 				} else if (!isPositive && sb.getValue().charAt(0) == '-') { // for
-																		// double
-																		// negative
-																		// note: this is done to avoid having double negative sign
-																		// that causes error in the code
-					number = sb.getValue().substring(1); // removed negative sign
-													// (double negative =
-													// positive)
+					// double
+					// negative
+					// note: this is done to avoid having double negative sign
+					// that causes error in the code
+					number = sb.getValue().substring(1); // removed negative
+															// sign
+					// (double negative =
+					// positive)
 				}
 				stack.push(number);
 			} else { // if popped element from postfix is encountered, pop two
