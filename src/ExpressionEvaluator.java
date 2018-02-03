@@ -45,6 +45,7 @@
 
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -67,7 +68,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 
-public class ExpressionEvaluator{
+public class ExpressionEvaluator {
 	public GUI gui;
 
 	private JFrame frame;
@@ -118,20 +119,20 @@ public class ExpressionEvaluator{
 		};
 		newAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmNew.setAction(newAction);
-		
+
 		Action openAction = new AbstractAction("Open") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(chooseFile()){
+				if (chooseFile()) {
 					loadFile();
 				}
 			}
 		};
 		openAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmOpenFile.setAction(openAction);
-		
+
 		Action saveAction = new AbstractAction("Save") {
 			private static final long serialVersionUID = 1L;
 
@@ -143,21 +144,19 @@ public class ExpressionEvaluator{
 		};
 		saveAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmSave.setAction(saveAction);
-		
+
 		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
 		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
 		fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
-	private void saveFile(){
+	private void saveFile() {
 		int selectedIndex = gui.tbpEditor.getSelectedIndex();
 		String title = gui.tbpEditor.getTitleAt(selectedIndex);
-		if(title.charAt(0)== '*'){
+		if (title.charAt(0) == '*') {
 			gui.tbpEditor.setTitleAt(selectedIndex, title.substring(1));
 		}
 	}
-
-	
 
 	/**
 	 * Choose file from the user's home directory. Checks if file exists
@@ -169,8 +168,8 @@ public class ExpressionEvaluator{
 		if (file == JFileChooser.APPROVE_OPTION) {
 			File selectedFile = fileChooser.getSelectedFile();
 			if (selectedFile.isFile()) {
-				//AHJ: unimplemented; surround textpane with scrollpane
-				
+				// AHJ: unimplemented; surround textpane with scrollpane
+
 				gui.tbpEditor.addTab(selectedFile.getName(), new JTextPane());
 				return true;
 			} else {
@@ -178,7 +177,7 @@ public class ExpressionEvaluator{
 				return false;
 			}
 		} else {
-			return false;			
+			return false;
 		}
 	}
 
