@@ -1,40 +1,11 @@
-Line1: cs = 5
-Postfix: cs = 5 
-Result: cs = 5
+Line1: hello world
+Result: error4: Syntax error - Consecutive order variable or number
 
-Line1: _xaxaxa = 2 + -2 + +2 - -2 - -4
-Postfix: _xaxaxa = 2 -2 + +2 + -2 - -4 - 
-Result: _xaxaxa = 8
-
-Line1: zxc = 2 + 2 + -cs
-Postfix: zxc = 2 2 + -cs + 
-Result: zxc = -1
-
-Line1: x = 4 / 0
-Postfix: x = 4 0 / 
-Result: x = undefined
-
-Line1: y = x
-Postfix: y = x 
-Warning: Variable does not have value yet.
-
-Line1: a = y
-Postfix: a = y 
-Warning: Variable does not have value yet.
-
-Line1: b = x + y
-Postfix: b = x y + 
-Warning: Variable does not have value yet.
-
-Line1: c = a
-Postfix: c = a 
-Warning: Variable does not have value yet.
-
-Line1: x = 2
-Postfix: x = 2 
-Result: x = 2
-
-Line1: c = 2
-Postfix: c = 2 
-Result: c = 2
+-------------------------
+Variables Used:
+hello
+world
+-------------------------
+Errors found:
+Consecutive order variable or number (line 1)
 
