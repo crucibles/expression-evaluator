@@ -81,10 +81,8 @@ public class SymbolTable {
 	 * Stores value of variables in the LHS (left-hand side) in the symbol
 	 * table.
 	 * 
-	 * @param value
-	 *            value to be stored to the variable
-	 * @param stmt statement that contains the variable whose value is to be
-	 *            stored
+	 * @param value value to be stored to the variable
+	 * @param stmt statement that contains the variable whose value is to be stored
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
@@ -95,28 +93,17 @@ public class SymbolTable {
 		String tokens[] = stmt.split("\\s");
 
 		for (int i = 0; i < tokens.length; i++) {
-			if (!tokens[i].isEmpty() && tokens[i].equals("=")) { // locates the
-																	// LHS
-																	// variables
-																	// by
-																	// locating
-																	// the '='
-																	// sign
+			// locates the LHS variables by locatingthe '='sign
+			if (!tokens[i].isEmpty() && tokens[i].equals("=")) { 
 
-				String var = tokens[i - 1].substring(5, tokens[i - 1].length() - 1); // obtains
-																						// the
-																						// variable
-																						// name
-				for (int index = 0; index < this.symbolTable.size(); index++) { // locating
-																			// the
-																			// variable
-																			// in
-																			// the
-																			// symbol
-																			// table
+				String var = tokens[i - 1].substring(5, tokens[i - 1].length() - 1); // obtains the variable name
+
+				// locating the variable in the symbol table
+				for (int index = 0; index < this.symbolTable.size(); index++) { 
+
 					SymbolTable sb = this.symbolTable.get(index);
-					if (var.equals(sb.token)) { // sets the value of the
-												// variable if found
+
+					if (var.equals(sb.token)) { // sets the value of the variable if found
 						sb.setValue(Integer.toString(value));
 						if (flag == false)
 							sb.setValue("");

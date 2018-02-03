@@ -72,12 +72,10 @@ import javax.swing.event.DocumentListener;
 
 public class ExpressionEvaluator {
 	public GUI gui;
-
+	public FileHandler fileHandler;
 	private JFrame frame;
 	private Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
 	private boolean flag = true;
-	private BufferedReader reader;
-	private JFileChooser fileChooser = new JFileChooser();
 	private String errorMsg = new String("");
 
 	/**
@@ -124,8 +122,13 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (chooseFile()) {
-					loadFile();
+				if (fileHandler.chooseFile(frame)) {
+					// AHJ: unimplemented; surround textpane with scrollpane
+					addNewTab(fileHandler.getFileName());
+					fileHandler.loadFile();
+
+				} else if (!fileHandler.chooseFile(frame)) {
+					JOptionPane.showMessageDialog(frame, "This file does not exist.");
 				}
 			}
 		};
@@ -137,13 +140,14 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				saveFile();
+				fileHandler.saveFile(gui.tpEditor.getText());
+				gui.updateTabInfo();
 				System.out.println("Saving...");
 			}
 		};
 		saveAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmSave.setAction(saveAction);
-		
+
 		Action closeAction = new AbstractAction("Close") {
 			private static final long serialVersionUID = 1L;
 
@@ -155,61 +159,29 @@ public class ExpressionEvaluator {
 		closeAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmClose.setAction(closeAction);
 
-		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
-		fileChooser.setAcceptAllFileFilterUsed(false);
 	}
-	
-	private void closeCurrentTab(){
+
+	private void closeCurrentTab() {
 		int selectedIndex = gui.tbpEditor.getSelectedIndex();
-		if(selectedIndex >= 0){
+		if (selectedIndex >= 0) {
 			String title = gui.tbpEditor.getTitleAt(selectedIndex);
-			if(title.charAt(0) != '*'){
-				gui.tbpEditor.remove(selectedIndex);							
+			if (title.charAt(0) != '*') {
+				gui.tbpEditor.remove(selectedIndex);
 			} else {
 				String msg = "'" + title.substring(1) + "'" + " has been modified. Save changes?";
 				int result = JOptionPane.showConfirmDialog(gui.frame, msg, "Save", JOptionPane.YES_NO_CANCEL_OPTION);
-				if(result == JOptionPane.YES_OPTION){
-					saveFile();
+				if (result == JOptionPane.YES_OPTION) {
+					fileHandler.saveFile(gui.tpEditor.getText());
+					gui.updateTabInfo();
 					//AHJ: unimplemented; remove tab after proper saving
-				} else if(result == JOptionPane.NO_OPTION){
+				} else if (result == JOptionPane.NO_OPTION) {
 					gui.tbpEditor.remove(selectedIndex);
 				}
 			}
 		}
 	}
 
-	private void saveFile() {
-		int selectedIndex = gui.tbpEditor.getSelectedIndex();
-		String title = gui.tbpEditor.getTitleAt(selectedIndex);
-		if (title.charAt(0) == '*') {
-			gui.tbpEditor.setTitleAt(selectedIndex, title.substring(1));
-		}
-	}
-
-	/**
-	 * Choose file from the user's home directory. Checks if file exists
-	 * 
-	 * @author Alvaro, Cedric Y.
-	 */
-	private boolean chooseFile() {
-		int file = fileChooser.showOpenDialog(frame);
-		if (file == JFileChooser.APPROVE_OPTION) {
-			File selectedFile = fileChooser.getSelectedFile();
-			if (selectedFile.isFile()) {
-				// AHJ: unimplemented; surround textpane with scrollpane
-				addNewTab(selectedFile.getName());
-				return true;
-			} else {
-				JOptionPane.showMessageDialog(frame, "This file does not exist.");
-				return false;
-			}
-		} else {
-			return false;
-		}
-	}
-	
-	private void addNewTab(String title){
+	private void addNewTab(String title) {
 		JTextPane tpEditor = new JTextPane();
 		tpEditor.getDocument().addDocumentListener(new DocumentListener() {
 
@@ -241,48 +213,6 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Load the file of the given url
-	 * 
-	 * @author Alvaro, Cedric Y.
-	 */
-	private void loadFile() {
-		gui.tpEditor.setText("");
-		errorMsg = "";
-		// when loading a new file, clears the symbolTable of the previous file
-		int selectedIndex = gui.tbpEditor.getSelectedIndex();
-		
-		//symbolTables.get(selectedIndex).getVector().clear();
-		if (getFileExtension(getFileName()).equals("in")) {
-			flag = true;
-			System.out.println("loading a valid file...");
-		}
-	}
-
-	/**
-	 * 
-	 * Gets the name of the file selected.
-	 * 
-	 * @return name of the file received
-	 * 
-	 * @author Alvaro, Cedric Y.
-	 */
-	private String getFileName() {
-		return fileChooser.getSelectedFile().getName();
-	}
-
-	/**
-	 * Gets the extension of the file selected.
-	 * 
-	 * @return file's extension (.e.g. in (file.in), out (file.out))
-	 * 
-	 * @author Alvaro, Cedric Y.
-	 */
-	private String getFileExtension(String fileName) {
-		int index = fileName.lastIndexOf(".");
-		return fileName.substring(index + 1, fileName.length());
-	}
-
-	/**
 	 * Processes the most recently opened valid file. This function contains the
 	 * lexical, syntax and semantic analyzer as well as the execution of the
 	 * file
@@ -298,14 +228,14 @@ public class ExpressionEvaluator {
 		String strPostFix = "";
 
 		// stores the selected file and obtained a line
-		FileReader selectedFile = new FileReader(fileChooser.getSelectedFile().getAbsolutePath());
-		reader = new BufferedReader(selectedFile);
-		String line = reader.readLine();
+		FileReader selectedFile = new FileReader(fileHandler.fileChooser.getSelectedFile().getAbsolutePath());
+		fileHandler.reader = new BufferedReader(selectedFile);
+		String line = fileHandler.reader.readLine();
 		gui.tpEditor.setText("");
 
 		for (int lineNum = 1; line != null; lineNum++) {
 			if (line.equals("")) { // if current line read is empty
-				line = reader.readLine();
+				line = fileHandler.reader.readLine();
 				continue;
 			}
 
@@ -348,13 +278,15 @@ public class ExpressionEvaluator {
 
 			/* display the result in the output text pane */
 			displayOutput(line, checker, strPostFix, result, lineNum);
-			line = reader.readLine(); // reads next line
+			line = fileHandler.reader.readLine(); // reads next line
 		}
 
 		displayAdditionalOutput();
 
-		reader.close();
-		createOutFile(gui.tpEditor.getText());
+		fileHandler.reader.close();
+		fileHandler.saveFile(gui.tpEditor.getText());
+		gui.updateTabInfo();
+		System.out.println("Saving...");
 	}
 
 	/**
@@ -386,7 +318,7 @@ public class ExpressionEvaluator {
 				// outputs the error that had occurred
 				outputLine = "Result: " + checker + "\n\n";
 				doc.insertString(doc.getLength(), outputLine, null);
-			/* if no errors found in the source code*/
+				/* if no errors found in the source code*/
 			} else {
 				outputLine = "Postfix: " + getLHS(line) + " " + strPostFix + "\n"; // postfix
 				doc.insertString(doc.getLength(), outputLine, null);
@@ -437,32 +369,6 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Creates the .out file of the resulting output
-	 * 
-	 * @param output
-	 *            the text to be stored in the .out file
-	 * 
-	 * @author Alvaro, Cedric Y.
-	 */
-	public void createOutFile(String output) throws IOException {
-		Writer writer = null;
-
-		try {
-			writer = new BufferedWriter(
-					new OutputStreamWriter(new FileOutputStream(getFileName().replace(".in", ".out")), "utf-8"));
-			writer.write(output);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		} finally {
-			try {
-				writer.close();
-			} catch (Exception ex) {
-
-			}
-		}
-	}
-
-	/**
 	 * Looks for any variables with no assigned values
 	 * 
 	 * @param expr
@@ -477,7 +383,7 @@ public class ExpressionEvaluator {
 
 		for (int i = 0; i < tokens.length; i++) {
 			/* if token is not empty and is a variable/identifier*/
-			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) { 
+			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
 				String var = getAbsoluteValue(tokens[i].substring(5, tokens[i].length() - 1));
 				SymbolTable sb = symbolTables.get(1).findVariable(var);
 				if (sb.getValue().equals("")) { // if the variable has no value
@@ -614,12 +520,12 @@ public class ExpressionEvaluator {
 					errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
 					return "error5: Syntax error - Incorrect left-hand side element.";
 				}
-			/* if operator or number is found in LHS */
+				/* if operator or number is found in LHS */
 			} else if (!token.isEmpty() && (token.length() > 3
 					&& (token.substring(1, 4).equals("int") || token.substring(1, 3).equals("op")))) {
 				errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
 				return "error5: Syntax error - Incorrect left-hand side element.";
-			/* if adjacent variables found in LHS */
+				/* if adjacent variables found in LHS */
 			} else if (!token.isEmpty() && !nextToken.isEmpty()
 					&& (token.length() > 4 && token.substring(1, 4).equals("var"))
 					&& (nextToken.length() > 4 && nextToken.substring(1, 4).equals("var"))) {
@@ -656,16 +562,16 @@ public class ExpressionEvaluator {
 				} else {
 					return "accept";
 				}
-			/* if consecutive operator found */
+				/* if consecutive operator found */
 			} else if (currToken.equals("op") && nextToken.equals("op")) {
 				errorMsg += "Invalid operator" + " (line " + lineNum + ")\n";
 				return "error2: Syntax error - Invalid operator";
-			/* if operator not surrounded with var/num */
+				/* if operator not surrounded with var/num */
 			} else if (currToken.equals("op") && (!(prevToken.equals("int") || prevToken.equals("var"))
 					|| !(nextToken.equals("int") || nextToken.equals("var")))) {
 				errorMsg += "Operator not surrounded by valid numbers/variables" + " (line " + lineNum + ")\n";
 				return "error3: Syntax error - Operator not surrounded by valid numbers/variables";
-			/* if adjacent variables/number found */
+				/* if adjacent variables/number found */
 			} else if ((currToken.equals("var") || currToken.equals("int"))
 					&& (nextToken.equals("var") || nextToken.equals("int"))) {
 				errorMsg += "Consecutive order variable or number" + " (line " + lineNum + ")\n";
@@ -841,7 +747,7 @@ public class ExpressionEvaluator {
 				String number = sb.getValue();
 				if (!isPositive && sb.getValue().charAt(0) != '-') { // for
 																		// single
-					// negative
+																		// negative
 					number = "-" + sb.getValue();
 				} else if (!isPositive && sb.getValue().charAt(0) == '-') { // for
 					// double
@@ -850,8 +756,8 @@ public class ExpressionEvaluator {
 					// that causes error in the code
 					number = sb.getValue().substring(1); // removed negative
 															// sign
-					// (double negative =
-					// positive)
+															// (double negative =
+															// positive)
 				}
 				stack.push(number);
 			} else { // if popped element from postfix is encountered, pop two
