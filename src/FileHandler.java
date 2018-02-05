@@ -23,13 +23,16 @@ public class FileHandler {
 	}
 
 	// to be implemented
-	public void saveFile(String output, JFrame frame) {
+	public String saveFile(String output, JFrame frame) {
 		try {
-			createFile(output, frame);
+			String fileName = createFile(output, frame);
+			System.out.println(fileName);
+			return fileName;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return null;
 	}
 
 	/**
@@ -39,7 +42,7 @@ public class FileHandler {
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public void createFile(String output, JFrame frame) throws IOException {
+	public String createFile(String output, JFrame frame) throws IOException {
 		this.fileChooser.setFileFilter(new FileNameExtensionFilter("out files", "out"));
 		Writer writer = null;
 
@@ -51,20 +54,25 @@ public class FileHandler {
 				File selectedFile = fileChooser.getSelectedFile();
 
 				try {
+					//AHJ: unimplemented; #01: weird part here. Filechooser can choose in or out for extension in saving file... so unsaon pagkabalo? (Also, this savefile function does not include saving of .in file)
 					String fileName = selectedFile.getCanonicalPath();
 					if (!fileName.endsWith(".out")) {
 						selectedFile = new File(fileName + ".out");
 					}
 					writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(selectedFile)));
 					writer.write(output);
+					//AHJ: unimplemented; (not properly implemented)refer to comment #01
+					return getFileName() + ".in";
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-
+			return null;
 		} finally {
 			try {
-				writer.close();
+				if(writer != null){
+					writer.close();
+				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				;
