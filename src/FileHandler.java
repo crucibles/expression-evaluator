@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -15,15 +16,16 @@ public class FileHandler {
 	public JFileChooser fileChooser = new JFileChooser();
 
 	public FileHandler() {
-		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-		fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
-		fileChooser.setAcceptAllFileFilterUsed(false);
+		System.out.println("im in");
+		this.fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+		this.fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
+		this.fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
 	// to be implemented
-	public void saveFile(String output) {
+	public void saveFile(String output, JFrame frame) {
 		try {
-			createFile(output);
+			createFile(output, frame);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -37,22 +39,35 @@ public class FileHandler {
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public void createFile(String output) throws IOException {
+	public void createFile(String output, JFrame frame) throws IOException {
+		this.fileChooser.setFileFilter(new FileNameExtensionFilter("out files", "out"));
 		Writer writer = null;
 
 		try {
-			writer = new BufferedWriter(
-						new OutputStreamWriter(
-							new FileOutputStream(getFileName().replace(".in", ".out")), "utf-8"));
-			writer.write(output);
+			int status = fileChooser.showSaveDialog(frame);
 
-		} catch (IOException ex) {
-			ex.printStackTrace();
+			if (status == JFileChooser.APPROVE_OPTION) {
+				System.out.println("hi");
+				File selectedFile = fileChooser.getSelectedFile();
+
+				try {
+					String fileName = selectedFile.getCanonicalPath();
+					if (!fileName.endsWith(".out")) {
+						selectedFile = new File(fileName + ".out");
+					}
+					writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(selectedFile)));
+					writer.write(output);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
 		} finally {
 			try {
 				writer.close();
 			} catch (Exception ex) {
-				ex.printStackTrace();;
+				ex.printStackTrace();
+				;
 			}
 		}
 	}
