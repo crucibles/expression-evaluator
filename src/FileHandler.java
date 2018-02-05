@@ -23,7 +23,7 @@ public class FileHandler {
 	// to be implemented
 	public void saveFile(String output) {
 		try {
-			createOutFile(output);
+			createFile(output);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -37,7 +37,7 @@ public class FileHandler {
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public void createOutFile(String output) throws IOException {
+	public void createFile(String output) throws IOException {
 		Writer writer = null;
 
 		try {
@@ -45,6 +45,7 @@ public class FileHandler {
 						new OutputStreamWriter(
 							new FileOutputStream(getFileName().replace(".in", ".out")), "utf-8"));
 			writer.write(output);
+
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		} finally {

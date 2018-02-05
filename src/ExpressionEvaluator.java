@@ -148,34 +148,15 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				closeCurrentTab();
+				if(gui.closeCurrentTab(gui.tpEditor.getText())){
+					int selectedIndex = gui.tbpEditor.getSelectedIndex();
+					symbolTables.remove(selectedIndex);
+				}
 			}
 		};
 		closeAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmClose.setAction(closeAction);
 
-	}
-
-	private void closeCurrentTab() {
-		int selectedIndex = gui.tbpEditor.getSelectedIndex();
-		if (selectedIndex >= 0) {
-			String title = gui.tbpEditor.getTitleAt(selectedIndex);
-			if (title.charAt(0) != '*') {
-				gui.tbpEditor.remove(selectedIndex);
-				symbolTables.remove(selectedIndex);
-			} else {
-				String msg = "'" + title.substring(1) + "'" + " has been modified. Save changes?";
-				int result = JOptionPane.showConfirmDialog(gui.frame, msg, "Save", JOptionPane.YES_NO_CANCEL_OPTION);
-				if (result == JOptionPane.YES_OPTION) {
-					fileHandler.saveFile(gui.tpEditor.getText());
-					gui.updateTabInfo();
-					//AHJ: unimplemented; remove tab after proper saving
-				} else if (result == JOptionPane.NO_OPTION) {
-					gui.tbpEditor.remove(selectedIndex);
-					symbolTables.remove(selectedIndex);
-				}
-			}
-		}
 	}
 
 	private void addNewTab(String title) {

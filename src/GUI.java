@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -209,6 +210,34 @@ public class GUI {
 		tbpEditor.addTab(title, tpEditor);
 		int lastIndex = tbpEditor.getTabCount() - 1;
 		tbpEditor.setSelectedIndex(lastIndex);
+	}
+
+	public boolean closeCurrentTab(String text) {
+		int selectedIndex = tbpEditor.getSelectedIndex();
+		if (selectedIndex >= 0) {
+			String title = tbpEditor.getTitleAt(selectedIndex);
+			if (title.charAt(0) != '*') {
+				tbpEditor.remove(selectedIndex);
+				//symbolTables.remove(selectedIndex);
+				return true;
+			} else {
+				String msg = "'" + title.substring(1) + "'" + " has been modified. Save changes?";
+				int result = JOptionPane.showConfirmDialog(frame, msg, "Save", JOptionPane.YES_NO_CANCEL_OPTION);
+				if (result == JOptionPane.YES_OPTION) {
+					FileHandler fileHandler = new FileHandler();
+					fileHandler.saveFile(text);
+					updateTabInfo();
+					//AHJ: unimplemented; remove tab after proper saving (done I think)
+					tbpEditor.remove(selectedIndex);
+					return true;
+				} else if (result == JOptionPane.NO_OPTION) {
+					tbpEditor.remove(selectedIndex);
+					//symbolTables.remove(selectedIndex);
+					return true;
+				} 
+			}
+		}
+		return false;		
 	}
 	
 	/**
