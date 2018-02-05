@@ -1,5 +1,4 @@
 import java.awt.CardLayout;
-import java.awt.Font;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -296,12 +295,5 @@ public class GUI {
 		if (title.charAt(0) == '*') {
 			tbpEditor.setTitleAt(selectedIndex, title.substring(1));
 		}
-	}
-
-	public void updateWhenLoading() {
-		tpEditor.setText("");
-		errorMsg = "";
-		// when loading a new file, clears the symbolTable of the previous file
-		int selectedIndex = tbpEditor.getSelectedIndex();
 	}
 }

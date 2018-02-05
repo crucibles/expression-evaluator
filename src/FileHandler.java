@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -9,6 +8,7 @@ import java.io.Writer;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
 
 public class FileHandler {
 
@@ -17,13 +17,23 @@ public class FileHandler {
 
 	public FileHandler() {
 		System.out.println("im in");
-		this.fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+		this.fileChooser.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
 		this.fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
 		this.fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
 	// to be implemented
 	public void saveFile(String output, JFrame frame) {
+		try {
+			createFile(output, frame);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	// to be implemented
+	public void saveAsFile(String output, JFrame frame) {
 		try {
 			createFile(output, frame);
 		} catch (IOException e) {
@@ -40,7 +50,6 @@ public class FileHandler {
 	 * @author Alvaro, Cedric Y.
 	 */
 	public void createFile(String output, JFrame frame) throws IOException {
-		this.fileChooser.setFileFilter(new FileNameExtensionFilter("out files", "out"));
 		Writer writer = null;
 
 		try {
@@ -52,8 +61,8 @@ public class FileHandler {
 
 				try {
 					String fileName = selectedFile.getCanonicalPath();
-					if (!fileName.endsWith(".out")) {
-						selectedFile = new File(fileName + ".out");
+					if (!fileName.endsWith(".in")) {
+						selectedFile = new File(fileName + ".in");
 					}
 					writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(selectedFile)));
 					writer.write(output);

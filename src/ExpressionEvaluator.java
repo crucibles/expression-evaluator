@@ -47,22 +47,15 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Vector;
 import java.util.LinkedList;
 import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JFileChooser;
 import javax.swing.KeyStroke;
 
 public class ExpressionEvaluator {
@@ -135,7 +128,7 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				fileHandler.saveFile(gui.tpEditor.getText());
+				fileHandler.saveFile(gui.tpEditor.getText(), frame);
 				gui.updateTabInfo();
 				System.out.println("Saving...");
 			}
@@ -167,7 +160,7 @@ public class ExpressionEvaluator {
 				String msg = "'" + title.substring(1) + "'" + " has been modified. Save changes?";
 				int result = JOptionPane.showConfirmDialog(gui.frame, msg, "Save", JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == JOptionPane.YES_OPTION) {
-					fileHandler.saveFile(gui.tpEditor.getText());
+					fileHandler.saveFile(gui.tpEditor.getText(), frame);
 					gui.updateTabInfo();
 					//AHJ: unimplemented; remove tab after proper saving
 				} else if (result == JOptionPane.NO_OPTION) {
@@ -259,7 +252,7 @@ public class ExpressionEvaluator {
 		// displayAdditionalOutput();
 
 		fileHandler.reader.close();
-		fileHandler.saveFile(gui.tpEditor.getText());
+		fileHandler.saveFile(gui.tpEditor.getText(), frame);
 		gui.updateTabInfo();
 		System.out.println("Saving...");
 	}
