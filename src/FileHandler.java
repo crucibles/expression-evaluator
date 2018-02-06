@@ -18,11 +18,10 @@ public class FileHandler {
 	private CustomFileChooser fileChooser = new CustomFileChooser("in");
 	private Vector<CustomFileChooser> fileHandlers = new Vector<CustomFileChooser>();
 
-
 	public FileHandler() {
 		System.out.println("im in");
 		this.fileChooser
-			.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
+				.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
 		//this.fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
 		this.fileChooser.setAcceptAllFileFilterUsed(false);
 	}
@@ -44,7 +43,7 @@ public class FileHandler {
 				System.out.println("hello");
 				String name = selectedFile.getName();
 
-				if (!name.contains(".in")){
+				if (!name.contains(".in")) {
 					selectedFile = new File(selectedFile.getParentFile(), name + '.' + "in");
 				}
 
@@ -134,6 +133,22 @@ public class FileHandler {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * Choose file from the user's home directory. Checks if file exists
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
+	public boolean isCurrFile() {
+		File selectedFile = fileChooser.getSelectedFile();
+
+		if(selectedFile == null){
+			return true;
+		} else {
+			return false;
+		}
+		
 	}
 
 	/**

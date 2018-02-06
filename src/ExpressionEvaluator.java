@@ -102,7 +102,7 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addNewTab("*Untitled "+(getCurrentTabIndex()+2)+".in");
+				addNewTab("*Untitled_"+(getCurrentTabIndex()+2)+".in");
 				fileHandler.getfileHandlers().add(new CustomFileChooser("in"));
 			}
 		};
@@ -116,11 +116,14 @@ public class ExpressionEvaluator {
 			public void actionPerformed(ActionEvent e) {
 				if (fileHandler.chooseFile(frame)) {
 					// AHJ: unimplemented; surround textpane with scrollpane
-					addNewTab(fileHandler.getFileName());
+					String fileName = fileHandler.getFileName().isEmpty()? fileHandler.getFileName(): "Untitled_"+(getCurrentTabIndex()+2);
+					addNewTab(fileName);
 					fileHandler.loadFile();
 
-				} else if (!fileHandler.chooseFile(frame)) {
-					JOptionPane.showMessageDialog(frame, "This file does not exist.");
+				} else {
+					if(!fileHandler.isCurrFile()){
+						JOptionPane.showMessageDialog(frame, "This file does not exist.");
+					}
 				}
 			}
 		};
