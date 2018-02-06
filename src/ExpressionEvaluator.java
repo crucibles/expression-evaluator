@@ -43,6 +43,7 @@
  * - Undefined division (e.g. y = x / 0)
  */
 
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -54,13 +55,15 @@ import java.util.LinkedList;
 import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 
 public class ExpressionEvaluator {
 	public GUI gui;
-	public FileHandler fileHandler;
+	public FileHandler fileHandler = new FileHandler();
 	private JFrame frame;
 	private Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
 	private boolean flag = true;
@@ -99,7 +102,8 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addNewTab("*New.in");
+				addNewTab("*Untitled "+(getCurrentTabIndex()+2)+".in");
+				fileHandler.getfileHandlers().add(new CustomFileChooser("in"));
 			}
 		};
 		newAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
@@ -128,9 +132,10 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				fileHandler.saveFile(gui.tpEditor.getText(), frame);
-				gui.updateTabInfo();
-				System.out.println("Saving...");
+				String title = fileHandler.saveFile(getCurrentTabText(), gui.frame);
+				if(title != null){
+					gui.updateTabInfo(title);
+				}
 			}
 		};
 		saveAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
@@ -141,7 +146,11 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				closeCurrentTab();
+				int tabIndex = getCurrentTabIndex();
+				String tabText = getCurrentTabText();
+				if (tabIndex >= 0 && gui.closeCurrentTab(tabText)) {
+					symbolTables.remove(tabIndex);
+				}
 			}
 		};
 		closeAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
@@ -149,26 +158,20 @@ public class ExpressionEvaluator {
 
 	}
 
-	private void closeCurrentTab() {
-		int selectedIndex = gui.tbpEditor.getSelectedIndex();
-		if (selectedIndex >= 0) {
-			String title = gui.tbpEditor.getTitleAt(selectedIndex);
-			if (title.charAt(0) != '*') {
-				gui.tbpEditor.remove(selectedIndex);
-				symbolTables.remove(selectedIndex);
-			} else {
-				String msg = "'" + title.substring(1) + "'" + " has been modified. Save changes?";
-				int result = JOptionPane.showConfirmDialog(gui.frame, msg, "Save", JOptionPane.YES_NO_CANCEL_OPTION);
-				if (result == JOptionPane.YES_OPTION) {
-					fileHandler.saveFile(gui.tpEditor.getText(), frame);
-					gui.updateTabInfo();
-					//AHJ: unimplemented; remove tab after proper saving
-				} else if (result == JOptionPane.NO_OPTION) {
-					gui.tbpEditor.remove(selectedIndex);
-					symbolTables.remove(selectedIndex);
-				}
+	private String getCurrentTabText() {
+		int tabIndex = getCurrentTabIndex();
+		if (tabIndex < 0) {
+			return null;
+		}
+		JScrollPane sp = (JScrollPane) gui.tbpEditor.getComponentAt(tabIndex);
+		Component[] comps = sp.getViewport().getComponents();
+		for (int i = 0; i < comps.length; i++) {
+			if (comps[i] instanceof JTextPane) {
+				JTextPane textPane = (JTextPane) comps[i];
+				return textPane.getText();
 			}
 		}
+		return null;
 	}
 
 	private void addNewTab(String title) {
@@ -196,7 +199,7 @@ public class ExpressionEvaluator {
 		String strPostFix = "";
 
 		// stores the selected file and obtained a line
-		FileReader selectedFile = new FileReader(fileHandler.fileChooser.getSelectedFile().getAbsolutePath());
+		FileReader selectedFile = new FileReader(fileHandler.getFileChooser().getSelectedFile().getAbsolutePath());
 		fileHandler.reader = new BufferedReader(selectedFile);
 		String line = fileHandler.reader.readLine();
 		gui.tpEditor.setText("");
@@ -236,8 +239,7 @@ public class ExpressionEvaluator {
 						 * of editor
 						 */
 						/* store in symbol table */
-						int selectedIndex = gui.tbpEditor.getSelectedIndex();
-						symbolTables.get(selectedIndex).storeResult(result, lexicalString, true);
+						symbolTables.get(getCurrentTabIndex()).storeResult(result, lexicalString, true);
 					} else { // if some variables are undefined
 						checker = "Warning: Variable does not have value yet.";
 					}
@@ -252,7 +254,7 @@ public class ExpressionEvaluator {
 		// displayAdditionalOutput();
 
 		fileHandler.reader.close();
-		fileHandler.saveFile(gui.tpEditor.getText(), frame);
+		fileHandler.saveFile(getCurrentTabText(), gui.frame);
 		gui.updateTabInfo();
 		System.out.println("Saving...");
 	}
@@ -533,8 +535,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Converts linkedlist type to its string
 	 * 
-	 * @param linkedList
-	 *            linkedlist to be converted into string
+	 * @param linkedList linkedlist to be converted into string
 	 * @return the string of the received linkedlist
 	 * 
 	 * @author Sumandang, AJ Ruth H.
@@ -553,11 +554,9 @@ public class ExpressionEvaluator {
 	 * Determines whether the an element is of higher or equal precedence than
 	 * another element
 	 * 
-	 * @param firstElem
-	 *            the element to be determined if it is of higher or equal
+	 * @param firstElem the element to be determined if it is of higher or equal
 	 *            precedence
-	 * @param secondElem
-	 *            the element to be compared to the first element
+	 * @param secondElem the element to be compared to the first element
 	 * @return true if first element (first parameter) is higher in precedence
 	 *         than second element; false if first element is lower in
 	 *         precedence
@@ -597,8 +596,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Evaluate the received postfix and returns its result
 	 * 
-	 * @param postFix
-	 *            postfix to be evaluated
+	 * @param postFix postfix to be evaluated
 	 * @return result of evaluating the expression
 	 * 
 	 * @author Sumandang, AJ Ruth H.
@@ -670,9 +668,9 @@ public class ExpressionEvaluator {
 					flag = true;
 					break;
 				}
-				
+
 				/*push result to stack*/
-				stack.push(Integer.toString(result)); 
+				stack.push(Integer.toString(result));
 
 			}
 		}
@@ -685,8 +683,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether the received word is a valid variable or not
 	 * 
-	 * @param word
-	 *            word to be checked
+	 * @param word word to be checked
 	 * @return true if word is a valid variable; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -705,8 +702,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether the received word is an operator or not
 	 * 
-	 * @param word
-	 *            word to be checked
+	 * @param word word to be checked
 	 * @return true if word is an operator; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -720,8 +716,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether received element is numeric or not
 	 * 
-	 * @param check
-	 *            the element to be checked
+	 * @param check the element to be checked
 	 * @return true if the received element is numeric; false if not
 	 * 
 	 * @author Sumandang, AJ Ruth H.
@@ -737,5 +732,16 @@ public class ExpressionEvaluator {
 			}
 		}
 		return check != null && true;
+	}
+
+	/**
+	 * Obtains index of the current opened tab
+	 * 
+	 * @return index of current opened tab; returns negative if tabbed pane has no more tab
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	private int getCurrentTabIndex() {
+		return gui.tbpEditor.getSelectedIndex();
 	}
 }
