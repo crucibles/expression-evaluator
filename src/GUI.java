@@ -52,6 +52,11 @@ public class GUI {
 		initializeMenuBar();
 	}
 
+	/**
+	 * Initializes the program's menu bar
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	private void initializeMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 		frame.setJMenuBar(menuBar);
@@ -181,6 +186,11 @@ public class GUI {
 		descriptionFrame = description.frmProgramDescription;
 	}
 
+	/**
+	 * Adds new tab to the tabbed pane. It also directs the user to that newly created tab.
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	public void addNewTab(String title) {
 		JTextPane tpEditor = new JTextPane();
 		tpEditor.getDocument().addDocumentListener(new DocumentListener() {
@@ -329,6 +339,11 @@ public class GUI {
 	//		}
 	//	}
 
+	/**
+	 * Updates the tab's title by removing the '*' from the title
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	public void updateTabInfo() {
 		int selectedIndex = tbpEditor.getSelectedIndex();
 		String title = tbpEditor.getTitleAt(selectedIndex);
@@ -337,6 +352,12 @@ public class GUI {
 		}
 	}
 
+	/**
+	 * Updates the tab's title by changing the title by the received parameter
+	 * @param title the title to replace the
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	public void updateTabInfo(String title) {
 		int selectedIndex = tbpEditor.getSelectedIndex();
 		tbpEditor.setTitleAt(selectedIndex, title);
