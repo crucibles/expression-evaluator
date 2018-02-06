@@ -11,6 +11,10 @@ public class SymbolTable {
 	private String value;
 	private Vector<SymbolTable> symbolTable;
 
+
+	/*
+	*	The three constructors for the symbolTable
+	*/
 	public SymbolTable() {
 
 	}
@@ -31,10 +35,24 @@ public class SymbolTable {
 		this.symbolTable.add(sb);
 	}
 
+	/**
+	 * Gets the token or name of the symbol.
+	 * 
+	 * @return String token name
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
 	public String getToken() {
 		return this.token;
 	}
 
+	/**
+	 * Gets the token or name of the symbol.
+	 * 
+	 * @return String token name
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
 	public String getType() {
 		return this.type;
 	}

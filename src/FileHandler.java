@@ -20,21 +20,39 @@ public class FileHandler {
 
 	public FileHandler() {
 		System.out.println("im in");
-		this.fileChooser
-				.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
-		//this.fileChooser.setFileFilter(new FileNameExtensionFilter("in files", "in"));
+		this.fileChooser.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
 		this.fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
+	/**
+	 * Gets the FileChooser.
+	 * 
+	 * @return FileChooser for the mainClass to use for altering the selected File
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
 	public CustomFileChooser getFileChooser() {
 		return this.fileChooser;
 	}
 
+	/**
+	 * Gets the vector of FileHandler
+	 * 
+	 * @return the vector of FileHandlers for each tab
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
 	public Vector<CustomFileChooser> getfileHandlers() {
 		return fileHandlers;
 	}
 
-	// to be implemented
+	/**
+	 * Save the file to an output file. Save automatic if existing already, else choose a directory  where to save the file.
+	 * 
+	 * @return file's extension (.e.g. in (file.in), out (file.out))
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
 	public String saveFile(String output, JFrame frame) {
 		try {
 			File selectedFile = fileChooser.getSelectedFile();
@@ -77,7 +95,7 @@ public class FileHandler {
 	 * @param output the text to be stored in the .out file
 	 * 
 	 * @author Alvaro, Cedric Y.
-	 * @return 
+	 * @return FileName of the file created
 	 */
 	public String createFile(String output, JFrame frame) throws IOException {
 		Writer writer = null;
@@ -143,12 +161,12 @@ public class FileHandler {
 	public boolean isCurrFile() {
 		File selectedFile = fileChooser.getSelectedFile();
 
-		if(selectedFile == null){
+		if (selectedFile == null) {
 			return true;
 		} else {
 			return false;
 		}
-		
+
 	}
 
 	/**
@@ -185,7 +203,13 @@ public class FileHandler {
 	}
 }
 
+/**
+* A CustomFileChooser to implement the overwrite of
+* 
+* @author Alvaro, Cedric Y.
+*/
 class CustomFileChooser extends JFileChooser {
+	private static final long serialVersionUID = -4789704212540593370L;
 	private String extension;
 
 	public CustomFileChooser(String extension) {
@@ -216,8 +240,9 @@ class CustomFileChooser extends JFileChooser {
 						"The file " + selectedFile.getName()
 								+ " already exists. Do you want to replace the existing file?",
 						"Ovewrite file", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-				if (response != JOptionPane.YES_OPTION)
+				if (response != JOptionPane.YES_OPTION) {
 					return;
+				}
 			}
 		}
 

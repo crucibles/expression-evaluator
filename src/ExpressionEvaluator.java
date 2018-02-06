@@ -97,18 +97,25 @@ public class ExpressionEvaluator {
 	 * Initialize the variables for the program.
 	 */
 	private void initializeVariables() {
+
+		/*
+		*	Adding a new temp File and adding a tab for it with a text editor.
+		*/
 		Action newAction = new AbstractAction("New") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addNewTab("*Untitled_"+(getCurrentTabIndex()+2)+".in");
+				addNewTab("*Untitled_" + (getCurrentTabIndex() + 2) + ".in");
 				fileHandler.getfileHandlers().add(new CustomFileChooser("in"));
 			}
 		};
 		newAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmNew.setAction(newAction);
 
+		/*
+		*	Open an existing file and put its content to a new text editor also adding a new tab.
+		*/
 		Action openAction = new AbstractAction("Open") {
 			private static final long serialVersionUID = 1L;
 
@@ -116,12 +123,13 @@ public class ExpressionEvaluator {
 			public void actionPerformed(ActionEvent e) {
 				if (fileHandler.chooseFile(frame)) {
 					// AHJ: unimplemented; surround textpane with scrollpane
-					String fileName = fileHandler.getFileName().isEmpty()? fileHandler.getFileName(): "Untitled_"+(getCurrentTabIndex()+2);
+					String fileName = fileHandler.getFileName().isEmpty() ? fileHandler.getFileName()
+							: "Untitled_" + (getCurrentTabIndex() + 2);
 					addNewTab(fileName);
 					fileHandler.loadFile();
 
 				} else {
-					if(!fileHandler.isCurrFile()){
+					if (!fileHandler.isCurrFile()) {
 						JOptionPane.showMessageDialog(frame, "This file does not exist.");
 					}
 				}
@@ -130,13 +138,16 @@ public class ExpressionEvaluator {
 		openAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmOpenFile.setAction(openAction);
 
+		/*
+		*	Saving the texts written in the text editor and making an output file for it.
+		*/
 		Action saveAction = new AbstractAction("Save") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String title = fileHandler.saveFile(getCurrentTabText(), gui.frame);
-				if(title != null){
+				if (title != null) {
 					gui.updateTabInfo(title);
 				}
 			}
@@ -144,6 +155,9 @@ public class ExpressionEvaluator {
 		saveAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmSave.setAction(saveAction);
 
+		/*
+		*	Adding a new temp File and adding a tab for it with a text editor.
+		*/
 		Action closeAction = new AbstractAction("Close") {
 			private static final long serialVersionUID = 1L;
 
@@ -161,6 +175,9 @@ public class ExpressionEvaluator {
 
 	}
 
+	/*
+	*	Getting the text from the text editor as a String.
+	*/
 	private String getCurrentTabText() {
 		int tabIndex = getCurrentTabIndex();
 		if (tabIndex < 0) {
@@ -177,6 +194,9 @@ public class ExpressionEvaluator {
 		return null;
 	}
 
+	/*
+	*	Adding a new tab for multiple files to be opened simultaneously.
+	*/
 	private void addNewTab(String title) {
 		gui.addNewTab(title);
 		/*
@@ -498,21 +518,15 @@ public class ExpressionEvaluator {
 			if (tokens[i].isEmpty()) { // skip if token is empty
 				continue;
 			}
-			if (tokens[i].substring(1, 4).equals("int") || tokens[i].substring(1, 4).equals("var")) { // if
-																										// integer
-																										// encountered,
-																										// add
-																										// to
-																										// postfix
+			// if a viable integer is encountered add to postFix
+			if (tokens[i].substring(1, 4).equals("int") || tokens[i].substring(1, 4).equals("var")) {
 
 				String number = tokens[i].substring(5, tokens[i].length() - 1);
 				postFix.add(number);
 
-			} else if (tokens[i].substring(1, 3).equals("op")) { // if operator
-																	// encountered,
-																	// push it
-																	// to the
-																	// stack
+				// else if an operator, then push it to the stack
+			} else if (tokens[i].substring(1, 3).equals("op")) {
+
 				String op = "" + tokens[i].charAt(4);
 				if (!stack.isEmpty()) { // if stack is not empty
 					while (!stack.isEmpty() && isHighOrEqualPrecedence(stack.peek(), op)) {
@@ -526,8 +540,8 @@ public class ExpressionEvaluator {
 			}
 		}
 
-		while (!stack.isEmpty()) { // pop all of the remaining elements in the
-									// stack and add it to the postfix
+		// popping all elements left from the stack to be added to the PostFix
+		while (!stack.isEmpty()) {
 			String poppedElem = stack.pop();
 			postFix.add(poppedElem);
 		}
@@ -609,8 +623,9 @@ public class ExpressionEvaluator {
 		Stack<String> stack = new Stack<String>();
 		while (!postFix.isEmpty()) {
 			String poppedElem = postFix.pop().toString();
-			if (isNumeric(poppedElem)) { // if popped element from postfix is a
-											// number, push it to stack
+
+			if (isNumeric(poppedElem)) {
+
 				stack.push(poppedElem);
 				/*
 				 * if popped element from postfix is a number, push it to stack
@@ -645,6 +660,7 @@ public class ExpressionEvaluator {
 				int firstElem = Integer.parseInt(stack.pop());
 
 				int result = 0;
+				/* Execution of the operators with the popped elements */
 				switch (poppedElem) {
 				case "+":
 					result = firstElem + secondElem;
