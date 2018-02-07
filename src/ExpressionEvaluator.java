@@ -3,27 +3,21 @@
  * Name: Alvaro, Cedric	(2014-60690)	Sumandang, AJ Ruth (2014-37728)
  * Deadline Date and Time:  	January 26, 2018; 11:59 a.m.
  * 
- * Program Exercise #	: 1
- * Program Title		: Expression Evaluator
+ * Program Exercise #	: 2
+ * Program Title		: Compiler GUI
  * 
  * Program Description:
- * 		This program is able to evaluate expressions. It is also capable of storing variables and error checking. 
- * 
- * 		The program loads a file (.in file only) from the home directory chosen by the user and process it when user clicks 'process' button.
- * 		After evaluating and checking for errors, the program produces an output which both place in the output text panel and in an .out file.
- * 
- * 		Error checking includes...
- * 		- Lexical error
- * 		- Syntax error
- * 		- Evaluation error
+ * 		This program is only a GUI for the compiler IDE. 
+ * 		The program is only capable of creating, opening storing, and modifying files right now. 
+ * 		Also, 'save as' button not working and the program does not include error-checking if the file is already open or not.
  * 
  * [User Manual]
- * 1. Click 'Open File' in home.
- * 2. Click 'Choose File' button in the 'Open File' page to pick a file you want to process.
+ * > Click 'New' under 'File' if you want to create new file. Shortcut key: Ctrl + N
+ * > Click 'Open File' under 'File' menu bar to open a file from your home directory. Shortcut key: Ctrl + O
  * - Choose valid and existing .in file in the home.
- * - You will be redirected to the 'Output' panel if you chose a valid .in file.
- * 3. Click 'Process' button to process the loaded file.
- * 4. If changes occurred in the .in file, click 'Load File' before clicking 'Process'.
+ * > Click 'Close' under 'File' if you want to close an open tab. Shortcut key: Ctrl + W
+ * > Click 'Save' under 'File' if you want to save the current open tab's file. Shortcut key: Ctrl + S
+ * > Open 'Program Description' under 'Help' if you need help with something.
  * 
  * [Lexical Checking]
  * Each element must be separated by spaces.
@@ -122,8 +116,8 @@ public class ExpressionEvaluator {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (fileHandler.chooseFile(frame)) {
-					// AHJ: unimplemented; surround textpane with scrollpane
-					String fileName = fileHandler.getFileName().isEmpty() ? fileHandler.getFileName()
+					System.out.println("filename: " + fileHandler.getFileName());
+					String fileName = !fileHandler.getFileName().isEmpty() ? fileHandler.getFileName()
 							: "Untitled_" + (getCurrentTabIndex() + 2);
 					addNewTab(fileName);
 					fileHandler.loadFile();

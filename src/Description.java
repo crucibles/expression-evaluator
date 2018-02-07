@@ -75,16 +75,19 @@ public class Description extends MouseAdapter {
 		spDescription.setBounds(0, 53, 503, 237);
 		descriptionPanel.add(spDescription);
 
+		//AHJ: unimplemented; check if file is already opened; save as function too
 		String description = "This program is able to evaluate expressions. It is also capable of storing variables and error checking.\n\n"
 				+ "-------------------------------------------------\n" + "[User Manual]\n"
-				+ "1. Click 'Open File' in home.\n"
-				+ "2. Click 'Choose File' button in the 'Open File' page to pick a file you want to process.\n- Choose valid and existing .in file in the home.\n"
-				+ "- You will be redirected to the 'Output' panel if you chose a valid .in file.\n"
-				+ "3. Click 'Process' button to process the loaded file.\n"
-				+ "4. If changes occurred in the .in file, click 'Load File' before clicking 'Process'.\n"
+				+ "- Click 'New' under 'File' if you want to create new file. Shortcut key: Ctrl + N.\n"
+				+ "- Click 'Open File' under 'File' menu bar to open a file from your home directory. You can opt to use Ctrl + O for the shortcut key.\n> Choose valid and existing .in file in the home.\n"
+				+ "- Click 'Close' under 'File' if you want to close an open tab. Shortcut key: Ctrl + W\n"
+				+ "- Click 'Save' under 'File' if you want to save the current open tab's file. Shortcut key: Ctrl + S.\n"
+				+ "- Open 'Program Description' under 'Help' if you need help with something.\n"
+				+ "-------------------------------------------------\n" + "[Available Features]\n"
+				+ "The program is only capable of creating, opening storing, and modifying files right now. Also, 'save as' button not working and the program does not include error-checking if the file is already open or not.\n"
 				+ "-------------------------------------------------\n" + "[Process]\n"
-				+ "The program loads a file (.in file only) from the home directory chosen by the user and process it when user clicks 'process' button. "
-				+ "After evaluating and checking for errors, the program produces an output which both place in the output text panel and in an .out file..\n\n"
+				+ "The program loads a file (.in file only) from the home directory chosen by the user and process it when user clicks 'compile'/'run'/'compile and run' button. "
+				+ "After evaluating and checking for errors, the program produces an output in an .out file. It also updates the output box in the console, variable, and lexemes tables.\n\n"
 				+ "Error checking includes...\n" + " - Lexical error\n" + " - Syntax error\n"
 				+ " - Evaluation error\n\n" + "[Lexical Checking]\n"
 				+ "Each element must be separated by spaces.\n(e.g. x = y + zinstead of x=y+z)\n\n"
