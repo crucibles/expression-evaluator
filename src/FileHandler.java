@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -20,7 +21,8 @@ public class FileHandler {
 
 	public FileHandler() {
 		System.out.println("im in");
-		this.fileChooser.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
+		this.fileChooser
+				.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
 		this.fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
@@ -64,6 +66,12 @@ public class FileHandler {
 				if (!name.contains(".in")) {
 					selectedFile = new File(selectedFile.getParentFile(), name + '.' + "in");
 				}
+
+				Writer writer = null;
+				File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+				writer = new BufferedWriter(new FileWriter(file));
+				writer.write(output);
+				writer.close();
 
 				return fileChooser.getSelectedFile().getName();
 			} else {
