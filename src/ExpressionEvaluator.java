@@ -228,6 +228,8 @@ public class ExpressionEvaluator {
 			}
 
 			String lexicalString = lexicalAnalyzer(line, lineNum);
+			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
+			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
 			String checker = "";
 
 			/* if lexical error is not encountered */
