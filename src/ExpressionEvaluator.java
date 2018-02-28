@@ -50,6 +50,7 @@ import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -63,6 +64,8 @@ public class ExpressionEvaluator {
 	private boolean flag = true;
 	private String errorMsg = new String("");
 
+	public DFAState dState = new DFAState();
+
 	/**
 	 * Launch the application.
 	 */
@@ -71,7 +74,7 @@ public class ExpressionEvaluator {
 			public void run() {
 				try {
 					ExpressionEvaluator window = new ExpressionEvaluator();
-					window.gui.frame.setVisible(true);
+					//window.gui.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -83,8 +86,51 @@ public class ExpressionEvaluator {
 	 * Create the application.
 	 */
 	public ExpressionEvaluator() {
-		gui = new GUI();
-		initializeVariables();
+		//gui = new GUI();
+		//initializeVariables();
+		createTable();
+	}
+
+	/*
+	* test
+	*/
+	private void createTable() {
+
+		String transitions = "-,A,B,A\n$,B,B,C\n+,C,B,A";
+		String inp = "110011\n0111110001\n1001010\n100";
+
+		if (checker(transitions)) {
+			String[] lines = transitions.trim().split("\\s");
+
+			for (int x = 0; x < lines.length; x++) {
+
+				String line = lines[x];
+				System.out.println(line);
+				String[] tokens = line.trim().split(",");
+
+				dState.getVector().add(new DFAState(tokens[0], tokens[1], tokens[2], tokens[3]));
+
+			}
+		}
+
+		System.out.println(dState.getVector().get(0).getStateName());
+		System.out.println(dState.getVector().get(1).getStateName());
+		System.out.println(dState.getVector().get(2).getStateName());
+	}
+
+
+	private boolean checker(String transitions) {
+		if (transitions.indexOf('-') != transitions.lastIndexOf('-')) {
+			System.out.println("more than 1 start state!");
+			return false;
+		}
+
+		if (transitions.indexOf('+') == transitions.lastIndexOf('-')) {
+			System.out.println("has a state that is both start and final!");
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
