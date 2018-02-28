@@ -362,4 +362,29 @@ public class GUI {
 		int selectedIndex = tbpEditor.getSelectedIndex();
 		tbpEditor.setTitleAt(selectedIndex, title);
 	}
+
+	/**
+	 * Sets the table in the GUI based on the current symboltable shown.
+	 * @param st symbol table whose information are to be displayed
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	public void setTablesInfo(SymbolTable st) {
+		DefaultTableModel modelTok = (DefaultTableModel) tblTokens.getModel();
+		modelTok.setRowCount(0);
+		for(int i = 0; i < st.getSize(); i++){
+			String lexeme = st.getLexemeAt(i);
+			String token = st.getTokenAt(i);
+			String row[] = {token, lexeme};
+			String type = st.getTypeAt(i);
+			modelTok.addRow(row);
+			if(type.equals("variable")){
+				DefaultTableModel modelVar = (DefaultTableModel) tblVariables.getModel();
+				modelVar.setRowCount(0);
+				String value = st.getValueAt(i);
+				String row2[] = {lexeme, type, value};
+				modelVar.addRow(row2);
+			}
+		}
+	}
 }
