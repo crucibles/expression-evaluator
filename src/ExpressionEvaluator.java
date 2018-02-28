@@ -368,6 +368,8 @@ public class ExpressionEvaluator {
 	 */
 	private String lexicalAnalyzer(String line, int lineNum) {
 		String word = "";
+		String result = "";
+
 		/*String[] words = line.trim().split("\\s");
 		String result = "";
 		
@@ -411,9 +413,35 @@ public class ExpressionEvaluator {
 		for (int i = 0; i < line.length(); i++) {
 			char c = line.charAt(i);
 			if (c == ' ') {
+				
 				switch (word) {
+
 					case "INTO":
+						result += "<INTO,INTO>\n";
+						break;
+
+					case "DEFINE":
+						result += "<DEFINE,DEFINE>\n";
+						break;
+
+					case "IS":
+						result += "<IS,IS>\n";
+						break;
+
+					case "END":
+						result += "<END,END>\n";
+						break;
+
+					case "COMMAND":
+						result += "<COMMAND,COMMAND>\n";
+						break;
+
+					case "PRINT":
+						result += "<PRINT,PRINT>\n";
+						break;
 				}
+
+
 				word = "";
 				continue;
 			}
