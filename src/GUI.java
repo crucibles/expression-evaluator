@@ -16,6 +16,7 @@ import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.StyledDocument;
 
 public class GUI {
 	public JFrame frame;
@@ -31,6 +32,7 @@ public class GUI {
 	public JMenuItem mntmProgDescript;
 	public JMenuItem mntmAboutUs;
 	public JTextPane tpEditor;
+	private JTextPane tpConsole;
 	public JTable tblVariables;
 	public JTable tblTokens;
 	public JTabbedPane tbpEditor;
@@ -134,7 +136,7 @@ public class GUI {
 		spConsole.setBounds(20, 303, 420, 149);
 		viewOutputPanel.add(spConsole);
 
-		JTextPane tpConsole = new JTextPane();
+		tpConsole = new JTextPane();
 		tpConsole.setEditable(false);
 		spConsole.setViewportView(tpConsole);
 
@@ -372,19 +374,28 @@ public class GUI {
 	public void setTablesInfo(SymbolTable st) {
 		DefaultTableModel modelTok = (DefaultTableModel) tblTokens.getModel();
 		modelTok.setRowCount(0);
-		for(int i = 0; i < st.getSize(); i++){
+		for (int i = 0; i < st.getSize(); i++) {
 			String lexeme = st.getLexemeAt(i);
 			String token = st.getTokenAt(i);
-			String row[] = {token, lexeme};
+			String row[] = { token, lexeme };
 			String type = st.getTypeAt(i);
 			modelTok.addRow(row);
-			if(type.equals("variable")){
+			if (type.equals("variable")) {
 				DefaultTableModel modelVar = (DefaultTableModel) tblVariables.getModel();
 				modelVar.setRowCount(0);
 				String value = st.getValueAt(i);
-				String row2[] = {lexeme, type, value};
+				String row2[] = { lexeme, type, value };
 				modelVar.addRow(row2);
 			}
+		}
+	}
+
+	public void console(String text) {
+		StyledDocument doc = tpConsole.getStyledDocument();
+		try {
+			doc.insertString(doc.getLength(), text, null);
+		} catch (Exception e) {
+			System.out.println(e);
 		}
 	}
 }

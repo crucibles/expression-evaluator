@@ -230,6 +230,11 @@ public class ExpressionEvaluator {
 			String lexicalString = lexicalAnalyzer(line, lineNum);
 			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
 			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
+			//fileHandler.createSOBJFile(tokenStream); [CED]
+			//fileHandler.createSTVFile(gui.getVariableTable);
+			gui.console(errorMsg);
+			
+			
 			String checker = "";
 
 			/* if lexical error is not encountered */
@@ -396,7 +401,7 @@ public class ExpressionEvaluator {
 			} else { // if the token does not fall in the previous categories,
 						// hence, encountering an unidentifiable symbol
 
-				errorMsg += "Invalid symbol: " + word + " (line " + lineNum + ")\n";
+				errorMsg += "Lexical error: Invalid symbol " + word + " (line " + lineNum + ")\n";
 				return "error: Lexical error - " + word;
 
 			}
