@@ -11,7 +11,6 @@ public class SymbolTable {
 	private String value;
 	private Vector<SymbolTable> symbolTable;
 
-
 	/*
 	*	The three constructors for the symbolTable
 	*/
@@ -112,12 +111,12 @@ public class SymbolTable {
 
 		for (int i = 0; i < tokens.length; i++) {
 			// locates the LHS variables by locatingthe '='sign
-			if (!tokens[i].isEmpty() && tokens[i].equals("=")) { 
+			if (!tokens[i].isEmpty() && tokens[i].equals("=")) {
 
 				String var = tokens[i - 1].substring(5, tokens[i - 1].length() - 1); // obtains the variable name
 
 				// locating the variable in the symbol table
-				for (int index = 0; index < this.symbolTable.size(); index++) { 
+				for (int index = 0; index < this.symbolTable.size(); index++) {
 
 					SymbolTable sb = this.symbolTable.get(index);
 
@@ -135,4 +134,57 @@ public class SymbolTable {
 
 	}
 
+	/**
+	 * Gets the current size of the symbol table.
+	 * @return size of the symbol table
+	 */
+	public int getSize() {
+		int dummy = 1;
+		return dummy;
+	}
+
+	/**
+	 * Gets the lexeme of the symbol table at the given index.
+	 * @return the lexeme string of symbol table at index 'i'
+	 */
+	public String getTokenAt(int i) {
+		String type = "integer";
+		switch (type) {
+		case "integer":
+			return "INT_LIT";
+		case "float":
+			return "FLOAT_LIT";
+		case "DEFINE": case "INTO": case "IS":
+			return type;
+		default:
+			return "ERR_LEX";
+		}
+	}
+
+	/**
+	 * Gets the lexeme of the symbol table at the given index.
+	 * @return the lexeme string of symbol table at index 'i'
+	 */
+	public String getLexemeAt(int i) {
+		String dummy = "lexeme1";
+		return dummy;
+	}
+
+	/**
+	 * Gets the type of the symbol table at the given index.
+	 * @return the type of symbol table at index 'i'
+	 */
+	public String getTypeAt(int i) {
+		String dummy = "integer";
+		return dummy;
+	}
+
+	/**
+	 * Gets the type of the symbol table at the given index.
+	 * @return the type of symbol table at index 'i'
+	 */
+	public String getValueAt(int i) {
+		String dummy = "345";
+		return dummy;
+	}
 }
