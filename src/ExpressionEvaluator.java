@@ -172,7 +172,7 @@ public class ExpressionEvaluator {
 	/*
 	*	Getting the text from the text editor as a String.
 	*/
-	private String getCurrentTabText() {
+	public String getCurrentTabText() {
 		int tabIndex = getCurrentTabIndex();
 		if (tabIndex < 0) {
 			return null;
