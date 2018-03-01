@@ -50,6 +50,7 @@ import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -63,6 +64,8 @@ public class ExpressionEvaluator {
 	private boolean flag = true;
 	private String errorMsg = new String("");
 
+	public DFAState dState = new DFAState();
+
 	/**
 	 * Launch the application.
 	 */
@@ -71,7 +74,7 @@ public class ExpressionEvaluator {
 			public void run() {
 				try {
 					ExpressionEvaluator window = new ExpressionEvaluator();
-					window.gui.frame.setVisible(true);
+					//window.gui.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -83,8 +86,9 @@ public class ExpressionEvaluator {
 	 * Create the application.
 	 */
 	public ExpressionEvaluator() {
-		gui = new GUI();
-		initializeVariables();
+		//gui = new GUI();
+		//initializeVariables();
+		lexicalAnalyzer("a", 1);
 	}
 
 	/**
@@ -368,22 +372,24 @@ public class ExpressionEvaluator {
 	 * @author Alvaro, Cedric Y.
 	 */
 	private String lexicalAnalyzer(String line, int lineNum) {
-
-		String[] words = line.trim().split("\\s");
+		String word = "";
 		String result = "";
 
+		/*String[] words = line.trim().split("\\s");
+		String result = "";
+		
 		for (String word : words) {
 			String firstLetter = "" + word.charAt(0);
 			if (isOperator(word)) { // if token is an operator
-
+		
 				result += " <op-" + word + ">";
-
-			} else if (isNumeric(word)) { // if token is an integer
-
+		
+			} else if (isInteger(word)) { // if token is an integer
+		
 				result += " <int-" + word + ">";
-
+		
 			} else if (isVariable(word)) { // if token is a variable
-
+		
 				result += " <var-" + word + ">";
 				if (word.indexOf("+") == 0 || word.indexOf("-") == 0) {
 					word = word.substring(1, word.length());
@@ -392,22 +398,70 @@ public class ExpressionEvaluator {
 					SymbolTable st = new SymbolTable(word, "variable", "");
 					st.getVector().add(st);
 				}
-
+		
 			} else if (firstLetter.equals("=")) { // if token is an assignment
 													// operator
-
+		
 				result += " =";
-
+		
 			} else { // if the token does not fall in the previous categories,
 						// hence, encountering an unidentifiable symbol
 
 				errorMsg += "Lexical error: Invalid symbol " + word + " (line " + lineNum + ")\n";
 				return "error: Lexical error - " + word;
-
+		
 			}
-		}
+		
+			return result;
+		}*/
 
-		return result;
+		for (int i = 0; i < line.length(); i++) {
+			char c = line.charAt(i);
+			if (c == ' ') {
+				
+				switch (word) {
+
+					case "INTO":
+						result += "<INTO,INTO>\n";
+						break;
+
+					case "DEFINE":
+						result += "<DEFINE,DEFINE>\n";
+						break;
+
+					case "IS":
+						result += "<IS,IS>\n";
+						break;
+
+					case "END":
+						result += "<END,END>\n";
+						break;
+
+					case "COMMAND":
+						result += "<COMMAND,COMMAND>\n";
+						break;
+
+					case "PRINT":
+						result += "<PRINT,PRINT>\n";
+						break;
+				}
+
+
+				word = "";
+				continue;
+			}
+			word += c;
+			if (isAlphabet(c)) {
+				System.out.println("alpha");
+				return "yes an alphabet char";
+			} else {
+				System.out.println("hellosadasdass");
+				return "not an alph";
+			}
+
+		}
+		return "oh";
+
 	}
 
 	/**
@@ -625,7 +679,7 @@ public class ExpressionEvaluator {
 		while (!postFix.isEmpty()) {
 			String poppedElem = postFix.pop().toString();
 
-			if (isNumeric(poppedElem)) {
+			if (isInteger(poppedElem)) {
 
 				stack.push(poppedElem);
 				/*
@@ -720,6 +774,23 @@ public class ExpressionEvaluator {
 	}
 
 	/**
+	 * Determines whether the received word is a valid variable or not
+	 * 
+	 * @param word word to be checked
+	 * @return true if word is a valid variable; false if not
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
+	public boolean isAlphabet(Character c) {
+		int ascii = (int) c;
+		if ((ascii >= 65 && ascii <= 90) || (ascii >= 97 && ascii <= 122)) {
+			System.out.println("hellos");
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Determines whether the received word is an operator or not
 	 * 
 	 * @param word word to be checked
@@ -741,7 +812,7 @@ public class ExpressionEvaluator {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	public boolean isNumeric(String check) {
+	public boolean isInteger(String check) {
 		String number = new String("0123456789");
 		for (int i = 0; i < check.length(); i++) {
 			String symbol = "" + check.charAt(i);
