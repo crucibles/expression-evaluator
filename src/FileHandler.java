@@ -77,7 +77,7 @@ public class FileHandler {
 
 				return fileChooser.getSelectedFile().getName();
 			} else {
-				String fileName = createFile(output, frame);
+				String fileName = createFile(output, frame, ".in");
 				System.out.println(fileName);
 				return fileName;
 			}
@@ -92,7 +92,7 @@ public class FileHandler {
 	// to be implemented
 	public void saveAsFile(String output, JFrame frame) {
 		try {
-			createFile(output, frame);
+			createFile(output, frame, ".in");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -107,7 +107,7 @@ public class FileHandler {
 	 * @author Alvaro, Cedric Y.
 	 * @return FileName of the file created
 	 */
-	public String createFile(String output, JFrame frame) throws IOException {
+	public String createFile(String output, JFrame frame, String extension) throws IOException {
 		Writer writer = null;
 
 		try {

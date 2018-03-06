@@ -1,4 +1,5 @@
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +14,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
+import javax.swing.JViewport;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
@@ -189,7 +191,8 @@ public class GUI {
 	}
 
 	/**
-	 * Adds new tab to the tabbed pane. It also directs the user to that newly created tab.
+	 * Adds new tab to the tabbed pane. It also directs the user to that newly
+	 * created tab.
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
@@ -226,10 +229,11 @@ public class GUI {
 	}
 
 	/**
-	 * Closes the current tab.
-	 * It also checks whether current tab is saved or not. The tab automatically closes if current tab is saved. 
-	 * Else, it prompts the user if he/she wants to save changes. Option 'yes' saves files and exits tab. Option 'no' automatically
-	 * removes tab. Option 'cancel' 
+	 * Closes the current tab. It also checks whether current tab is saved or
+	 * not. The tab automatically closes if current tab is saved. Else, it
+	 * prompts the user if he/she wants to save changes. Option 'yes' saves
+	 * files and exits tab. Option 'no' automatically removes tab. Option
+	 * 'cancel'
 	 */
 	public boolean closeCurrentTab(String text) {
 		int selectedIndex = tbpEditor.getSelectedIndex();
@@ -242,7 +246,8 @@ public class GUI {
 				String msg = "'" + title.substring(1) + "'" + " has been modified. Save changes?";
 				int result = JOptionPane.showConfirmDialog(frame, msg, "Save", JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == JOptionPane.YES_OPTION) {
-					//AHJ: Unimplemented; must contain checking if file already exist in the directory
+					// AHJ: Unimplemented; must contain checking if file already
+					// exist in the directory
 					FileHandler fileHandler = new FileHandler();
 					title = fileHandler.saveFile(text, frame);
 					if (title != null) {
@@ -278,68 +283,74 @@ public class GUI {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	//	private void displayOutput(String line, String checker, String strPostFix, int result, int lineNum) {
-	//		StyledDocument doc = gui.tpEditor.getStyledDocument();
-	//		try {
-	//			// outputs the line read
-	//			String outputLine = "Line" + lineNum + ": " + line + "\n";
-	//			doc.insertString(doc.getLength(), outputLine, null);
+	// private void displayOutput(String line, String checker, String
+	// strPostFix, int result, int lineNum) {
+	// StyledDocument doc = gui.tpEditor.getStyledDocument();
+	// try {
+	// // outputs the line read
+	// String outputLine = "Line" + lineNum + ": " + line + "\n";
+	// doc.insertString(doc.getLength(), outputLine, null);
 	//
-	//			/* if error has been detected*/
-	//			if (checker.substring(0, 3).equals("err")) {
+	// /* if error has been detected*/
+	// if (checker.substring(0, 3).equals("err")) {
 	//
-	//				// outputs the error that had occurred
-	//				outputLine = "Result: " + checker + "\n\n";
-	//				doc.insertString(doc.getLength(), outputLine, null);
-	//			/* if no errors found in the source code*/
-	//			} else {
-	//				outputLine = "Postfix: " + getLHS(line) + " " + strPostFix + "\n"; // postfix
-	//				doc.insertString(doc.getLength(), outputLine, null);
+	// // outputs the error that had occurred
+	// outputLine = "Result: " + checker + "\n\n";
+	// doc.insertString(doc.getLength(), outputLine, null);
+	// /* if no errors found in the source code*/
+	// } else {
+	// outputLine = "Postfix: " + getLHS(line) + " " + strPostFix + "\n"; //
+	// postfix
+	// doc.insertString(doc.getLength(), outputLine, null);
 	//
-	//				if (checker.substring(0, 4).equals("Warn")) {
-	//					outputLine = checker + "\n\n"; /* warning (for lines containing undefined variables) */
-	//				} else {
-	//					outputLine = "Result: " + getLHS(line) + " " + result + "\n\n"; // result/answer
-	//					if (!flag) {
-	//						/* if result is undefined (for zero divisors) */
-	//						outputLine = "Result: " + getLHS(line) + " " + "undefined" + "\n\n";
-	//						flag = true;
-	//					}
-	//				}
-	//				doc.insertString(doc.getLength(), outputLine, null);
+	// if (checker.substring(0, 4).equals("Warn")) {
+	// outputLine = checker + "\n\n"; /* warning (for lines containing undefined
+	// variables) */
+	// } else {
+	// outputLine = "Result: " + getLHS(line) + " " + result + "\n\n"; //
+	// result/answer
+	// if (!flag) {
+	// /* if result is undefined (for zero divisors) */
+	// outputLine = "Result: " + getLHS(line) + " " + "undefined" + "\n\n";
+	// flag = true;
+	// }
+	// }
+	// doc.insertString(doc.getLength(), outputLine, null);
 	//
-	//			}
-	//		} catch (Exception e) {
-	//			System.out.println(e);
-	//		}
-	//	}
+	// }
+	// } catch (Exception e) {
+	// System.out.println(e);
+	// }
+	// }
 	//
-	//	/**
-	//	 * Display addition output such as variables declared and errors encountered
-	//	 * 
-	//	 * @author Sumandang, AJ Ruth H.
-	//	 */
-	//	private void displayAdditionalOutput() {
-	//		StyledDocument doc = gui.tpEditor.getStyledDocument();
-	//		try {
-	//			String outputLine = "-------------------------\n" + "Variables Used:\n";
-	//			doc.insertString(doc.getLength(), outputLine, null);
+	// /**
+	// * Display addition output such as variables declared and errors
+	// encountered
+	// *
+	// * @author Sumandang, AJ Ruth H.
+	// */
+	// private void displayAdditionalOutput() {
+	// StyledDocument doc = gui.tpEditor.getStyledDocument();
+	// try {
+	// String outputLine = "-------------------------\n" + "Variables Used:\n";
+	// doc.insertString(doc.getLength(), outputLine, null);
 	//
-	//			for (int i = 0; i < symbolTables.size(); i++) {
-	//				outputLine = symbolTables.get(i).getToken() + "\n";
-	//				doc.insertString(doc.getLength(), outputLine, null);
-	//			}
+	// for (int i = 0; i < symbolTables.size(); i++) {
+	// outputLine = symbolTables.get(i).getToken() + "\n";
+	// doc.insertString(doc.getLength(), outputLine, null);
+	// }
 	//
-	//			outputLine = "-------------------------\n" + "Errors found:\n";
-	//			doc.insertString(doc.getLength(), outputLine, null);
+	// outputLine = "-------------------------\n" + "Errors found:\n";
+	// doc.insertString(doc.getLength(), outputLine, null);
 	//
-	//			outputLine = !errorMsg.equals("") ? errorMsg + "\n" : "No errors encountered\n";
-	//			doc.insertString(doc.getLength(), outputLine, null);
+	// outputLine = !errorMsg.equals("") ? errorMsg + "\n" : "No errors
+	// encountered\n";
+	// doc.insertString(doc.getLength(), outputLine, null);
 	//
-	//		} catch (Exception e) {
-	//			System.out.println(e);
-	//		}
-	//	}
+	// } catch (Exception e) {
+	// System.out.println(e);
+	// }
+	// }
 
 	/**
 	 * Updates the tab's title by removing the '*' from the title
@@ -356,7 +367,9 @@ public class GUI {
 
 	/**
 	 * Updates the tab's title by changing the title by the received parameter
-	 * @param title the title to replace the
+	 * 
+	 * @param title
+	 *            the title to replace the
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
@@ -367,7 +380,9 @@ public class GUI {
 
 	/**
 	 * Sets the table in the GUI based on the current symboltable shown.
-	 * @param st symbol table whose information are to be displayed
+	 * 
+	 * @param st
+	 *            symbol table whose information are to be displayed
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
@@ -389,6 +404,17 @@ public class GUI {
 			}
 		}
 	}
+	
+	public String getVariableTableInformation(){
+		DefaultTableModel tm = (DefaultTableModel) tblVariables.getModel();
+		String info = "Variable | Type | Value\n\n";
+		for(int i = 0; i < tm.getRowCount(); i++){
+			info += tm.getValueAt(i, 0) + " | ";
+			info += tm.getValueAt(i, 1) + " | ";
+			info += tm.getValueAt(i, 2) + "\n";
+		}
+		return info;
+	}
 
 	public void console(String text) {
 		StyledDocument doc = tpConsole.getStyledDocument();
@@ -397,5 +423,31 @@ public class GUI {
 		} catch (Exception e) {
 			System.out.println(e);
 		}
+	}
+
+	public JTextPane getCurrentTextPane() {
+		int selectedIndex = tbpEditor.getSelectedIndex();
+		if (selectedIndex >= 0) {
+			Component component = tbpEditor.getComponentAt(selectedIndex);
+			JViewport view = ((JScrollPane) component).getViewport();
+			Component components[] = view.getComponents();
+			for (int i1 = 0; i1 < components.length; i1++) {
+				if (components[i1] instanceof JTextPane) {
+					return (JTextPane)components[i1];
+				}
+			}
+
+		}
+		return null;
+	}
+	
+	public void setEditorText(String newText) {
+		JTextPane tp = this.getCurrentTextPane();
+		tp.setText(newText);
+	}
+	
+	public String getEditorText() {
+		JTextPane tp = this.getCurrentTextPane();
+		return tp.getText();
 	}
 }

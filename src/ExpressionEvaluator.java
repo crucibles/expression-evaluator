@@ -64,8 +64,6 @@ public class ExpressionEvaluator {
 	private boolean flag = true;
 	private String errorMsg = new String("");
 
-	public DFAState dState = new DFAState();
-
 	/**
 	 * Launch the application.
 	 */
@@ -74,7 +72,7 @@ public class ExpressionEvaluator {
 			public void run() {
 				try {
 					ExpressionEvaluator window = new ExpressionEvaluator();
-					//window.gui.frame.setVisible(true);
+					window.gui.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -86,9 +84,8 @@ public class ExpressionEvaluator {
 	 * Create the application.
 	 */
 	public ExpressionEvaluator() {
-		//gui = new GUI();
-		//initializeVariables();
-		lexicalAnalyzer("a", 1);
+		gui = new GUI();
+		initializeVariables();
 	}
 
 	/**
@@ -125,7 +122,7 @@ public class ExpressionEvaluator {
 							: "Untitled_" + (getCurrentTabIndex() + 2);
 					addNewTab(fileName);
 					fileHandler.loadFile();
-
+					
 				} else {
 					if (!fileHandler.isCurrFile()) {
 						JOptionPane.showMessageDialog(frame, "This file does not exist.");
@@ -170,6 +167,20 @@ public class ExpressionEvaluator {
 		};
 		closeAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmClose.setAction(closeAction);
+		
+		/*
+		 *	Compile the current file opened.
+		 */
+		Action compileAction = new AbstractAction("Compile") {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				compile();
+			}
+		};
+		compileAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("F5"));
+		gui.mntmCompile.setAction(compileAction);
 
 	}
 
@@ -190,6 +201,38 @@ public class ExpressionEvaluator {
 			}
 		}
 		return null;
+	}
+	
+	private void compile(){
+		//AHJ: unimplemented; use saved file for compilation and remove the line (getEditorText) below
+		String sourceProgram = gui.getEditorText();
+		
+		String tokenStream = "";
+		int numOfLines = getNumberOfLines(sourceProgram);
+		for(int i = 1; i <= numOfLines; i++){
+			tokenStream += lexicalAnalyzer(sourceProgram, i);
+			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
+			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
+			
+		}
+		//fileHandler.createSOBJFile(tokenStream); [CED]
+		String varOutput = gui.getVariableTableInformation();
+		try {
+			fileHandler.createFile(varOutput, gui.frame, ".stv");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private int getNumberOfLines(String text){
+		int res = 0;
+		for(int i = 0; i < text.length(); i++){
+			if(text.charAt(i) == '\n'){
+				res++;
+			}
+		}
+		return res;
 	}
 
 	/*
@@ -236,7 +279,6 @@ public class ExpressionEvaluator {
 			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
 			//fileHandler.createSOBJFile(tokenStream); [CED]
 			//fileHandler.createSTVFile(gui.getVariableTable);
-			gui.console(errorMsg);
 			
 			
 			String checker = "";
@@ -453,14 +495,14 @@ public class ExpressionEvaluator {
 			word += c;
 			if (isAlphabet(c)) {
 				System.out.println("alpha");
-				return "yes an alphabet char";
+				//return result;
 			} else {
 				System.out.println("hellosadasdass");
-				return "not an alph";
+				//return result;
 			}
 
 		}
-		return "oh";
+		return result;
 
 	}
 
