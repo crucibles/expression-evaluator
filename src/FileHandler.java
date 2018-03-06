@@ -18,7 +18,7 @@ public class FileHandler {
 
 	public BufferedReader reader;
 	// change to in when in the expression evaluator
-	private CustomFileChooser fileChooser = new CustomFileChooser("in,dfa,inp");
+	private CustomFileChooser fileChooser = new CustomFileChooser("in");
 	private Vector<CustomFileChooser> fileHandlers = new Vector<CustomFileChooser>();
 	private File selectedFile;
 

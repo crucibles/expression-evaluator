@@ -6,9 +6,10 @@ import java.util.Vector;
  * @author Alvaro, Cedric Y.
  */
 public class SymbolTable {
-	private String token;
-	private String type;
-	private String value;
+	private String lexeme = "";
+	private String token = "";
+	private String type = "";
+	private String value = "";
 	private Vector<SymbolTable> symbolTable;
 
 	/*
@@ -18,15 +19,15 @@ public class SymbolTable {
 
 	}
 
-	public SymbolTable(String token, String type, String value) {
+	public SymbolTable(String lexeme, String token, String type, String value) {
 		this.token = token;
 		this.type = type;
 		this.value = value;
-		SymbolTable sb = new SymbolTable(token, type, value);
+		SymbolTable sb = new SymbolTable(lexeme, token, type, value);
 		this.symbolTable.add(sb);
 	}
 
-	public SymbolTable(String token, String type) {
+	public SymbolTable(String lexeme, String token, String type) {
 		this.token = token;
 		this.type = type;
 		this.value = "";

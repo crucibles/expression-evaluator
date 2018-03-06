@@ -85,7 +85,9 @@ public class ExpressionEvaluator {
 	 */
 	public ExpressionEvaluator() {
 		gui = new GUI();
-		initializeVariables();
+		System.out.println("hello");
+		System.out.println(lexicalAnalyzer("INTO X IS 5", 1));
+		//initializeVariables();
 	}
 
 	/**
@@ -122,7 +124,7 @@ public class ExpressionEvaluator {
 							: "Untitled_" + (getCurrentTabIndex() + 2);
 					addNewTab(fileName);
 					fileHandler.loadFile();
-					
+
 				} else {
 					if (!fileHandler.isCurrFile()) {
 						JOptionPane.showMessageDialog(frame, "This file does not exist.");
@@ -167,13 +169,13 @@ public class ExpressionEvaluator {
 		};
 		closeAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmClose.setAction(closeAction);
-		
+
 		/*
 		 *	Compile the current file opened.
 		 */
 		Action compileAction = new AbstractAction("Compile") {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				compile();
@@ -202,18 +204,18 @@ public class ExpressionEvaluator {
 		}
 		return null;
 	}
-	
-	private void compile(){
+
+	private void compile() {
 		//AHJ: unimplemented; use saved file for compilation and remove the line (getEditorText) below
 		String sourceProgram = gui.getEditorText();
-		
+
 		String tokenStream = "";
 		int numOfLines = getNumberOfLines(sourceProgram);
-		for(int i = 1; i <= numOfLines; i++){
+		for (int i = 1; i <= numOfLines; i++) {
 			tokenStream += lexicalAnalyzer(sourceProgram, i);
 			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
 			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
-			
+
 		}
 		//fileHandler.createSOBJFile(tokenStream); [CED]
 		String varOutput = gui.getVariableTableInformation();
@@ -224,11 +226,11 @@ public class ExpressionEvaluator {
 			e.printStackTrace();
 		}
 	}
-	
-	private int getNumberOfLines(String text){
+
+	private int getNumberOfLines(String text) {
 		int res = 0;
-		for(int i = 0; i < text.length(); i++){
-			if(text.charAt(i) == '\n'){
+		for (int i = 0; i < text.length(); i++) {
+			if (text.charAt(i) == '\n') {
 				res++;
 			}
 		}
@@ -279,8 +281,7 @@ public class ExpressionEvaluator {
 			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
 			//fileHandler.createSOBJFile(tokenStream); [CED]
 			//fileHandler.createSTVFile(gui.getVariableTable);
-			
-			
+
 			String checker = "";
 
 			/* if lexical error is not encountered */
@@ -416,6 +417,9 @@ public class ExpressionEvaluator {
 	private String lexicalAnalyzer(String line, int lineNum) {
 		String word = "";
 		String result = "";
+		String runningWord = "";
+		SymbolTable st;
+		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
 
 		/*String[] words = line.trim().split("\\s");
 		String result = "";
@@ -448,7 +452,7 @@ public class ExpressionEvaluator {
 		
 			} else { // if the token does not fall in the previous categories,
 						// hence, encountering an unidentifiable symbol
-
+		
 				errorMsg += "Lexical error: Invalid symbol " + word + " (line " + lineNum + ")\n";
 				return "error: Lexical error - " + word;
 		
@@ -458,48 +462,113 @@ public class ExpressionEvaluator {
 		}*/
 
 		for (int i = 0; i < line.length(); i++) {
+			System.out.print(i + ": ");
 			char c = line.charAt(i);
-			if (c == ' ') {
-				
-				switch (word) {
+			int lastIndex = line.length() - 1;
+			System.out.println(c);
+			runningWord = word + c;
+			System.out.println("rw: " + runningWord);
 
-					case "INTO":
-						result += "<INTO,INTO>\n";
-						break;
+			if ((c == ' ' && !word.equals("")) || ((i == lastIndex) && (runningWord != "" && runningWord != " "))) {
 
-					case "DEFINE":
-						result += "<DEFINE,DEFINE>\n";
-						break;
-
-					case "IS":
-						result += "<IS,IS>\n";
-						break;
-
-					case "END":
-						result += "<END,END>\n";
-						break;
-
-					case "COMMAND":
-						result += "<COMMAND,COMMAND>\n";
-						break;
-
-					case "PRINT":
-						result += "<PRINT,PRINT>\n";
-						break;
+				if ((i == lastIndex)) {
+					System.out.println("im here");
+					word += c;
 				}
 
+				System.out.println("current word: " + word);
+				switch (word) {
 
-				word = "";
-				continue;
+				case "INTO":
+					st = new SymbolTable("INTO", "INTO", "", "");
+					sb.getVector().add(st);
+					result += "<INTO,INTO>\n";
+					word = "";
+					break;
+
+				case "DEFINE":
+					st = new SymbolTable("DEFINE", "DEFINE", "", "");
+					sb.getVector().add(st);
+					result += "<DEFINE,DEFINE>\n";
+					word = "";
+					break;
+
+				case "IS":
+					st = new SymbolTable("IS", "IS", "", "");
+					sb.getVector().add(st);
+					result += "<IS,IS>\n";
+					word = "";
+					break;
+
+				case "END":
+					st = new SymbolTable("END", "END", "", "");
+					sb.getVector().add(st);
+					word = "";
+					result += "<END,END>\n";
+					break;
+
+				case "COMMAND":
+					st = new SymbolTable("COMMAND", "COMMAND", "", "");
+					sb.getVector().add(st);
+					result += "<COMMAND,COMMAND>\n";
+					word = "";
+					break;
+
+				case "+":
+					st = new SymbolTable("+", "OP", "", "");
+					sb.getVector().add(st);
+					result += "<OP,+>\n";
+					word = "";
+					break;
+
+				case "-":
+					st = new SymbolTable("-", "OP", "", "");
+					sb.getVector().add(st);
+					result += "<OP,->\n";
+					word = "";
+					break;
+
+				case "/":
+					st = new SymbolTable("/", "OP", "", "");
+					sb.getVector().add(st);
+					result += "<OP,/>\n";
+					word = "";
+					break;
+
+				case "*":
+					st = new SymbolTable("*", "OP", "", "");
+					sb.getVector().add(st);
+					result += "<OP,*>\n";
+					word = "";
+					break;
+
+				}
+
+				if (word != "") {
+					if (isVariable(word)) {
+						st = new SymbolTable(word, "IDENT", "", "");
+						sb.getVector().add(st);
+						result += "<IDENT," + word + ">\n";
+						word = "";
+					} else if (isInteger(word)) {
+						st = new SymbolTable(word, "INT_LIT", "INT", word);
+						sb.getVector().add(st);
+						result += "<INT_LIT," + word + ">\n";
+						word = "";
+					} else {
+						st = new SymbolTable(word, "FLOAT_LIT", "FLOAT", word);
+						sb.getVector().add(st);
+						result += "<FLOAT_LIT," + word + ">\n";
+						word = "";
+					}
+				}
+
 			}
-			word += c;
-			if (isAlphabet(c)) {
-				System.out.println("alpha");
-				//return result;
-			} else {
-				System.out.println("hellosadasdass");
-				//return result;
+			if (c != ' ' && i < lastIndex) {
+				word += c;
 			}
+
+			System.out.println("current result: " + result);
 
 		}
 		return result;
@@ -805,14 +874,17 @@ public class ExpressionEvaluator {
 	 * @author Alvaro, Cedric Y.
 	 */
 	public boolean isVariable(String word) {
-		String firstLetter = "" + word.charAt(0);
-		if (word.length() > 1
-				? !firstLetter.matches("[0-9]+") && word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+")
-				: word.matches("[a-zA-Z]+")) {
-			return true;
-		} else {
-			return false;
+		if (word != "") {
+			String firstLetter = "" + word.charAt(0);
+			if (word.length() > 1
+					? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_") && word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+")
+					: word.matches("[a-zA-Z]+")) {
+				return true;
+			} else {
+				return false;
+			}
 		}
+		return false;
 	}
 
 	/**
