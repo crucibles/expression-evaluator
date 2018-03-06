@@ -10,7 +10,6 @@ public class SymbolTable {
 	private String token = "";
 	private String type = "";
 	private String value = "";
-	private Vector<SymbolTable> symbolTable;
 
 	/*
 	*	The three constructors for the symbolTable
@@ -23,16 +22,15 @@ public class SymbolTable {
 		this.token = token;
 		this.type = type;
 		this.value = value;
-		SymbolTable sb = new SymbolTable(lexeme, token, type, value);
-		this.symbolTable.add(sb);
+		this.lexeme = lexeme;
 	}
 
 	public SymbolTable(String lexeme, String token, String type) {
+		this.lexeme = "";
 		this.token = token;
 		this.type = type;
 		this.value = "";
-		SymbolTable sb = new SymbolTable(token, type, "");
-		this.symbolTable.add(sb);
+		SymbolTable sb = new SymbolTable(lexeme,token, type, "");
 	}
 
 	/**

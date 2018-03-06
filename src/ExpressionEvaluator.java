@@ -61,6 +61,7 @@ public class ExpressionEvaluator {
 	public FileHandler fileHandler = new FileHandler();
 	private JFrame frame;
 	private Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
+	private Vector<Vector<SymbolTable>> allSymbolTables = new Vector<Vector<SymbolTable>>();
 	private boolean flag = true;
 	private String errorMsg = new String("");
 
@@ -419,7 +420,6 @@ public class ExpressionEvaluator {
 		String result = "";
 		String runningWord = "";
 		SymbolTable st;
-		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
 
 		/*String[] words = line.trim().split("\\s");
 		String result = "";
@@ -481,63 +481,63 @@ public class ExpressionEvaluator {
 
 				case "INTO":
 					st = new SymbolTable("INTO", "INTO", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					result += "<INTO,INTO>\n";
 					word = "";
 					break;
 
 				case "DEFINE":
 					st = new SymbolTable("DEFINE", "DEFINE", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					result += "<DEFINE,DEFINE>\n";
 					word = "";
 					break;
 
 				case "IS":
 					st = new SymbolTable("IS", "IS", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					result += "<IS,IS>\n";
 					word = "";
 					break;
 
 				case "END":
 					st = new SymbolTable("END", "END", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					word = "";
 					result += "<END,END>\n";
 					break;
 
 				case "COMMAND":
 					st = new SymbolTable("COMMAND", "COMMAND", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					result += "<COMMAND,COMMAND>\n";
 					word = "";
 					break;
 
 				case "+":
 					st = new SymbolTable("+", "OP", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					result += "<OP,+>\n";
 					word = "";
 					break;
 
 				case "-":
 					st = new SymbolTable("-", "OP", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					result += "<OP,->\n";
 					word = "";
 					break;
 
 				case "/":
 					st = new SymbolTable("/", "OP", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					result += "<OP,/>\n";
 					word = "";
 					break;
 
 				case "*":
 					st = new SymbolTable("*", "OP", "", "");
-					sb.getVector().add(st);
+					symbolTables.add(st);
 					result += "<OP,*>\n";
 					word = "";
 					break;
@@ -547,17 +547,17 @@ public class ExpressionEvaluator {
 				if (word != "") {
 					if (isVariable(word)) {
 						st = new SymbolTable(word, "IDENT", "", "");
-						sb.getVector().add(st);
+						symbolTables.add(st);
 						result += "<IDENT," + word + ">\n";
 						word = "";
 					} else if (isInteger(word)) {
 						st = new SymbolTable(word, "INT_LIT", "INT", word);
-						sb.getVector().add(st);
+						symbolTables.add(st);
 						result += "<INT_LIT," + word + ">\n";
 						word = "";
 					} else {
 						st = new SymbolTable(word, "FLOAT_LIT", "FLOAT", word);
-						sb.getVector().add(st);
+						symbolTables.add(st);
 						result += "<FLOAT_LIT," + word + ">\n";
 						word = "";
 					}
