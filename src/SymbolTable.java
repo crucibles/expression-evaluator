@@ -9,6 +9,7 @@ public class SymbolTable {
 	private String token;
 	private String type;
 	private String value;
+	private String lexeme;
 	private Vector<SymbolTable> symbolTable;
 
 	/*
@@ -41,6 +42,17 @@ public class SymbolTable {
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
+	public String getLexeme() {
+		return this.lexeme;
+	}
+	
+	/**
+	 * Gets the token or name of the symbol.
+	 * 
+	 * @return String token name
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
 	public String getToken() {
 		return this.token;
 	}
@@ -55,7 +67,7 @@ public class SymbolTable {
 	public String getType() {
 		return this.type;
 	}
-
+	
 	/**
 	 * Gets the variable's value
 	 */
@@ -148,17 +160,8 @@ public class SymbolTable {
 	 * @return the lexeme string of symbol table at index 'i'
 	 */
 	public String getTokenAt(int i) {
-		String type = "integer";
-		switch (type) {
-		case "integer":
-			return "INT_LIT";
-		case "float":
-			return "FLOAT_LIT";
-		case "DEFINE": case "INTO": case "IS":
-			return type;
-		default:
-			return "ERR_LEX";
-		}
+		String token = this.symbolTable.get(i).getToken();
+		return token;
 	}
 
 	/**
@@ -166,16 +169,18 @@ public class SymbolTable {
 	 * @return the lexeme string of symbol table at index 'i'
 	 */
 	public String getLexemeAt(int i) {
-		String dummy = "lexeme1";
+		String dummy = this.symbolTable.get(i).getLexeme();
 		return dummy;
 	}
 
 	/**
-	 * Gets the type of the symbol table at the given index.
+	 * Gets the type of the symbol table at the given index (for variables/identifiers).
+	 * INT - integer
+	 * FLOAT - float 
 	 * @return the type of symbol table at index 'i'
 	 */
 	public String getTypeAt(int i) {
-		String dummy = "integer";
+		String dummy = this.symbolTable.get(i).getType();
 		return dummy;
 	}
 
@@ -184,7 +189,7 @@ public class SymbolTable {
 	 * @return the type of symbol table at index 'i'
 	 */
 	public String getValueAt(int i) {
-		String dummy = "345";
+		String dummy = this.symbolTable.get(i).getValue();
 		return dummy;
 	}
 }

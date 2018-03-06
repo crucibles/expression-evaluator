@@ -18,7 +18,7 @@ public class FileHandler {
 
 	public BufferedReader reader;
 	// change to in when in the expression evaluator
-	private CustomFileChooser fileChooser = new CustomFileChooser("in,dfa,inp");
+	private CustomFileChooser fileChooser = new CustomFileChooser("in");
 	private Vector<CustomFileChooser> fileHandlers = new Vector<CustomFileChooser>();
 	private File selectedFile;
 
@@ -31,7 +31,8 @@ public class FileHandler {
 	/**
 	 * Gets the FileChooser.
 	 * 
-	 * @return FileChooser for the mainClass to use for altering the selected File
+	 * @return FileChooser for the mainClass to use for altering the selected
+	 *         File
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
@@ -51,7 +52,8 @@ public class FileHandler {
 	}
 
 	/**
-	 * Save the file to an output file. Save automatic if existing already, else choose a directory  where to save the file.
+	 * Save the file to an output file. Save automatic if existing already, else
+	 * choose a directory where to save the file.
 	 * 
 	 * @return file's extension (.e.g. in (file.in), out (file.out))
 	 * 
@@ -102,7 +104,8 @@ public class FileHandler {
 	/**
 	 * Creates the .out file of the resulting output
 	 * 
-	 * @param output the text to be stored in the .out file
+	 * @param output
+	 *            the text to be stored in the .out file
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 * @return FileName of the file created
@@ -118,20 +121,87 @@ public class FileHandler {
 				selectedFile = fileChooser.getSelectedFile();
 
 				try {
-					//AHJ: unimplemented; #01: weird part here. Filechooser can choose in or out for extension in saving file... so unsaon pagkabalo? (Also, this savefile function does not include saving of .in file)
+					// AHJ: unimplemented; #01: weird part here. Filechooser can
+					// choose in or out for extension in saving file... so
+					// unsaon pagkabalo? (Also, this savefile function does not
+					// include saving of .in file)
 					String fileName = selectedFile.getCanonicalPath();
 					if (!fileName.endsWith(".in")) {
+						System.out.println("CHECK HERE (if not .in):");
+						System.out.println(fileName);
 						selectedFile = new File(fileName + ".in");
 					}
 					writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(selectedFile)));
 					writer.write(output);
-					//AHJ: unimplemented; (not properly implemented)refer to comment #01
+					// AHJ: unimplemented; (not properly implemented)refer to
+					// comment #01
 					return getFileName();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
 			return null;
+		} finally {
+			try {
+				if (writer != null) {
+					writer.close();
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				;
+			}
+		}
+	}
+
+	/**
+	 * Strips the extension of the received filename string
+	 * @param str string whose extension is to be removed
+	 * @return the string/name of the string without extension (.in, etc.)
+	 */
+	public String stripExtension(String str) {
+		if (str == null){ // Handle null case specially.
+			return null;			
+		}
+		
+		int pos = str.lastIndexOf("."); // Get position of last '.'.
+		if (pos == -1){
+			return str; // If there wasn't any '.' just return the string as is.
+		}
+		
+		return str.substring(0, pos); // Otherwise return the string, up to the dot.
+	}
+
+	/**
+	 * Creates new file based on the output. It also saves the current program if current opened file is not saved.
+	 * @param output the output to be written in the new output file
+	 * @param frame frame to center the dialog
+	 * @param extension extension of the file to be used for the new output file
+	 * @param sourceProgram the output to be written if the current file is not saved
+	 * @return
+	 * @throws IOException
+	 */
+	public String createNewFile(String output, JFrame frame, String extension, String sourceProgram)
+			throws IOException {
+		Writer writer = null;
+
+		saveFile(sourceProgram, frame);
+
+		try {
+			try {
+				// AHJ: unimplemented; #01: weird part here. Filechooser can
+				// choose in or out for extension in saving file... so unsaon
+				// pagkabalo? (Also, this savefile function does not include
+				// saving of .in file)
+				String fileName = stripExtension(getFileName());
+
+				writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName + ".stv"), "utf-8"));
+				writer.write(output);
+				// AHJ: unimplemented; (not properly implemented)refer to
+				// comment #01
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return getFileName();
 		} finally {
 			try {
 				if (writer != null) {
@@ -239,10 +309,10 @@ public class FileHandler {
 }
 
 /**
-* A CustomFileChooser to implement the overwrite of
-* 
-* @author Alvaro, Cedric Y.
-*/
+ * A CustomFileChooser to implement the overwrite of
+ * 
+ * @author Alvaro, Cedric Y.
+ */
 class CustomFileChooser extends JFileChooser {
 	private static final long serialVersionUID = -4789704212540593370L;
 	private String extension;

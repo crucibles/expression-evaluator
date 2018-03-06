@@ -357,7 +357,7 @@ public class GUI {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	public void updateTabInfo() {
+	public void setTabTitle() {
 		int selectedIndex = tbpEditor.getSelectedIndex();
 		String title = tbpEditor.getTitleAt(selectedIndex);
 		if (title.charAt(0) == '*') {
@@ -373,7 +373,7 @@ public class GUI {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	public void updateTabInfo(String title) {
+	public void setTabTitle(String title) {
 		int selectedIndex = tbpEditor.getSelectedIndex();
 		tbpEditor.setTitleAt(selectedIndex, title);
 	}
@@ -395,7 +395,7 @@ public class GUI {
 			String row[] = { token, lexeme };
 			String type = st.getTypeAt(i);
 			modelTok.addRow(row);
-			if (type.equals("variable")) {
+			if (token.equals("IDENT")) {
 				DefaultTableModel modelVar = (DefaultTableModel) tblVariables.getModel();
 				modelVar.setRowCount(0);
 				String value = st.getValueAt(i);

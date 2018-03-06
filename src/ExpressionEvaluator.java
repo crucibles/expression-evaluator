@@ -3,13 +3,15 @@
  * Name: Alvaro, Cedric	(2014-60690)	Sumandang, AJ Ruth (2014-37728)
  * Deadline Date and Time:  	January 26, 2018; 11:59 a.m.
  * 
- * Program Exercise #	: 2
- * Program Title		: Compiler GUI
+ * Program Exercise #	: 3
+ * Program Title		: Lexical Analysis
  * 
  * Program Description:
- * 		This program is only a GUI for the compiler IDE. 
- * 		The program is only capable of creating, opening storing, and modifying files right now. 
+ * 		The program is capable of creating, opening storing, and modifying files right now. 
  * 		Also, 'save as' button not working and the program does not include error-checking if the file is already open or not.
+ * 
+ * 		It also compiles which only include lexical analysis for the current file opened. Typing not included.
+ * 		
  * 
  * [User Manual]
  * > Click 'New' under 'File' if you want to create new file. Shortcut key: Ctrl + N
@@ -17,6 +19,8 @@
  * - Choose valid and existing .in file in the home.
  * > Click 'Close' under 'File' if you want to close an open tab. Shortcut key: Ctrl + W
  * > Click 'Save' under 'File' if you want to save the current open tab's file. Shortcut key: Ctrl + S
+ * > To compile (and check for lexical errors), click 'Compile' under 'Execute'. Shortcut key: F5
+ * 
  * > Open 'Program Description' under 'Help' if you need help with something.
  * 
  * [Lexical Checking]
@@ -143,7 +147,7 @@ public class ExpressionEvaluator {
 			public void actionPerformed(ActionEvent e) {
 				String title = fileHandler.saveFile(getCurrentTabText(), gui.frame);
 				if (title != null) {
-					gui.updateTabInfo(title);
+					gui.setTabTitle(title);
 				}
 			}
 		};
@@ -203,6 +207,10 @@ public class ExpressionEvaluator {
 		return null;
 	}
 	
+	/**
+	 * Compiles the source program.
+	 * Only includes lexical analysis for now.
+	 */
 	private void compile(){
 		//AHJ: unimplemented; use saved file for compilation and remove the line (getEditorText) below
 		String sourceProgram = gui.getEditorText();
@@ -213,18 +221,24 @@ public class ExpressionEvaluator {
 			tokenStream += lexicalAnalyzer(sourceProgram, i);
 			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
 			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
-			
 		}
 		//fileHandler.createSOBJFile(tokenStream); [CED]
+		
 		String varOutput = gui.getVariableTableInformation();
 		try {
-			fileHandler.createFile(varOutput, gui.frame, ".stv");
+			String fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram);
+			gui.setTabTitle(fileName);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/**
+	 * Obtain the number of lines of the given text.
+	 * @param text the text whose lines are to be counted.
+	 * @return the number of lines of the received parameter 'text'
+	 */
 	private int getNumberOfLines(String text){
 		int res = 0;
 		for(int i = 0; i < text.length(); i++){
@@ -232,7 +246,7 @@ public class ExpressionEvaluator {
 				res++;
 			}
 		}
-		return res;
+		return res + 1;
 	}
 
 	/*
@@ -325,7 +339,7 @@ public class ExpressionEvaluator {
 
 		fileHandler.reader.close();
 		fileHandler.saveFile(getCurrentTabText(), gui.frame);
-		gui.updateTabInfo();
+		gui.setTabTitle();
 		System.out.println("Saving...");
 	}
 
