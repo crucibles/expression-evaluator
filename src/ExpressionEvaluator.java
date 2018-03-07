@@ -46,6 +46,7 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
@@ -90,7 +91,6 @@ public class ExpressionEvaluator {
 	public ExpressionEvaluator() {
 		gui = new GUI();
 		System.out.println("hello");
-		//System.out.println(lexicalAnalyzer("INTO X IS 5", 1));
 		initializeVariables();
 	}
 
@@ -100,8 +100,8 @@ public class ExpressionEvaluator {
 	private void initializeVariables() {
 
 		/*
-		*	Adding a new temp File and adding a tab for it with a text editor.
-		*/
+		 * Adding a new temp File and adding a tab for it with a text editor.
+		 */
 		Action newAction = new AbstractAction("New") {
 			private static final long serialVersionUID = 1L;
 
@@ -115,8 +115,9 @@ public class ExpressionEvaluator {
 		gui.mntmNew.setAction(newAction);
 
 		/*
-		*	Open an existing file and put its content to a new text editor also adding a new tab.
-		*/
+		 * Open an existing file and put its content to a new text editor also
+		 * adding a new tab.
+		 */
 		Action openAction = new AbstractAction("Open") {
 			private static final long serialVersionUID = 1L;
 
@@ -140,14 +141,15 @@ public class ExpressionEvaluator {
 		gui.mntmOpenFile.setAction(openAction);
 
 		/*
-		*	Saving the texts written in the text editor and making an output file for it.
-		*/
+		 * Saving the texts written in the text editor and making an output file
+		 * for it.
+		 */
 		Action saveAction = new AbstractAction("Save") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String title = fileHandler.saveFile(getCurrentTabText(), gui.frame);
+				String title = fileHandler.saveFile(gui.getEditorText(), gui.frame);
 				if (title != null) {
 					gui.setTabTitle(title);
 				}
@@ -157,15 +159,15 @@ public class ExpressionEvaluator {
 		gui.mntmSave.setAction(saveAction);
 
 		/*
-		*	Adding a new temp File and adding a tab for it with a text editor.
-		*/
+		 * Adding a new temp File and adding a tab for it with a text editor.
+		 */
 		Action closeAction = new AbstractAction("Close") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int tabIndex = getCurrentTabIndex();
-				String tabText = getCurrentTabText();
+				String tabText = gui.getEditorText();
 				if (tabIndex >= 0 && gui.closeCurrentTab(tabText)) {
 					symbolTables.remove(tabIndex);
 				}
@@ -175,14 +177,19 @@ public class ExpressionEvaluator {
 		gui.mntmClose.setAction(closeAction);
 
 		/*
-		 *	Compile the current file opened.
+		 * Compile the current file opened.
 		 */
 		Action compileAction = new AbstractAction("Compile") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				compile();
+				try {
+					compile();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		};
 		compileAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("F5"));
@@ -190,58 +197,51 @@ public class ExpressionEvaluator {
 
 	}
 
-	/*
-	*	Getting the text from the text editor as a String.
-	*/
-	public String getCurrentTabText() {
-		int tabIndex = getCurrentTabIndex();
-		if (tabIndex < 0) {
-			return null;
-		}
-		JScrollPane sp = (JScrollPane) gui.tbpEditor.getComponentAt(tabIndex);
-		Component[] comps = sp.getViewport().getComponents();
-		for (int i = 0; i < comps.length; i++) {
-			if (comps[i] instanceof JTextPane) {
-				JTextPane textPane = (JTextPane) comps[i];
-				return textPane.getText();
-			}
-		}
-		return null;
-	}
-
 	/**
-	 * Compiles the source program.
-	 * Only includes lexical analysis for now.
+	 * Compiles the source program. Only includes lexical analysis for now.
+	 * @throws IOException 
 	 */
-	private void compile() {
-		//AHJ: unimplemented; use saved file for compilation and remove the line (getEditorText) below
+	private void compile() throws IOException {
+		// AHJ: unimplemented; use saved file for compilation and remove the
+		// line (getEditorText) below
 		String sourceProgram = gui.getEditorText();
+		fileHandler.saveFile(sourceProgram, gui.frame);
+
+		// stores the selected file and obtained a line
+		FileReader selectedFile = new FileReader(fileHandler.getFileChooser().getSelectedFile().getAbsolutePath());
+		fileHandler.reader = new BufferedReader(selectedFile);
+		String line = fileHandler.reader.readLine();
 
 		String tokenStream = "";
-		int numOfLines = getNumberOfLines(sourceProgram);
-		System.out.println(lexicalAnalyzer("INTO Xi IS 5", 1));
-		System.out.println(lexicalAnalyzer("INTO res IS 5", 2));
-		System.out.println(symbolTables.get(getCurrentTabIndex()));
-		//		for (int i = 1; i <= numOfLines; i++) {
-		//			tokenStream += lexicalAnalyzer(sourceProgram, i);
-		//			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
-		gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
-		//		}
-		//fileHandler.createSOBJFile(tokenStream); [CED]
+		for (int lineNum = 1; line != null; lineNum++) {
+			System.out.println("PASSED LINE: " +  line);
+			if (line.equals("")) { // if current line read is empty
+				line = fileHandler.reader.readLine();
+				continue;
+			}
 
-		String varOutput = gui.getVariableTableInformation();
-		try {
-			String fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram);
-			gui.setTabTitle(fileName);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			tokenStream += lexicalAnalyzer(line, lineNum);
+			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
+
+			/* display the result in the output text pane */
+			// displayOutput(line, checker, strPostFix, result, lineNum);
+			line = fileHandler.reader.readLine(); // reads next line
 		}
+
+		// displayAdditionalOutput();
+		String varOutput = gui.getVariableTableInformation();
+
+		fileHandler.createNewFile(tokenStream, gui.frame, ".obj", sourceProgram);
+		String fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram);
+		gui.setTabTitle(fileName);
+		fileHandler.reader.close();
 	}
 
 	/**
 	 * Obtain the number of lines of the given text.
-	 * @param text the text whose lines are to be counted.
+	 * 
+	 * @param text
+	 *            the text whose lines are to be counted.
 	 * @return the number of lines of the received parameter 'text'
 	 */
 	private int getNumberOfLines(String text) {
@@ -255,8 +255,8 @@ public class ExpressionEvaluator {
 	}
 
 	/*
-	*	Adding a new tab for multiple files to be opened simultaneously.
-	*/
+	 * Adding a new tab for multiple files to be opened simultaneously.
+	 */
 	private void addNewTab(String title) {
 		gui.addNewTab(title);
 		/*
@@ -294,10 +294,11 @@ public class ExpressionEvaluator {
 			}
 
 			String lexicalString = lexicalAnalyzer(line, lineNum);
-			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
-			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
-			//fileHandler.createSOBJFile(tokenStream); [CED]
-			//fileHandler.createSTVFile(gui.getVariableTable);
+			// AHJ: unimplemented; uncomment line below if storing of values &
+			// expected functions in symbol table are fixed.
+			// gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
+			// fileHandler.createSOBJFile(tokenStream); [CED]
+			// fileHandler.createSTVFile(gui.getVariableTable);
 
 			String checker = "";
 
@@ -342,7 +343,7 @@ public class ExpressionEvaluator {
 		// displayAdditionalOutput();
 
 		fileHandler.reader.close();
-		fileHandler.saveFile(getCurrentTabText(), gui.frame);
+		fileHandler.saveFile(gui.getEditorText(), gui.frame);
 		gui.setTabTitle();
 		System.out.println("Saving...");
 	}
@@ -361,15 +362,17 @@ public class ExpressionEvaluator {
 		String[] tokens = expr.trim().split("\\s");
 
 		for (int i = 0; i < tokens.length; i++) {
-			/* if token is not empty and is a variable/identifier*/
+			/* if token is not empty and is a variable/identifier */
 			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
 				String var = getAbsoluteValue(tokens[i].substring(5, tokens[i].length() - 1));
-				//				SymbolTable sb = symbolTables.get(1).findVariable(var);
-				//				if (sb.getValue().equals("")) { // if the variable has no value
-				//					// stored in the symbol table
-				//					errorMsg += "Undefined variable: " + var + " (line " + lineNum + ")\n";
-				//					return true;
-				//				}
+				// SymbolTable sb = symbolTables.get(1).findVariable(var);
+				// if (sb.getValue().equals("")) { // if the variable has no
+				// value
+				// // stored in the symbol table
+				// errorMsg += "Undefined variable: " + var + " (line " +
+				// lineNum + ")\n";
+				// return true;
+				// }
 			}
 		}
 		return false;
@@ -437,47 +440,44 @@ public class ExpressionEvaluator {
 		String runningWord = "";
 		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
 
-		/*String[] words = line.trim().split("\\s");
-		String result = "";
-		
-		for (String word : words) {
-			String firstLetter = "" + word.charAt(0);
-			if (isOperator(word)) { // if token is an operator
-		
-				result += " <op-" + word + ">";
-		
-			} else if (isInteger(word)) { // if token is an integer
-		
-				result += " <int-" + word + ">";
-		
-			} else if (isVariable(word)) { // if token is a variable
-		
-				result += " <var-" + word + ">";
-				if (word.indexOf("+") == 0 || word.indexOf("-") == 0) {
-					word = word.substring(1, word.length());
-				}
-				if (symbolTables.get(1).findVariable(word) == null) {
-					SymbolTable st = new SymbolTable(word, "variable", "");
-					st.getVector().add(st);
-				}
-		
-			} else if (firstLetter.equals("=")) { // if token is an assignment
-													// operator
-		
-				result += " =";
-		
-			} else { // if the token does not fall in the previous categories,
-						// hence, encountering an unidentifiable symbol
-		
-				errorMsg += "Lexical error: Invalid symbol " + word + " (line " + lineNum + ")\n";
-				return "error: Lexical error - " + word;
-		
-			}
-		
-			return result;
-		}*/
+		/*
+		 * String[] words = line.trim().split("\\s"); String result = "";
+		 * 
+		 * for (String word : words) { String firstLetter = "" + word.charAt(0);
+		 * if (isOperator(word)) { // if token is an operator
+		 * 
+		 * result += " <op-" + word + ">";
+		 * 
+		 * } else if (isInteger(word)) { // if token is an integer
+		 * 
+		 * result += " <int-" + word + ">";
+		 * 
+		 * } else if (isVariable(word)) { // if token is a variable
+		 * 
+		 * result += " <var-" + word + ">"; if (word.indexOf("+") == 0 ||
+		 * word.indexOf("-") == 0) { word = word.substring(1, word.length()); }
+		 * if (symbolTables.get(1).findVariable(word) == null) { SymbolTable st
+		 * = new SymbolTable(word, "variable", ""); st.getVector().add(st); }
+		 * 
+		 * } else if (firstLetter.equals("=")) { // if token is an assignment //
+		 * operator
+		 * 
+		 * result += " =";
+		 * 
+		 * } else { // if the token does not fall in the previous categories, //
+		 * hence, encountering an unidentifiable symbol
+		 * 
+		 * errorMsg += "Lexical error: Invalid symbol " + word + " (line " +
+		 * lineNum + ")\n"; return "error: Lexical error - " + word;
+		 * 
+		 * }
+		 * 
+		 * return result; }
+		 */
 
 		for (int i = 0; i < line.length(); i++) {
+			System.out.println(line);
+			System.out.println(line.length());
 			System.out.print(i + ": ");
 			char c = line.charAt(i);
 			int lastIndex = line.length() - 1;
@@ -747,7 +747,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Converts linkedlist type to its string
 	 * 
-	 * @param linkedList linkedlist to be converted into string
+	 * @param linkedList
+	 *            linkedlist to be converted into string
 	 * @return the string of the received linkedlist
 	 * 
 	 * @author Sumandang, AJ Ruth H.
@@ -766,9 +767,11 @@ public class ExpressionEvaluator {
 	 * Determines whether the an element is of higher or equal precedence than
 	 * another element
 	 * 
-	 * @param firstElem the element to be determined if it is of higher or equal
+	 * @param firstElem
+	 *            the element to be determined if it is of higher or equal
 	 *            precedence
-	 * @param secondElem the element to be compared to the first element
+	 * @param secondElem
+	 *            the element to be compared to the first element
 	 * @return true if first element (first parameter) is higher in precedence
 	 *         than second element; false if first element is lower in
 	 *         precedence
@@ -808,7 +811,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Evaluate the received postfix and returns its result
 	 * 
-	 * @param postFix postfix to be evaluated
+	 * @param postFix
+	 *            postfix to be evaluated
 	 * @return result of evaluating the expression
 	 * 
 	 * @author Sumandang, AJ Ruth H.
@@ -849,7 +853,10 @@ public class ExpressionEvaluator {
 					number = sb.getValue().substring(1);
 				}
 				stack.push(number);
-				/*if popped element from postfix is encountered, pop two element from stack and evaluate based on the popped operator*/
+				/*
+				 * if popped element from postfix is encountered, pop two
+				 * element from stack and evaluate based on the popped operator
+				 */
 			} else {
 				int secondElem = Integer.parseInt(stack.pop());
 				int firstElem = Integer.parseInt(stack.pop());
@@ -883,13 +890,13 @@ public class ExpressionEvaluator {
 					break;
 				}
 
-				/*push result to stack*/
+				/* push result to stack */
 				stack.push(Integer.toString(result));
 
 			}
 		}
 
-		/*pop the remaining element and return it as the answer/result*/
+		/* pop the remaining element and return it as the answer/result */
 		int answer = Integer.parseInt(stack.pop());
 		return answer;
 	}
@@ -897,7 +904,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether the received word is a valid variable or not
 	 * 
-	 * @param word word to be checked
+	 * @param word
+	 *            word to be checked
 	 * @return true if word is a valid variable; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -920,7 +928,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether the received word is a valid variable or not
 	 * 
-	 * @param word word to be checked
+	 * @param word
+	 *            word to be checked
 	 * @return true if word is a valid variable; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -937,7 +946,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether the received word is an operator or not
 	 * 
-	 * @param word word to be checked
+	 * @param word
+	 *            word to be checked
 	 * @return true if word is an operator; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -951,7 +961,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether received element is numeric or not
 	 * 
-	 * @param check the element to be checked
+	 * @param check
+	 *            the element to be checked
 	 * @return true if the received element is numeric; false if not
 	 * 
 	 * @author Sumandang, AJ Ruth H.
@@ -972,7 +983,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Obtains index of the current opened tab
 	 * 
-	 * @return index of current opened tab; returns negative if tabbed pane has no more tab
+	 * @return index of current opened tab; returns negative if tabbed pane has
+	 *         no more tab
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */

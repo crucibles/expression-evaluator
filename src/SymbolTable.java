@@ -43,7 +43,7 @@ public class SymbolTable {
 	 */
 	public Entry findVariable(String var) {
 		for (int index = 0; index < this.symbolTable.size(); index++) {
-			String sb = this.symbolTable.get(index).getToken();
+			String sb = this.symbolTable.get(index).getLexeme();
 			if (var.equals(sb)) { // returns symbol table if its token
 										// matches the received variable
 				return this.symbolTable.get(index);
@@ -62,13 +62,13 @@ public class SymbolTable {
 	 * @author Sumandang, AJ Ruth H.
 	 */
 	public void storeResult(int value, String stmt, boolean flag) {
-		// AHJ: optimizstion unimplemented; since Ced has tried looking for
+		// AHJ: optimization unimplemented; since Ced has tried looking for
 		// duplicate variables; why not use a separate function for this
 		// and just return a null if not found
 		String tokens[] = stmt.split("\\s");
 
 		for (int i = 0; i < tokens.length; i++) {
-			// locates the LHS variables by locatingthe '='sign
+			// locates the LHS variables by locating the '='sign
 			if (!tokens[i].isEmpty() && tokens[i].equals("=")) {
 
 				String var = tokens[i - 1].substring(5, tokens[i - 1].length() - 1); // obtains the variable name
