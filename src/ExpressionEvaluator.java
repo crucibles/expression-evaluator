@@ -55,11 +55,14 @@ import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class ExpressionEvaluator {
 	public GUI gui;
@@ -98,6 +101,19 @@ public class ExpressionEvaluator {
 	 * Initialize the variables for the program.
 	 */
 	private void initializeVariables() {
+		ChangeListener changeListener = new ChangeListener() {
+			public void stateChanged(ChangeEvent changeEvent) {
+				JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
+				int index = sourceTabbedPane.getSelectedIndex();
+				if(index >=0 && index < symbolTables.size()){
+					gui.setTablesInfo(symbolTables.get(index));					
+				} else {
+					gui.clearTable();
+				}
+			}
+		};
+		
+		gui.tbpEditor.addChangeListener(changeListener);
 
 		/*
 		 * Adding a new temp File and adding a tab for it with a text editor.
@@ -185,7 +201,9 @@ public class ExpressionEvaluator {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					compile();
+					if(gui.tbpEditor.getTabCount() > 0){
+						compile();						
+					}
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -199,7 +217,8 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Compiles the source program. Only includes lexical analysis for now.
-	 * @throws IOException 
+	 * 
+	 * @throws IOException
 	 */
 	private void compile() throws IOException {
 		// AHJ: unimplemented; use saved file for compilation and remove the
@@ -213,8 +232,12 @@ public class ExpressionEvaluator {
 		String line = fileHandler.reader.readLine();
 
 		String tokenStream = "";
+
+		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
+		sb.clear();
+
 		for (int lineNum = 1; line != null; lineNum++) {
-			System.out.println("PASSED LINE: " +  line);
+			System.out.println("PASSED LINE: " + line);
 			if (line.equals("")) { // if current line read is empty
 				line = fileHandler.reader.readLine();
 				continue;
@@ -230,9 +253,11 @@ public class ExpressionEvaluator {
 
 		// displayAdditionalOutput();
 		String varOutput = gui.getVariableTableInformation();
-
-		fileHandler.createNewFile(tokenStream, gui.frame, ".obj", sourceProgram);
-		String fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram);
+		
+		//create files
+		String fileName = fileHandler.createNewFile(tokenStream, gui.frame, ".obj", sourceProgram);
+		fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram);
+		
 		gui.setTabTitle(fileName);
 		fileHandler.reader.close();
 	}

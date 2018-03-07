@@ -24,6 +24,10 @@ public class SymbolTable {
 		Entry newEntry = new Entry(token, "", "");
 		this.symbolTable.add(newEntry);
 	}
+	
+	public void clear(){
+		this.symbolTable.clear();
+	}
 
 	/**
 	 * Gets the vector of symbolTable

@@ -194,14 +194,13 @@ public class FileHandler {
 				// saving of .in file)
 				String fileName = stripExtension(getFileName());
 
-				writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName + ".stv"), "utf-8"));
+				writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName + extension), "utf-8"));
 				writer.write(output);
 				// AHJ: unimplemented; (not properly implemented)refer to
 				// comment #01
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			return getFileName();
 		} finally {
 			try {
 				if (writer != null) {
@@ -212,6 +211,7 @@ public class FileHandler {
 				;
 			}
 		}
+		return getFileName();
 	}
 
 	/**

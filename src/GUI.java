@@ -387,10 +387,9 @@ public class GUI {
 	 * @author Sumandang, AJ Ruth H.
 	 */
 	public void setTablesInfo(SymbolTable st) {
-		DefaultTableModel modelTok = (DefaultTableModel) tblTokens.getModel();
-		DefaultTableModel modelVar = (DefaultTableModel) tblVariables.getModel();
-		modelTok.setRowCount(0);
-		modelVar.setRowCount(0);
+		DefaultTableModel modelTok = (DefaultTableModel) this.tblTokens.getModel();
+		DefaultTableModel modelVar = (DefaultTableModel) this.tblVariables.getModel();
+		clearTable();
 		for (int i = 0; i < st.getSize(); i++) {
 			String lexeme = st.getLexemeAt(i);
 			String token = st.getTokenAt(i);
@@ -403,6 +402,13 @@ public class GUI {
 				modelVar.addRow(row2);
 			}
 		}
+	}
+	
+	public void clearTable(){
+		DefaultTableModel modelTok = (DefaultTableModel) this.tblTokens.getModel();
+		DefaultTableModel modelVar = (DefaultTableModel) this.tblVariables.getModel();
+		modelTok.setRowCount(0);
+		modelVar.setRowCount(0);
 	}
 	
 	public String getVariableTableInformation(){
