@@ -70,7 +70,7 @@ public class ExpressionEvaluator {
 	private JFrame frame;
 	private Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
 	private boolean flag = true;
-	private String errorMsg = new String("");
+	private String[] errorMsg = new String[100];
 
 	/**
 	 * Launch the application.
@@ -101,12 +101,14 @@ public class ExpressionEvaluator {
 	 * Initialize the variables for the program.
 	 */
 	private void initializeVariables() {
-		ChangeListener changeListener = new ChangeListener() {
+		ChangeListener changeListener = new ChangeListener() { // if the tabbedpane is switched
 			public void stateChanged(ChangeEvent changeEvent) {
 				JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
 				int index = sourceTabbedPane.getSelectedIndex();
-				if(index >=0 && index < symbolTables.size()){
-					gui.setTablesInfo(symbolTables.get(index));					
+				gui.clearConsole();
+				if(index >=0 && index < symbolTables.size()){ 
+					gui.setTablesInfo(symbolTables.get(index));	
+					gui.console(errorMsg[index]);
 				} else {
 					gui.clearTable();
 				}
@@ -233,8 +235,11 @@ public class ExpressionEvaluator {
 
 		String tokenStream = "";
 
+		//clearing of necessary information
 		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
 		sb.clear();
+		gui.clearConsole();
+		errorMsg[getCurrentTabIndex()] = "";
 
 		for (int lineNum = 1; line != null; lineNum++) {
 			System.out.println("PASSED LINE: " + line);
@@ -245,11 +250,11 @@ public class ExpressionEvaluator {
 
 			tokenStream += lexicalAnalyzer(line, lineNum);
 			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
-
-			/* display the result in the output text pane */
-			// displayOutput(line, checker, strPostFix, result, lineNum);
+			
 			line = fileHandler.reader.readLine(); // reads next line
 		}
+		
+		gui.console(errorMsg[getCurrentTabIndex()]);
 
 		// displayAdditionalOutput();
 		String varOutput = gui.getVariableTableInformation();
@@ -594,6 +599,7 @@ public class ExpressionEvaluator {
 						word = "";
 					} else {
 						result += "<ERR_LEX," + word + ">\n";
+						errorMsg[getCurrentTabIndex()] += "Lexical Error: Undefined symbol " + word + " (Line #" + lineNum + ")\n";
 						word = "";
 					}
 				}
@@ -654,19 +660,19 @@ public class ExpressionEvaluator {
 				 * correct (if it's a variable)
 				 */
 				if (!var.equals("var") || !eq.equals("=")) {
-					errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
+					//errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
 					return "error5: Syntax error - Incorrect left-hand side element.";
 				}
 				/* if operator or number is found in LHS */
 			} else if (!token.isEmpty() && (token.length() > 3
 					&& (token.substring(1, 4).equals("int") || token.substring(1, 3).equals("op")))) {
-				errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
+				//errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
 				return "error5: Syntax error - Incorrect left-hand side element.";
 				/* if adjacent variables found in LHS */
 			} else if (!token.isEmpty() && !nextToken.isEmpty()
 					&& (token.length() > 4 && token.substring(1, 4).equals("var"))
 					&& (nextToken.length() > 4 && nextToken.substring(1, 4).equals("var"))) {
-				errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
+				//errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
 				return "error5: Syntax error - Incorrect left-hand side element.";
 			}
 			index++;
@@ -694,24 +700,24 @@ public class ExpressionEvaluator {
 			if (i == tokens.length - 1) { // if end of the expression is not a
 											// variable or a number
 				if (!currToken.equals("int") && !currToken.equals("var")) {
-					errorMsg += "Hanging operator not allowed" + " (line " + lineNum + ")\n";
+					//errorMsg += "Hanging operator not allowed" + " (line " + lineNum + ")\n";
 					return "error1: Hanging operator not allowed";
 				} else {
 					return "accept";
 				}
 				/* if consecutive operator found */
 			} else if (currToken.equals("op") && nextToken.equals("op")) {
-				errorMsg += "Invalid operator" + " (line " + lineNum + ")\n";
+				//errorMsg += "Invalid operator" + " (line " + lineNum + ")\n";
 				return "error2: Syntax error - Invalid operator";
 				/* if operator not surrounded with var/num */
 			} else if (currToken.equals("op") && (!(prevToken.equals("int") || prevToken.equals("var"))
 					|| !(nextToken.equals("int") || nextToken.equals("var")))) {
-				errorMsg += "Operator not surrounded by valid numbers/variables" + " (line " + lineNum + ")\n";
+				//errorMsg += "Operator not surrounded by valid numbers/variables" + " (line " + lineNum + ")\n";
 				return "error3: Syntax error - Operator not surrounded by valid numbers/variables";
 				/* if adjacent variables/number found */
 			} else if ((currToken.equals("var") || currToken.equals("int"))
 					&& (nextToken.equals("var") || nextToken.equals("int"))) {
-				errorMsg += "Consecutive order variable or number" + " (line " + lineNum + ")\n";
+				//errorMsg += "Consecutive order variable or number" + " (line " + lineNum + ")\n";
 				return "error4: Syntax error - Consecutive order variable or number";
 			}
 

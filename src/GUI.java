@@ -430,6 +430,10 @@ public class GUI {
 			System.out.println(e);
 		}
 	}
+	
+	public void clearConsole() {
+		tpConsole.setText("");
+	}
 
 	public JTextPane getCurrentTextPane() {
 		int selectedIndex = tbpEditor.getSelectedIndex();
