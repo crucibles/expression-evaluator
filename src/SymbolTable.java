@@ -43,7 +43,7 @@ public class SymbolTable {
 	 */
 	public Entry findVariable(String var) {
 		for (int index = 0; index < this.symbolTable.size(); index++) {
-			String sb = this.symbolTable.get(index).getToken();
+			String sb = this.symbolTable.get(index).getLexeme();
 			if (var.equals(sb)) { // returns symbol table if its token
 										// matches the received variable
 				return this.symbolTable.get(index);

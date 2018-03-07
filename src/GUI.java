@@ -388,6 +388,7 @@ public class GUI {
 	 */
 	public void setTablesInfo(SymbolTable st) {
 		DefaultTableModel modelTok = (DefaultTableModel) tblTokens.getModel();
+		DefaultTableModel modelVar = (DefaultTableModel) tblVariables.getModel();
 		modelTok.setRowCount(0);
 		for (int i = 0; i < st.getSize(); i++) {
 			String lexeme = st.getLexemeAt(i);
@@ -396,7 +397,6 @@ public class GUI {
 			String type = st.getTypeAt(i);
 			modelTok.addRow(row);
 			if (token.equals("IDENT")) {
-				DefaultTableModel modelVar = (DefaultTableModel) tblVariables.getModel();
 				modelVar.setRowCount(0);
 				String value = st.getValueAt(i);
 				String row2[] = { lexeme, type, value };
