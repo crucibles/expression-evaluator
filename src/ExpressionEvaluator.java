@@ -580,7 +580,7 @@ public class ExpressionEvaluator {
 					if (isVariable(word)) {
 						if (sb.findVariable(word) == null) {
 							sb.add(word, "IDENT", "", "");
-							System.out.println("FINDVAR: " + sb.findVariable(word).getLexeme());
+							//System.out.println("FINDVAR: " + sb.findVariable(word).getLexeme());
 						}
 						result += "<IDENT," + word + ">\n";
 						word = "";
@@ -588,9 +588,12 @@ public class ExpressionEvaluator {
 						sb.add(word, "INT_LIT", "INT", word);
 						result += "<INT_LIT," + word + ">\n";
 						word = "";
-					} else {
+					} else if (isFloat(word)) {
 						sb.add(word, "FLOAT_LIT", "FLOAT", word);
 						result += "<FLOAT_LIT," + word + ">\n";
+						word = "";
+					} else {
+						result += "<ERR_LEX," + word + ">\n";
 						word = "";
 					}
 				}
@@ -605,6 +608,24 @@ public class ExpressionEvaluator {
 		}
 		System.out.println(sb);
 		return result;
+
+	}
+
+	private boolean isFloat(String check) {
+		String number = new String("0123456789.");
+		if (check.indexOf('.') != check.lastIndexOf('.')) {
+			return false;
+		} else {
+			for (int i = 0; i < check.length(); i++) {
+				String symbol = "" + check.charAt(i);
+				if (i == 0 && (symbol.equals("-") || symbol.equals("+")) && check.length() > 1) {
+					continue;
+				} else if (!number.contains(symbol)) {
+					return false;
+				}
+			}
+			return check != null && true;
+		}
 
 	}
 
@@ -917,8 +938,10 @@ public class ExpressionEvaluator {
 	public boolean isVariable(String word) {
 		if (word != "") {
 			String firstLetter = "" + word.charAt(0);
-			if (word.length() > 1 ? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_")
-					&& word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+") : word.matches("[a-zA-Z]+")) {
+			if (word.length() > 1
+					? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_")
+							&& word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+")
+					: word.matches("[a-zA-Z]+")) {
 				return true;
 			} else {
 				return false;
