@@ -208,27 +208,27 @@ public class ExpressionEvaluator {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Compiles the source program.
 	 * Only includes lexical analysis for now.
 	 */
-	private void compile(){
+	private void compile() {
 		//AHJ: unimplemented; use saved file for compilation and remove the line (getEditorText) below
 		String sourceProgram = gui.getEditorText();
 
 		String tokenStream = "";
 		int numOfLines = getNumberOfLines(sourceProgram);
-		System.out.println(lexicalAnalyzer("INTO X IS 5", 1));
-		System.out.println(lexicalAnalyzer("INTO X IS 99", 2));		
+		System.out.println(lexicalAnalyzer("INTO Xi IS 5", 1));
+		System.out.println(lexicalAnalyzer("INTO res IS 5", 2));
 		System.out.println(symbolTables.get(getCurrentTabIndex()));
-//		for (int i = 1; i <= numOfLines; i++) {
-//			tokenStream += lexicalAnalyzer(sourceProgram, i);
-//			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
-			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
-//		}
+		//		for (int i = 1; i <= numOfLines; i++) {
+		//			tokenStream += lexicalAnalyzer(sourceProgram, i);
+		//			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
+		gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
+		//		}
 		//fileHandler.createSOBJFile(tokenStream); [CED]
-		
+
 		String varOutput = gui.getVariableTableInformation();
 		try {
 			String fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram);
@@ -238,13 +238,13 @@ public class ExpressionEvaluator {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Obtain the number of lines of the given text.
 	 * @param text the text whose lines are to be counted.
 	 * @return the number of lines of the received parameter 'text'
 	 */
-	private int getNumberOfLines(String text){
+	private int getNumberOfLines(String text) {
 		int res = 0;
 		for (int i = 0; i < text.length(); i++) {
 			if (text.charAt(i) == '\n') {
@@ -364,12 +364,12 @@ public class ExpressionEvaluator {
 			/* if token is not empty and is a variable/identifier*/
 			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
 				String var = getAbsoluteValue(tokens[i].substring(5, tokens[i].length() - 1));
-//				SymbolTable sb = symbolTables.get(1).findVariable(var);
-//				if (sb.getValue().equals("")) { // if the variable has no value
-//					// stored in the symbol table
-//					errorMsg += "Undefined variable: " + var + " (line " + lineNum + ")\n";
-//					return true;
-//				}
+				//				SymbolTable sb = symbolTables.get(1).findVariable(var);
+				//				if (sb.getValue().equals("")) { // if the variable has no value
+				//					// stored in the symbol table
+				//					errorMsg += "Undefined variable: " + var + " (line " + lineNum + ")\n";
+				//					return true;
+				//				}
 			}
 		}
 		return false;
@@ -553,9 +553,9 @@ public class ExpressionEvaluator {
 
 				if (word != "") {
 					if (isVariable(word)) {
-						if(sb.findVariable(word) == null){
-							sb.add(word, "IDENT", "", "");							
-							System.out.println("FINDVAR: " + sb.findVariable(word).getLexeme());
+						if (sb.findVariable(word) == null) {
+							sb.add(word, "IDENT", "", "");
+							//System.out.println("FINDVAR: " + sb.findVariable(word).getLexeme());
 						}
 						result += "<IDENT," + word + ">\n";
 						word = "";
@@ -563,9 +563,12 @@ public class ExpressionEvaluator {
 						sb.add(word, "INT_LIT", "INT", word);
 						result += "<INT_LIT," + word + ">\n";
 						word = "";
-					} else {
+					} else if (isFloat(word)) {
 						sb.add(word, "FLOAT_LIT", "FLOAT", word);
 						result += "<FLOAT_LIT," + word + ">\n";
+						word = "";
+					} else {
+						result += "<ERR_LEX," + word + ">\n";
 						word = "";
 					}
 				}
@@ -580,6 +583,24 @@ public class ExpressionEvaluator {
 		}
 		System.out.println(sb);
 		return result;
+
+	}
+
+	private boolean isFloat(String check) {
+		String number = new String("0123456789.");
+		if (check.indexOf('.') != check.lastIndexOf('.')) {
+			return false;
+		} else {
+			for (int i = 0; i < check.length(); i++) {
+				String symbol = "" + check.charAt(i);
+				if (i == 0 && (symbol.equals("-") || symbol.equals("+")) && check.length() > 1) {
+					continue;
+				} else if (!number.contains(symbol)) {
+					return false;
+				}
+			}
+			return check != null && true;
+		}
 
 	}
 
@@ -885,7 +906,8 @@ public class ExpressionEvaluator {
 		if (word != "") {
 			String firstLetter = "" + word.charAt(0);
 			if (word.length() > 1
-					? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_") && word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+")
+					? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_")
+							&& word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+")
 					: word.matches("[a-zA-Z]+")) {
 				return true;
 			} else {
