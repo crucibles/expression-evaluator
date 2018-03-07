@@ -214,13 +214,13 @@ public class ExpressionEvaluator {
 
 		String tokenStream = "";
 		for (int lineNum = 1; line != null; lineNum++) {
-			System.out.println(line);
+			System.out.println("PASSED LINE: " +  line);
 			if (line.equals("")) { // if current line read is empty
 				line = fileHandler.reader.readLine();
 				continue;
 			}
 
-			tokenStream += lexicalAnalyzer(sourceProgram, lineNum);
+			tokenStream += lexicalAnalyzer(line, lineNum);
 			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
 
 			/* display the result in the output text pane */
@@ -476,6 +476,8 @@ public class ExpressionEvaluator {
 		 */
 
 		for (int i = 0; i < line.length(); i++) {
+			System.out.println(line);
+			System.out.println(line.length());
 			System.out.print(i + ": ");
 			char c = line.charAt(i);
 			int lastIndex = line.length() - 1;
