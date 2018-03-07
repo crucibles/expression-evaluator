@@ -65,7 +65,6 @@ public class ExpressionEvaluator {
 	public FileHandler fileHandler = new FileHandler();
 	private JFrame frame;
 	private Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
-	private Vector<Vector<SymbolTable>> allSymbolTables = new Vector<Vector<SymbolTable>>();
 	private boolean flag = true;
 	private String errorMsg = new String("");
 
@@ -91,8 +90,8 @@ public class ExpressionEvaluator {
 	public ExpressionEvaluator() {
 		gui = new GUI();
 		System.out.println("hello");
-		System.out.println(lexicalAnalyzer("INTO X IS 5", 1));
-		//initializeVariables();
+		//System.out.println(lexicalAnalyzer("INTO X IS 5", 1));
+		initializeVariables();
 	}
 
 	/**
@@ -220,11 +219,14 @@ public class ExpressionEvaluator {
 
 		String tokenStream = "";
 		int numOfLines = getNumberOfLines(sourceProgram);
-		for (int i = 1; i <= numOfLines; i++) {
-			tokenStream += lexicalAnalyzer(sourceProgram, i);
-			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
-			//gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
-		}
+		System.out.println(lexicalAnalyzer("INTO X IS 5", 1));
+		System.out.println(lexicalAnalyzer("INTO X IS 99", 2));		
+		System.out.println(symbolTables.get(getCurrentTabIndex()));
+//		for (int i = 1; i <= numOfLines; i++) {
+//			tokenStream += lexicalAnalyzer(sourceProgram, i);
+//			//AHJ: unimplemented; uncomment line below if storing of values & expected functions in symbol table are fixed.
+			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
+//		}
 		//fileHandler.createSOBJFile(tokenStream); [CED]
 		
 		String varOutput = gui.getVariableTableInformation();
@@ -362,12 +364,12 @@ public class ExpressionEvaluator {
 			/* if token is not empty and is a variable/identifier*/
 			if (!tokens[i].isEmpty() && tokens[i].substring(1, 4).equals("var")) {
 				String var = getAbsoluteValue(tokens[i].substring(5, tokens[i].length() - 1));
-				SymbolTable sb = symbolTables.get(1).findVariable(var);
-				if (sb.getValue().equals("")) { // if the variable has no value
-					// stored in the symbol table
-					errorMsg += "Undefined variable: " + var + " (line " + lineNum + ")\n";
-					return true;
-				}
+//				SymbolTable sb = symbolTables.get(1).findVariable(var);
+//				if (sb.getValue().equals("")) { // if the variable has no value
+//					// stored in the symbol table
+//					errorMsg += "Undefined variable: " + var + " (line " + lineNum + ")\n";
+//					return true;
+//				}
 			}
 		}
 		return false;
@@ -433,7 +435,7 @@ public class ExpressionEvaluator {
 		String word = "";
 		String result = "";
 		String runningWord = "";
-		SymbolTable st;
+		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
 
 		/*String[] words = line.trim().split("\\s");
 		String result = "";
@@ -494,64 +496,55 @@ public class ExpressionEvaluator {
 				switch (word) {
 
 				case "INTO":
-					st = new SymbolTable("INTO", "INTO", "", "");
-					symbolTables.add(st);
+					sb.add("INTO", "INTO", "", "");
 					result += "<INTO,INTO>\n";
 					word = "";
 					break;
 
 				case "DEFINE":
-					st = new SymbolTable("DEFINE", "DEFINE", "", "");
-					symbolTables.add(st);
+					sb.add("DEFINE", "DEFINE", "", "");
 					result += "<DEFINE,DEFINE>\n";
 					word = "";
 					break;
 
 				case "IS":
-					st = new SymbolTable("IS", "IS", "", "");
-					symbolTables.add(st);
+					sb.add("IS", "IS", "", "");
 					result += "<IS,IS>\n";
 					word = "";
 					break;
 
 				case "END":
-					st = new SymbolTable("END", "END", "", "");
-					symbolTables.add(st);
+					sb.add("END", "END", "", "");
 					word = "";
 					result += "<END,END>\n";
 					break;
 
 				case "COMMAND":
-					st = new SymbolTable("COMMAND", "COMMAND", "", "");
-					symbolTables.add(st);
+					sb.add("COMMAND", "COMMAND", "", "");
 					result += "<COMMAND,COMMAND>\n";
 					word = "";
 					break;
 
 				case "+":
-					st = new SymbolTable("+", "OP", "", "");
-					symbolTables.add(st);
+					sb.add("+", "OP", "", "");
 					result += "<OP,+>\n";
 					word = "";
 					break;
 
 				case "-":
-					st = new SymbolTable("-", "OP", "", "");
-					symbolTables.add(st);
+					sb.add("-", "OP", "", "");
 					result += "<OP,->\n";
 					word = "";
 					break;
 
 				case "/":
-					st = new SymbolTable("/", "OP", "", "");
-					symbolTables.add(st);
+					sb.add("/", "OP", "", "");
 					result += "<OP,/>\n";
 					word = "";
 					break;
 
 				case "*":
-					st = new SymbolTable("*", "OP", "", "");
-					symbolTables.add(st);
+					sb.add("*", "OP", "", "");
 					result += "<OP,*>\n";
 					word = "";
 					break;
@@ -560,18 +553,18 @@ public class ExpressionEvaluator {
 
 				if (word != "") {
 					if (isVariable(word)) {
-						st = new SymbolTable(word, "IDENT", "", "");
-						symbolTables.add(st);
+						if(sb.findVariable(word) == null){
+							sb.add(word, "IDENT", "", "");							
+							System.out.println("FINDVAR: " + sb.findVariable(word).getLexeme());
+						}
 						result += "<IDENT," + word + ">\n";
 						word = "";
 					} else if (isInteger(word)) {
-						st = new SymbolTable(word, "INT_LIT", "INT", word);
-						symbolTables.add(st);
+						sb.add(word, "INT_LIT", "INT", word);
 						result += "<INT_LIT," + word + ">\n";
 						word = "";
 					} else {
-						st = new SymbolTable(word, "FLOAT_LIT", "FLOAT", word);
-						symbolTables.add(st);
+						sb.add(word, "FLOAT_LIT", "FLOAT", word);
 						result += "<FLOAT_LIT," + word + ">\n";
 						word = "";
 					}
@@ -585,6 +578,7 @@ public class ExpressionEvaluator {
 			System.out.println("current result: " + result);
 
 		}
+		System.out.println(sb);
 		return result;
 
 	}
@@ -820,7 +814,7 @@ public class ExpressionEvaluator {
 				 * obtains variable name and search for it in the symbol table
 				 */
 				String var = isPositive ? poppedElem : poppedElem.substring(1);
-				SymbolTable sb = symbolTables.get(1).findVariable(var);
+				Entry sb = symbolTables.get(1).findVariable(var);
 
 				String number = sb.getValue();
 				/* for single negative */
