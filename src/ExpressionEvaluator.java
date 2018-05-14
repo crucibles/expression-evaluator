@@ -250,6 +250,7 @@ public class ExpressionEvaluator {
 	 */
 	private void compile() throws IOException {
 		String tokenStream = "";
+		String forSyntax = "";
 		int index = getCurrentTabIndex();
 		String sourceProgram = gui.getEditorText();
 		String file = fileHandler.saveFile(sourceProgram, gui.frame, index);
@@ -277,14 +278,17 @@ public class ExpressionEvaluator {
 				continue;
 			}
 
-			tokenStream += lexicalAnalyzer(line, lineNum) + "ln ";
+			String lexicalStmt = lexicalAnalyzer(line, lineNum);
+			forSyntax += lexicalStmt + "ln ";
+			tokenStream += lexicalStmt + " ";
 			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
 
 			line = fileHandler.reader.readLine(); // reads next line
 		}
 
-		tokenStream = tokenStream.trim();
-		NRPP syntaxAnalyzer = new NRPP(tokenStream);
+		forSyntax = forSyntax.trim();
+		System.out.println(forSyntax);
+		NRPP syntaxAnalyzer = new NRPP(forSyntax);
 		errorMsg[getCurrentTabIndex()] += syntaxAnalyzer.getErrors();
 		gui.console(errorMsg[getCurrentTabIndex()]);
 
