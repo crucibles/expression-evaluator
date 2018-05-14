@@ -3,7 +3,6 @@ import java.awt.Component;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -234,6 +233,9 @@ public class GUI {
 	 * prompts the user if he/she wants to save changes. Option 'yes' saves
 	 * files and exits tab. Option 'no' automatically removes tab. Option
 	 * 'cancel'
+	 * 
+	 * @return true if closing of current tab is successful; false if not
+	 * @author Sumandang, AJ Ruth H.
 	 */
 	public boolean closeCurrentTab(String text) {
 		int selectedIndex = tbpEditor.getSelectedIndex();
@@ -266,91 +268,6 @@ public class GUI {
 		}
 		return false;
 	}
-
-	/**
-	 * Displays the resulting output in the panel.
-	 * 
-	 * @param line
-	 *            the current line being evaluated
-	 * @param checker
-	 *            the error in the result (if the source code has errors)
-	 * @param strPostFix
-	 *            the postfix string of the expression (if no errors has been
-	 *            found in the source code)
-	 * @param result
-	 *            the result of the expression (if no errors has been found in
-	 *            the source code)
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	// private void displayOutput(String line, String checker, String
-	// strPostFix, int result, int lineNum) {
-	// StyledDocument doc = gui.tpEditor.getStyledDocument();
-	// try {
-	// // outputs the line read
-	// String outputLine = "Line" + lineNum + ": " + line + "\n";
-	// doc.insertString(doc.getLength(), outputLine, null);
-	//
-	// /* if error has been detected*/
-	// if (checker.substring(0, 3).equals("err")) {
-	//
-	// // outputs the error that had occurred
-	// outputLine = "Result: " + checker + "\n\n";
-	// doc.insertString(doc.getLength(), outputLine, null);
-	// /* if no errors found in the source code*/
-	// } else {
-	// outputLine = "Postfix: " + getLHS(line) + " " + strPostFix + "\n"; //
-	// postfix
-	// doc.insertString(doc.getLength(), outputLine, null);
-	//
-	// if (checker.substring(0, 4).equals("Warn")) {
-	// outputLine = checker + "\n\n"; /* warning (for lines containing undefined
-	// variables) */
-	// } else {
-	// outputLine = "Result: " + getLHS(line) + " " + result + "\n\n"; //
-	// result/answer
-	// if (!flag) {
-	// /* if result is undefined (for zero divisors) */
-	// outputLine = "Result: " + getLHS(line) + " " + "undefined" + "\n\n";
-	// flag = true;
-	// }
-	// }
-	// doc.insertString(doc.getLength(), outputLine, null);
-	//
-	// }
-	// } catch (Exception e) {
-	// System.out.println(e);
-	// }
-	// }
-	//
-	// /**
-	// * Display addition output such as variables declared and errors
-	// encountered
-	// *
-	// * @author Sumandang, AJ Ruth H.
-	// */
-	// private void displayAdditionalOutput() {
-	// StyledDocument doc = gui.tpEditor.getStyledDocument();
-	// try {
-	// String outputLine = "-------------------------\n" + "Variables Used:\n";
-	// doc.insertString(doc.getLength(), outputLine, null);
-	//
-	// for (int i = 0; i < symbolTables.size(); i++) {
-	// outputLine = symbolTables.get(i).getToken() + "\n";
-	// doc.insertString(doc.getLength(), outputLine, null);
-	// }
-	//
-	// outputLine = "-------------------------\n" + "Errors found:\n";
-	// doc.insertString(doc.getLength(), outputLine, null);
-	//
-	// outputLine = !errorMsg.equals("") ? errorMsg + "\n" : "No errors
-	// encountered\n";
-	// doc.insertString(doc.getLength(), outputLine, null);
-	//
-	// } catch (Exception e) {
-	// System.out.println(e);
-	// }
-	// }
 
 	/**
 	 * Updates the tab's title by removing the '*' from the title
@@ -403,25 +320,46 @@ public class GUI {
 			}
 		}
 	}
-	
-	public void clearTable(){
+
+	/**
+	 * Clears the GUI tables.
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	public void clearTable() {
 		DefaultTableModel modelTok = (DefaultTableModel) this.tblTokens.getModel();
 		DefaultTableModel modelVar = (DefaultTableModel) this.tblVariables.getModel();
 		modelTok.setRowCount(0);
 		modelVar.setRowCount(0);
 	}
-	
-	public String getVariableTableInformation(){
+
+	/**
+	 * Stringify the variable table information.
+	 * 
+	 * @return the stringified value of the table
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	public String getVariableTableInformation() {
 		DefaultTableModel tm = (DefaultTableModel) tblVariables.getModel();
-		String info = "Variable | Type | Value\n\n";
-		for(int i = 0; i < tm.getRowCount(); i++){
-			info += tm.getValueAt(i, 0) + " | ";
-			info += tm.getValueAt(i, 1) + " | ";
+		String info = "Variable , Type , Value\n\n";
+		for (int i = 0; i < tm.getRowCount(); i++) {
+			info += tm.getValueAt(i, 0) + " , ";
+			info += tm.getValueAt(i, 1) + " , ";
 			info += tm.getValueAt(i, 2) + "\n";
 		}
 		return info;
 	}
 
+	/**
+	 * Displays the text in the GUI console. Appends to the existing text in the
+	 * console.
+	 * 
+	 * @param text
+	 *            the text to be appended to the console
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	public void console(String text) {
 		StyledDocument doc = tpConsole.getStyledDocument();
 		try {
@@ -430,11 +368,23 @@ public class GUI {
 			System.out.println(e);
 		}
 	}
-	
+
+	/**
+	 * Clears the GUI error console.
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	public void clearConsole() {
 		tpConsole.setText("");
 	}
 
+	/**
+	 * Gets the text pane of the current tab
+	 * 
+	 * @return JTextPane of current tab
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	public JTextPane getCurrentTextPane() {
 		int selectedIndex = tbpEditor.getSelectedIndex();
 		if (selectedIndex >= 0) {
@@ -443,21 +393,37 @@ public class GUI {
 			Component components[] = view.getComponents();
 			for (int i1 = 0; i1 < components.length; i1++) {
 				if (components[i1] instanceof JTextPane) {
-					return (JTextPane)components[i1];
+					return (JTextPane) components[i1];
 				}
 			}
 
 		}
 		return null;
 	}
-	
+
+	/**
+	 * Gets the text found in the editor pane.
+	 * 
+	 * @return editor pane content
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	public String getEditorText() {
+		JTextPane tp = this.getCurrentTextPane();
+		return tp != null? tp.getText(): "";
+	}
+
+	/**
+	 * Sets the GUI editor pane with the received string
+	 * 
+	 * @param newText
+	 *            the string to set/place/write on the GUI editor pane
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	public void setEditorText(String newText) {
 		JTextPane tp = this.getCurrentTextPane();
 		tp.setText(newText);
 	}
-	
-	public String getEditorText() {
-		JTextPane tp = this.getCurrentTextPane();
-		return tp.getText();
-	}
+
 }
