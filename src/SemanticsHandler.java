@@ -45,6 +45,8 @@ public class SemanticsHandler {
             }
         }
 
+        ee.symbolTables.get(ee.getCurrentTabIndex()).findVariable("x");
+
         
 
 

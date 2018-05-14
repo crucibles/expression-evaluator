@@ -564,7 +564,7 @@ public class ExpressionEvaluator {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	private int getCurrentTabIndex() {
+	public int getCurrentTabIndex() {
 		return gui.tbpEditor.getSelectedIndex();
 	}
 }
