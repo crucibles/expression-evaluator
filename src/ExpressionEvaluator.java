@@ -251,6 +251,8 @@ public class ExpressionEvaluator {
 	private void compile() throws IOException {
 		String tokenStream = "";
 		String forSyntax = "";
+		String sourceString = "";
+		String parsedString = "";
 		int index = getCurrentTabIndex();
 		String sourceProgram = gui.getEditorText();
 		String file = fileHandler.saveFile(sourceProgram, gui.frame, index);
@@ -280,6 +282,10 @@ public class ExpressionEvaluator {
 
 			String lexicalStmt = lexicalAnalyzer(line, lineNum);
 			forSyntax += lexicalStmt + "ln ";
+			
+			sourceString += line + "\n";
+			parsedString += lexicalStmt + "\n";
+			
 			tokenStream += lexicalStmt + " ";
 			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
 
