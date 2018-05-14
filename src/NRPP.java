@@ -18,7 +18,6 @@
  * 		- After pressing the button, a save dialog will appear. Save the output to where you want to place the output file.
  */
 
-
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -36,7 +35,7 @@ public class NRPP {
 	 * Constructor
 	 */
 	public NRPP(String text) {
-		
+
 		String strProdRules = "1,SNuBL,DEFINE VarDef END COMMAND Statements END\n"
 				+ "2,VarDef,FLOAT IDENT FloatVarDef VarDef\n" + "3,VarDef,INT IDENT IntVarDef VarDef\n"
 				+ "4,VarDef,STR IDENT VarDef\n" + "5,VarDef,e\n" + "6,FloatVarDef,IS FLOAT_LIT\n" + "7,FloatVarDef,e\n"
@@ -73,178 +72,231 @@ public class NRPP {
 				+ "Loop ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,39,,,,,\n"
 				+ "Expr,,,,,42,,,,40,41,,,,,43,43,43,43,43,,,,,,,,,,,,,,,,,,\n"
 				+ "BoolExpr,,,,,,,,,,,,,,,,,,,,46,46,46,46,46,46,46,46,46,,,,,,,44,45,\n";
-		
+
 		setProductionTable(strProdRules);
 		setParseTable(strParse);
 		parseInput(text);
 	}
 
-	
 	/**
 	 * Parse the input of the user if .prod and .pbtl file is loaded.
-	 * @return the output from the user input based on the specified grammar found in .prod and .ptbl files.
+	 * 
+	 * @return the output from the user input based on the specified grammar
+	 *         found in .prod and .ptbl files.
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public String parseInput(String text){
-			// @index is the index of the current word being matched from the input
-			// @rules is the index of the nonTerminal to be used, from the parse table. Identifying what row it is in Production table.
-			int index = 0;
-			int rules = 0;
+	public String parseInput(String text) {
+		// @index is the index of the current word being matched from the input
+		// @rules is the index of the nonTerminal to be used, from the parse
+		// table. Identifying what row it is in Production table.
+		int index = 0;
+		int rules = 0;
 
-			// @result is the string to be returned by the parser to fill in the Output table
-			// @input is the input to be parsed
-			// @inputWords is the tokenized input of words for parsing
-			// @inputBuffer is the running input for the output table
-			// @currentWord is the currentWord to be matched in the production
-			// @action is the action description, what is being done during parsing
-			// @production is the current NonTerminal or terminal to be matched to the currentWord or to be expanded
-			// @currentStack is the stack per line for the outputTable
-			// @produced is the produced words of the nonterminals
-			// @pdt is the production table
-			// @prt is the parse table
-			String result = "";
-			String input = text + " $";
-			String inputWords[] = input.trim().split("\\s");
-			String currentWord = inputWords[0];
-			String inputBuffer = input;
-			String currProduction = "";
-			String action = "";
-			String production = "";
-			String currentStack = "";
-			String produced = "";
-			int lineNum = 1;
-			Boolean isNextLine = false;
-			TableModel pdt = tblProduction.getModel();
-			TableModel prt = tblParse.getModel();
-			production = pdt.getValueAt(index, 1).toString();
-			currentStack = production + " $";
+		// @result is the string to be returned by the parser to fill in the
+		// Output table
+		// @input is the input to be parsed
+		// @inputWords is the tokenized input of words for parsing
+		// @inputBuffer is the running input for the output table
+		// @currentWord is the currentWord to be matched in the production
+		// @action is the action description, what is being done during parsing
+		// @production is the current NonTerminal or terminal to be matched to
+		// the currentWord or to be expanded
+		// @currentStack is the stack per line for the outputTable
+		// @produced is the produced words of the nonterminals
+		// @pdt is the production table
+		// @prt is the parse table
+		String result = "";
+		String input = text + " $";
+		String inputWords[] = splitter(input.trim());
+		String currentWord = inputWords[0];
+		String inputBuffer = input;
+		String currProduction = "";
+		String action = "";
+		String production = "";
+		String currentStack = "";
+		String produced = "";
+		int lineNum = 1;
+		Boolean isNextLine = false;
+		TableModel pdt = tblProduction.getModel();
+		TableModel prt = tblParse.getModel();
+		production = pdt.getValueAt(index, 1).toString();
+		currentStack = production + " $";
 
-			result += currentStack + ",";
-			result += inputBuffer + ",";
-			result += action + "\n";
+		result += currentStack + ",";
+		result += inputBuffer + ",";
+		result += action + "\n";
 
+		while (!action.equals("Match $")) {
+			if (production.equals("VarDef") || production.equals("Statements")) {
+				currProduction = production;
+			}
 
-			while (!action.equals("Match $")) {
-				if(production.equals("VarDef") || production.equals("Statements")){
-					currProduction = production;
+			if (production.equals(currentWord)) {
+				if (production.equals("" + "$")) {
+					action = "Match $";
+					result += ",";
+					result += ",";
+					result += action + "\n";
+					return result;
 				}
-				
-				if (production.equals(currentWord)) {
-					if (production.equals("" + "$")) {
-						action = "Match $";
-						result += ",";
-						result += ",";
-						result += action + "\n";
-						return result;
-					}
 
-
-					action = "Match " + currentWord;
+				action = "Match " + currentWord;
+				index++;
+				inputBuffer = inputBuffer.substring(production.length(), inputBuffer.length());
+				inputBuffer = inputBuffer.trim();
+				currentStack = currentStack.substring(production.length(), currentStack.length());
+				currentStack = currentStack.trim();
+				System.out.println(index);
+				System.out.println(inputWords[index]);
+				while (inputWords[index].equals("ln")) {
+					lineNum++;
 					index++;
-					inputBuffer = inputBuffer.substring(production.length(), inputBuffer.length());
-					inputBuffer = inputBuffer.trim();
-					currentStack = currentStack.substring(production.length(), currentStack.length());
-					currentStack = currentStack.trim();
-					while(inputWords[index].equals("ln")){
-						isNextLine = true;
-						lineNum++;
-						index++;
+					System.out.println(index);
+				}
+				currentWord = inputWords[index];
+				production = nextWord(currentStack);
+				production = production.trim();
+				result += currentStack + ",";
+				result += inputBuffer + ",";
+				result += action + "\n";
+			} else {
+				int row = getRowIndex(prt, production);
+				int column = getColumnIndex(prt, currentWord);
+				String prodNum = "";
+				if (row >= 0 && column >= 0) {
+					prodNum = prt.getValueAt(row, column).toString(); // why
+																		// string?
+				}
+
+				if (prodNum != "") {
+					rules = Integer.parseInt(prodNum);
+					produced = pdt.getValueAt(rules - 1, 2).toString();
+					if (rules != 0) {
+						action = "Output " + production + " > " + produced;
 					}
-					currentWord = inputWords[index];
-					production = currentStack.split("\\s")[0];
-					production = production.trim();
+
+					if (produced.equals("" + "e")) {
+
+						currentStack = currentStack.replaceFirst(production, "");
+						currentStack = currentStack.trim();
+						production = nextWord(currentStack);
+
+					} else {
+
+						currentStack = currentStack.replaceFirst(production, produced);
+						currentStack = currentStack.trim();
+						production = nextWord(currentStack);
+
+					}
+
 					result += currentStack + ",";
 					result += inputBuffer + ",";
 					result += action + "\n";
 				} else {
-					int row = getRowIndex(prt, production);
-					int column = getColumnIndex(prt, currentWord);
-					String prodNum = "";
-					if(row >= 0 && column >= 0){
-						prodNum = prt.getValueAt(row, column).toString(); // why string?					
+					int errLineNum = lineNum;
+					if (inputWords[index - 1].equals("ln")) {
+						errLineNum -= 1;
 					}
-				
-					if (prodNum != "") {
-						rules = Integer.parseInt(prodNum);
-						produced = pdt.getValueAt(rules - 1, 2).toString();
-						if (rules != 0) {
-							action = "Output " + production + " > " + produced;
-						}
 
+					action = "Error on " + currentStack + " trying to parse " + currentWord + ">" + production;
+					if (row < 0) {
+						errors += "(Line #" + errLineNum + ") Syntax Error: Missing " + production + "\n";
+					} else {
+						errors += "(Line #" + errLineNum + ") Syntax Error: Error on trying to parse " + currentWord
+								+ "\n";
+					}
+					lineNumberErrors.add(errLineNum);
 
-						if (produced.equals("" + "e")) {
+					while (!inputWords[index].equals("ln") && !inputWords[index].equals("END")
+							&& !inputWords[index].equals("$")) {
+						index++;
+					}
 
-							currentStack = currentStack.replaceFirst(production, "");
-							currentStack = currentStack.trim();
-							production = currentStack.split("\\s")[0];
-
-						} else {
-
-							currentStack = currentStack.replaceFirst(production, produced);
-							currentStack = currentStack.trim();
-							production = currentStack.split("\\s")[0];
-
-						}
-
+					if (inputWords[index].equals("$")) {
 						result += currentStack + ",";
 						result += inputBuffer + ",";
 						result += action + "\n";
-					} else {
-						int errLineNum = lineNum;
-						if(isNextLine){
-							errLineNum -= 1;
-						}
-						
-						action = "Error on " + currentStack + " trying to parse " + currentWord;
-						if(row < 0){
-							errors += "(Line #" + errLineNum + ") Syntax Error: Missing " + production + "\n";
-						} else {
-							errLineNum = isNextLine? errLineNum + 1 : errLineNum; 
-							errors += "(Line #" + errLineNum + ") Syntax Error: Error on trying to parse " + currentWord + "\n";							
-						}
-						lineNumberErrors.add(errLineNum);
-						
-						while(!inputWords[index].equals("ln") && !inputWords[index].equals("END") && !inputWords[index].equals("$")){
-							index++;
-						}
+						return result;
+					}
 
-						
-						if(inputWords[index].equals("$")){
-							result += currentStack + ",";
-							result += inputBuffer + ",";
-							result += action + "\n";
-							return result;
-						}
-						
-						do{
-							currentStack = currentStack.substring(production.length(), currentStack.length());
-							currentStack = currentStack.trim();
-							production = currentStack.split("\\s")[0];
-							production = production.trim();
-						} while(!production.equals("END"));
-						
-						if(inputWords[index].equals("ln")){
-							index++;
-							lineNum++;
-							currentWord = inputWords[index];
-							currentStack = currProduction + " " + currentStack;
-						}
-											
+					do {
+						currentStack = currentStack.substring(production.length(), currentStack.length());
+						currentStack = currentStack.trim();
 						production = currentStack.split("\\s")[0];
 						production = production.trim();
-						inputBuffer = inputBuffer.substring(production.length(), inputBuffer.length());
-						inputBuffer = inputBuffer.trim();
-						
-						result += currentStack + ",";
-						result += inputBuffer + ",";
-						result += action + "\n";
+					} while (!production.equals("END"));
+
+					if (inputWords[index].equals("ln")) {
+						index++;
+						lineNum++;
+						currentWord = inputWords[index];
+						currentStack = currProduction + " " + currentStack;
 					}
-					isNextLine = false;
+
+					production = currentStack.split("\\s")[0];
+					production = production.trim();
+					inputBuffer = inputBuffer.substring(production.length(), inputBuffer.length());
+					inputBuffer = inputBuffer.trim();
+
+					result += currentStack + ",";
+					result += inputBuffer + ",";
+					result += action + "\n";
 				}
+				isNextLine = false;
 
 			}
-			return result;
+
+		}
+		System.out.println(result);
+		return result;
+	}
+
+	/**
+	 * @return array of inputted words
+	 * @author Alvaro, Cedric Y.
+	 */
+	public String[] splitter(String input) {
+		String inputted = input.trim();
+		String[] splitted = new String[input.split("\\s").length];
+		String temp = "";
+		int x = 0;
+
+		for (int i = 0; i < inputted.length(); i++) {
+
+			if (inputted.charAt(i) == ' ' || temp.equals("ln")) {
+				splitted[x] = temp;
+				x++;
+				temp = "";
+				i++;
+			}
+
+			temp += inputted.charAt(i);
+
+		}
+		splitted[x] = "$";
+		return splitted;
+	}
+
+	/**
+	 * @return the next word of the input buffer
+	 * @author Alvaro, Cedric Y.
+	 */
+	public String nextWord(String input) {
+		String inputted = input.trim();
+		String nextWord = "";
+		String temp = "";
+
+		for (int i = 0; i < inputted.length(); i++) {
+
+			if (inputted.charAt(i) == ' ') {
+				nextWord = temp;
+				return nextWord;
+			}
+
+			temp += inputted.charAt(i);
+		}
+		return "$";
 	}
 
 	/**
@@ -293,20 +345,22 @@ public class NRPP {
 
 		return -1;
 	}
-	
-	public String getErrors(){
+
+	public String getErrors() {
 		return errors;
 	}
-	
+
 	/**
 	 * Sets the parse table when a .ptbl file is loaded.
-	 * @param text the text whose content will be placed in the table
+	 * 
+	 * @param text
+	 *            the text whose content will be placed in the table
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
 	public void setParseTable(String text) {
 		tblParse = new JTable();
-		
+
 		boolean isFirst = true;
 		DefaultTableModel model = (DefaultTableModel) tblParse.getModel();
 		model.setRowCount(0);
@@ -335,12 +389,14 @@ public class NRPP {
 				word += text.charAt(i);
 			}
 		}
-		
+
 	}
-	
+
 	/**
 	 * Sets the production table when a .prod file is loaded.
-	 * @param text the text whose content will be placed in the table
+	 * 
+	 * @param text
+	 *            the text whose content will be placed in the table
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
@@ -348,7 +404,7 @@ public class NRPP {
 		tblProduction = new JTable();
 		tblProduction.setEnabled(false);
 		tblProduction.setModel(new DefaultTableModel(new Object[][] {}, new String[] { "ID", "NT", "P" }));
-		
+
 		DefaultTableModel model = (DefaultTableModel) tblProduction.getModel();
 		model.setRowCount(0);
 		String word = "";

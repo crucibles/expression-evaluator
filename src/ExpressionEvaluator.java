@@ -64,7 +64,7 @@ public class ExpressionEvaluator {
 	public GUI gui;
 	public FileHandler fileHandler = new FileHandler();
 	private JFrame frame;
-	private Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
+	public Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
 
 	private String[] errorMsg = new String[100];
 
