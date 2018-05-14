@@ -18,31 +18,43 @@ public class FileHandler {
 
 	public BufferedReader reader;
 	// change to in when in the expression evaluator
-	private CustomFileChooser fileChooser = new CustomFileChooser("in");
-	private Vector<CustomFileChooser> fileHandlers = new Vector<CustomFileChooser>();
+	private Vector<CustomFileChooser> fileHandlers;
 	private File selectedFile;
 
+	/**
+	 * Constructor
+	 */
 	public FileHandler() {
-		this.fileChooser
-				.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
-		this.fileChooser.setAcceptAllFileFilterUsed(false);
+		fileHandlers = new Vector<CustomFileChooser>();
+		selectedFile = null;
+	}
+	
+	/**
+	 * Adds a new file chooser into the FileHandler vector.
+	 * @param newInput the new file chooser to be added to the vector
+	 * 
+	 * @author Sumandang, AJ Ruth
+	 */
+	public void addFileChooser(CustomFileChooser newInput){
+		newInput.setCurrentDirectory(new File(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath()));
+		newInput.setAcceptAllFileFilterUsed(false);
+		
+		fileHandlers.addElement(newInput);
 	}
 
 	/**
-	 * Gets the FileChooser.
-	 * 
-	 * @return FileChooser for the mainClass to use for altering the selected
-	 *         File
+	 * Gets the FileChooser at some index
+	 * @param index
+	 * @return FileChooser for the mainClass to use for altering the selected file
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public CustomFileChooser getFileChooser() {
-		return this.fileChooser;
+	public CustomFileChooser getFileChooserAt(int index) {
+		return this.fileHandlers.elementAt(index);
 	}
 
 	/**
 	 * Gets the vector of FileHandler
-	 * 
 	 * @return the vector of FileHandlers for each tab
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -50,18 +62,31 @@ public class FileHandler {
 	public Vector<CustomFileChooser> getfileHandlers() {
 		return fileHandlers;
 	}
-
+	
+	/**
+	 * Remove a file chooser at some index.
+	 * @param index index of the file chooser to be removed
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	public void removeFileChooserAt(int index) {
+		fileHandlers.remove(index);
+	}
+	
 	/**
 	 * Save the file to an output file. Save automatic if existing already, else
 	 * choose a directory where to save the file.
-	 * 
+	 * @param output output to be stored to the new file
+	 * @param frame frame to center the dialog
+	 * @index index of the file chooser to be used
 	 * @return file's extension (.e.g. in (file.in), out (file.out))
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public String saveFile(String output, JFrame frame) {
+	public String saveFile(String output, JFrame frame, int index) {
 		try {
-			selectedFile = fileChooser.getSelectedFile();
+			selectedFile = fileHandlers.elementAt(index).getSelectedFile();
+			//selectedFile = fileChooser.getSelectedFile();
 			System.out.println(selectedFile + "hehe");
 			if (selectedFile != null) {
 				System.out.println("hello");
@@ -72,14 +97,14 @@ public class FileHandler {
 				}
 
 				Writer writer = null;
-				File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+				File file = new File(fileHandlers.elementAt(index).getSelectedFile().getAbsolutePath());
 				writer = new BufferedWriter(new FileWriter(file));
 				writer.write(output);
 				writer.close();
 
-				return fileChooser.getSelectedFile().getName();
+				return fileHandlers.elementAt(index).getSelectedFile().getName();
 			} else {
-				String fileName = createFile(output, frame, ".in");
+				String fileName = createFile(output, frame, ".in", index);
 				System.out.println(fileName);
 				return fileName;
 			}
@@ -92,13 +117,15 @@ public class FileHandler {
 	}
 
 	// to be implemented
-	public void saveAsFile(String output, JFrame frame) {
+	public String saveAsFile(String output, JFrame frame, int index) {
+		String fileName = "";
 		try {
-			createFile(output, frame, ".in");
+			fileName = createFile(output, frame, ".in", index);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return fileName;
 	}
 
 	/**
@@ -110,15 +137,15 @@ public class FileHandler {
 	 * @author Alvaro, Cedric Y.
 	 * @return FileName of the file created
 	 */
-	public String createFile(String output, JFrame frame, String extension) throws IOException {
+	public String createFile(String output, JFrame frame, String extension, int index) throws IOException {
 		Writer writer = null;
 
 		try {
-			int status = fileChooser.showSaveDialog(frame);
+			int status = this.getFileChooserAt(index).showSaveDialog(frame);
 
 			if (status == JFileChooser.APPROVE_OPTION) {
 				System.out.println("hi");
-				selectedFile = fileChooser.getSelectedFile();
+				selectedFile = this.getFileChooserAt(index).getSelectedFile();
 
 				try {
 					// AHJ: unimplemented; #01: weird part here. Filechooser can
@@ -135,7 +162,7 @@ public class FileHandler {
 					writer.write(output);
 					// AHJ: unimplemented; (not properly implemented)refer to
 					// comment #01
-					return getFileName();
+					return getFileNameAt(index);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -155,36 +182,45 @@ public class FileHandler {
 
 	/**
 	 * Strips the extension of the received filename string
-	 * @param str string whose extension is to be removed
+	 * 
+	 * @param str
+	 *            string whose extension is to be removed
 	 * @return the string/name of the string without extension (.in, etc.)
 	 */
 	public String stripExtension(String str) {
-		if (str == null){ // Handle null case specially.
-			return null;			
+		if (str == null) { // Handle null case specially.
+			return null;
 		}
-		
+
 		int pos = str.lastIndexOf("."); // Get position of last '.'.
-		if (pos == -1){
+		if (pos == -1) {
 			return str; // If there wasn't any '.' just return the string as is.
 		}
-		
-		return str.substring(0, pos); // Otherwise return the string, up to the dot.
+
+		return str.substring(0, pos); // Otherwise return the string, up to the
+										// dot.
 	}
 
 	/**
-	 * Creates new file based on the output. It also saves the current program if current opened file is not saved.
-	 * @param output the output to be written in the new output file
-	 * @param frame frame to center the dialog
-	 * @param extension extension of the file to be used for the new output file
-	 * @param sourceProgram the output to be written if the current file is not saved
+	 * Creates new file based on the output. It also saves the current program
+	 * if current opened file is not saved.
+	 * 
+	 * @param output
+	 *            the output to be written in the new output file
+	 * @param frame
+	 *            frame to center the dialog
+	 * @param extension
+	 *            extension of the file to be used for the new output file
+	 * @param sourceProgram
+	 *            the output to be written if the current file is not saved
 	 * @return
 	 * @throws IOException
 	 */
-	public String createNewFile(String output, JFrame frame, String extension, String sourceProgram)
+	public String createNewFile(String output, JFrame frame, String extension, String sourceProgram, int index)
 			throws IOException {
 		Writer writer = null;
 
-		saveFile(sourceProgram, frame);
+		saveFile(sourceProgram, frame, index);
 
 		try {
 			try {
@@ -192,9 +228,10 @@ public class FileHandler {
 				// choose in or out for extension in saving file... so unsaon
 				// pagkabalo? (Also, this savefile function does not include
 				// saving of .in file)
-				String fileName = stripExtension(getFileName());
+				String fileName = stripExtension(getFileNameAt(index));
 
-				writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName + extension), "utf-8"));
+				writer = new BufferedWriter(
+						new OutputStreamWriter(new FileOutputStream(fileName + extension), "utf-8"));
 				writer.write(output);
 				// AHJ: unimplemented; (not properly implemented)refer to
 				// comment #01
@@ -211,7 +248,7 @@ public class FileHandler {
 				;
 			}
 		}
-		return getFileName();
+		return getFileNameAt(index);
 	}
 
 	/**
@@ -219,11 +256,11 @@ public class FileHandler {
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public boolean chooseFile(JFrame frame) {
-		int file = fileChooser.showOpenDialog(frame);
+	public boolean chooseFile(JFrame frame, int index) {
+		int file = this.getFileChooserAt(index).showOpenDialog(frame);
 		if (file == JFileChooser.APPROVE_OPTION) {
-			selectedFile = fileChooser.getSelectedFile();
-			if (selectedFile.isFile() && getFileExtension(getFileName()).equals("in")) {
+			selectedFile = this.getFileChooserAt(index).getSelectedFile();
+			if (selectedFile.isFile() && getFileExtension(getFileNameAt(index)).equals("in")) {
 				return true;
 			} else {
 				return false;
@@ -238,8 +275,8 @@ public class FileHandler {
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public boolean isCurrFile() {
-		selectedFile = fileChooser.getSelectedFile();
+	public boolean isCurrFileAt(int index) {
+		selectedFile = this.getFileChooserAt(index).getSelectedFile();
 
 		if (selectedFile == null) {
 			return true;
@@ -255,11 +292,11 @@ public class FileHandler {
 	 * @author Alvaro, Cedric Y.
 	 * @throws IOException
 	 */
-	public String getFileContent() throws IOException {
-		selectedFile = fileChooser.getSelectedFile();
+	public String getFileContentAt(int index) throws IOException {
+		selectedFile = this.getFileChooserAt(index).getSelectedFile();
 
 		// stores the selected file and obtained a line
-		FileReader fileReader = new FileReader(fileChooser.getSelectedFile().getAbsolutePath());
+		FileReader fileReader = new FileReader(this.getFileChooserAt(index).getSelectedFile().getAbsolutePath());
 		reader = new BufferedReader(fileReader);
 		String line = reader.readLine();
 		String fileContent = "";
@@ -291,8 +328,8 @@ public class FileHandler {
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	public String getFileName() {
-		return fileChooser.getSelectedFile().getName();
+	public String getFileNameAt(int index) {
+		return this.getFileChooserAt(index).getSelectedFile().getName();
 	}
 
 	/**

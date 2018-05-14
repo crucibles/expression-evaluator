@@ -75,7 +75,7 @@ public class SymbolTable {
 			// locates the LHS variables by locating the '='sign
 			if (!tokens[i].isEmpty() && tokens[i].equals("=")) {
 
-				String var = tokens[i - 1].substring(5, tokens[i - 1].length() - 1); // obtains the variable name
+				//String var = tokens[i - 1].substring(5, tokens[i - 1].length() - 1); // obtains the variable name
 
 				// locating the variable in the symbol table
 				for (int index = 0; index < this.symbolTable.size(); index++) {

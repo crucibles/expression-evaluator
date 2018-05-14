@@ -249,7 +249,7 @@ public class GUI {
 					// AHJ: Unimplemented; must contain checking if file already
 					// exist in the directory
 					FileHandler fileHandler = new FileHandler();
-					title = fileHandler.saveFile(text, frame);
+					title = fileHandler.saveFile(text, frame, selectedIndex);
 					if (title != null) {
 						tbpEditor.remove(selectedIndex);
 						return true;

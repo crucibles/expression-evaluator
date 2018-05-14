@@ -10,7 +10,9 @@
  * 		The program is capable of creating, opening storing, and modifying files right now. 
  * 		Also, 'save as' button not working and the program does not include error-checking if the file is already open or not.
  * 
- * 		It also compiles which only include lexical analysis for the current file opened. Typing not included.
+ * 		It also compiles which only include lexical analysis for the current file opened. Typing not included. 
+ * 		
+ * 		The program works for all files! 
  * 		
  * 
  * [User Manual]
@@ -25,9 +27,9 @@
  * 
  * [Lexical Checking]
  * Each element must be separated by spaces.
- * (e.g. x = y + zinstead of x=y+z)
+ * (e.g. x = y + z instead of x=y+z)
  * - Variable (can only start with underscore (_) or letters (a-z))
- * - Operators (add (+), substract (-), multiply (*), divide (/), remainder/module (%))
+ * - Operators (add (+), subtract (-), multiply (*), divide (/), remainder/module (%))
  * - Integer (whole numbers of 0-9 digits)
  * 
  * [Syntax Checking]
@@ -41,12 +43,10 @@
  * - Undefined division (e.g. y = x / 0)
  */
 
-import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
@@ -54,10 +54,7 @@ import java.util.LinkedList;
 import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextPane;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
@@ -101,20 +98,22 @@ public class ExpressionEvaluator {
 	 * Initialize the variables for the program.
 	 */
 	private void initializeVariables() {
-		ChangeListener changeListener = new ChangeListener() { // if the tabbedpane is switched
+		ChangeListener changeListener = new ChangeListener() { // if the
+																// tabbedpane is
+																// switched
 			public void stateChanged(ChangeEvent changeEvent) {
 				JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
 				int index = sourceTabbedPane.getSelectedIndex();
 				gui.clearConsole();
-				if(index >=0 && index < symbolTables.size()){ 
-					gui.setTablesInfo(symbolTables.get(index));	
+				if (index >= 0 && index < symbolTables.size()) {
+					gui.setTablesInfo(symbolTables.get(index));
 					gui.console(errorMsg[index]);
 				} else {
 					gui.clearTable();
 				}
 			}
 		};
-		
+
 		gui.tbpEditor.addChangeListener(changeListener);
 
 		/*
@@ -126,7 +125,7 @@ public class ExpressionEvaluator {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				addNewTab("*Untitled_" + (getCurrentTabIndex() + 2) + ".in");
-				fileHandler.getfileHandlers().add(new CustomFileChooser("in"));
+				fileHandler.addFileChooser(new CustomFileChooser("in"));
 			}
 		};
 		newAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
@@ -141,15 +140,17 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (fileHandler.chooseFile(frame)) {
-					System.out.println("filename: " + fileHandler.getFileName());
-					String fileName = !fileHandler.getFileName().isEmpty() ? fileHandler.getFileName()
-							: "Untitled_" + (getCurrentTabIndex() + 2);
+				;
+				int index = getCurrentTabIndex();
+				if (fileHandler.chooseFile(frame, index)) {
+					System.out.println("filename: " + fileHandler.getFileNameAt(index));
+					String fileName = !fileHandler.getFileNameAt(index).isEmpty() ? fileHandler.getFileNameAt(index)
+							: "Untitled_" + (+2);
 					addNewTab(fileName);
 					fileHandler.loadFile();
 
 				} else {
-					if (!fileHandler.isCurrFile()) {
+					if (!fileHandler.isCurrFileAt(index)) {
 						JOptionPane.showMessageDialog(frame, "This file does not exist.");
 					}
 				}
@@ -167,7 +168,7 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String title = fileHandler.saveFile(gui.getEditorText(), gui.frame);
+				String title = fileHandler.saveFile(gui.getEditorText(), gui.frame, getCurrentTabIndex());
 				if (title != null) {
 					gui.setTabTitle(title);
 				}
@@ -175,6 +176,25 @@ public class ExpressionEvaluator {
 		};
 		saveAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 		gui.mntmSave.setAction(saveAction);
+
+		/*
+		 * Saving the texts written in the text editor and making an output file
+		 * for it.
+		 */
+		Action saveAsAction = new AbstractAction("SaveAs") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String title = fileHandler.saveAsFile(gui.getEditorText(), gui.frame, getCurrentTabIndex());
+				if (title != null && !title.equals("")) {
+					gui.setTabTitle(title);
+				}
+			}
+		};
+		saveAsAction.putValue(Action.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_MASK | KeyEvent.CTRL_MASK));
+		gui.mntmSaveAs.setAction(saveAsAction);
 
 		/*
 		 * Adding a new temp File and adding a tab for it with a text editor.
@@ -188,6 +208,7 @@ public class ExpressionEvaluator {
 				String tabText = gui.getEditorText();
 				if (tabIndex >= 0 && gui.closeCurrentTab(tabText)) {
 					symbolTables.remove(tabIndex);
+					fileHandler.removeFileChooserAt(tabIndex);
 				}
 			}
 		};
@@ -203,8 +224,8 @@ public class ExpressionEvaluator {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					if(gui.tbpEditor.getTabCount() > 0){
-						compile();						
+					if (gui.tbpEditor.getTabCount() > 0) {
+						compile();
 					}
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
@@ -225,17 +246,19 @@ public class ExpressionEvaluator {
 	private void compile() throws IOException {
 		// AHJ: unimplemented; use saved file for compilation and remove the
 		// line (getEditorText) below
+		int index = getCurrentTabIndex();
 		String sourceProgram = gui.getEditorText();
-		fileHandler.saveFile(sourceProgram, gui.frame);
+		fileHandler.saveFile(sourceProgram, gui.frame, index);
 
 		// stores the selected file and obtained a line
-		FileReader selectedFile = new FileReader(fileHandler.getFileChooser().getSelectedFile().getAbsolutePath());
+		FileReader selectedFile = new FileReader(
+				fileHandler.getFileChooserAt(index).getSelectedFile().getAbsolutePath());
 		fileHandler.reader = new BufferedReader(selectedFile);
 		String line = fileHandler.reader.readLine();
 
 		String tokenStream = "";
 
-		//clearing of necessary information
+		// clearing of necessary information
 		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
 		sb.clear();
 		gui.clearConsole();
@@ -250,19 +273,19 @@ public class ExpressionEvaluator {
 
 			tokenStream += lexicalAnalyzer(line, lineNum);
 			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
-			
+
 			line = fileHandler.reader.readLine(); // reads next line
 		}
-		
+
 		gui.console(errorMsg[getCurrentTabIndex()]);
 
 		// displayAdditionalOutput();
 		String varOutput = gui.getVariableTableInformation();
-		
-		//create files
-		String fileName = fileHandler.createNewFile(tokenStream, gui.frame, ".obj", sourceProgram);
-		fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram);
-		
+
+		// create files
+		String fileName = fileHandler.createNewFile(tokenStream, gui.frame, ".obj", sourceProgram, index);
+		fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram, index);
+
 		gui.setTabTitle(fileName);
 		fileHandler.reader.close();
 	}
@@ -309,10 +332,12 @@ public class ExpressionEvaluator {
 	private void process() throws IOException {
 		LinkedList<String> postFix = new LinkedList<String>();
 		int result = 0;
+		int index = getCurrentTabIndex();
 		String strPostFix = "";
 
 		// stores the selected file and obtained a line
-		FileReader selectedFile = new FileReader(fileHandler.getFileChooser().getSelectedFile().getAbsolutePath());
+		FileReader selectedFile = new FileReader(
+				fileHandler.getFileChooserAt(index).getSelectedFile().getAbsolutePath());
 		fileHandler.reader = new BufferedReader(selectedFile);
 		String line = fileHandler.reader.readLine();
 		gui.tpEditor.setText("");
@@ -373,7 +398,7 @@ public class ExpressionEvaluator {
 		// displayAdditionalOutput();
 
 		fileHandler.reader.close();
-		fileHandler.saveFile(gui.getEditorText(), gui.frame);
+		fileHandler.saveFile(gui.getEditorText(), gui.frame, getCurrentTabIndex());
 		gui.setTabTitle();
 		System.out.println("Saving...");
 	}
@@ -585,7 +610,8 @@ public class ExpressionEvaluator {
 					if (isVariable(word)) {
 						if (sb.findVariable(word) == null) {
 							sb.add(word, "IDENT", "", "");
-							//System.out.println("FINDVAR: " + sb.findVariable(word).getLexeme());
+							// System.out.println("FINDVAR: " +
+							// sb.findVariable(word).getLexeme());
 						}
 						result += "<IDENT," + word + ">\n";
 						word = "";
@@ -599,7 +625,8 @@ public class ExpressionEvaluator {
 						word = "";
 					} else {
 						result += "<ERR_LEX," + word + ">\n";
-						errorMsg[getCurrentTabIndex()] += "Lexical Error: Undefined symbol " + word + " (Line #" + lineNum + ")\n";
+						errorMsg[getCurrentTabIndex()] += "Lexical Error: Undefined symbol " + word + " (Line #"
+								+ lineNum + ")\n";
 						word = "";
 					}
 				}
@@ -660,19 +687,22 @@ public class ExpressionEvaluator {
 				 * correct (if it's a variable)
 				 */
 				if (!var.equals("var") || !eq.equals("=")) {
-					//errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
+					// errorMsg += "Incorrect left-hand side element" + " (line
+					// " + lineNum + ")\n";
 					return "error5: Syntax error - Incorrect left-hand side element.";
 				}
 				/* if operator or number is found in LHS */
 			} else if (!token.isEmpty() && (token.length() > 3
 					&& (token.substring(1, 4).equals("int") || token.substring(1, 3).equals("op")))) {
-				//errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
+				// errorMsg += "Incorrect left-hand side element" + " (line " +
+				// lineNum + ")\n";
 				return "error5: Syntax error - Incorrect left-hand side element.";
 				/* if adjacent variables found in LHS */
 			} else if (!token.isEmpty() && !nextToken.isEmpty()
 					&& (token.length() > 4 && token.substring(1, 4).equals("var"))
 					&& (nextToken.length() > 4 && nextToken.substring(1, 4).equals("var"))) {
-				//errorMsg += "Incorrect left-hand side element" + " (line " + lineNum + ")\n";
+				// errorMsg += "Incorrect left-hand side element" + " (line " +
+				// lineNum + ")\n";
 				return "error5: Syntax error - Incorrect left-hand side element.";
 			}
 			index++;
@@ -700,24 +730,27 @@ public class ExpressionEvaluator {
 			if (i == tokens.length - 1) { // if end of the expression is not a
 											// variable or a number
 				if (!currToken.equals("int") && !currToken.equals("var")) {
-					//errorMsg += "Hanging operator not allowed" + " (line " + lineNum + ")\n";
+					// errorMsg += "Hanging operator not allowed" + " (line " +
+					// lineNum + ")\n";
 					return "error1: Hanging operator not allowed";
 				} else {
 					return "accept";
 				}
 				/* if consecutive operator found */
 			} else if (currToken.equals("op") && nextToken.equals("op")) {
-				//errorMsg += "Invalid operator" + " (line " + lineNum + ")\n";
+				// errorMsg += "Invalid operator" + " (line " + lineNum + ")\n";
 				return "error2: Syntax error - Invalid operator";
 				/* if operator not surrounded with var/num */
 			} else if (currToken.equals("op") && (!(prevToken.equals("int") || prevToken.equals("var"))
 					|| !(nextToken.equals("int") || nextToken.equals("var")))) {
-				//errorMsg += "Operator not surrounded by valid numbers/variables" + " (line " + lineNum + ")\n";
+				// errorMsg += "Operator not surrounded by valid
+				// numbers/variables" + " (line " + lineNum + ")\n";
 				return "error3: Syntax error - Operator not surrounded by valid numbers/variables";
 				/* if adjacent variables/number found */
 			} else if ((currToken.equals("var") || currToken.equals("int"))
 					&& (nextToken.equals("var") || nextToken.equals("int"))) {
-				//errorMsg += "Consecutive order variable or number" + " (line " + lineNum + ")\n";
+				// errorMsg += "Consecutive order variable or number" + " (line
+				// " + lineNum + ")\n";
 				return "error4: Syntax error - Consecutive order variable or number";
 			}
 
@@ -944,10 +977,8 @@ public class ExpressionEvaluator {
 	public boolean isVariable(String word) {
 		if (word != "") {
 			String firstLetter = "" + word.charAt(0);
-			if (word.length() > 1
-					? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_")
-							&& word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+")
-					: word.matches("[a-zA-Z]+")) {
+			if (word.length() > 1 ? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_")
+					&& word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+") : word.matches("[a-zA-Z]+")) {
 				return true;
 			} else {
 				return false;
@@ -983,11 +1014,11 @@ public class ExpressionEvaluator {
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
-	private boolean isOperator(String word) {
-		String operator = new String("+-/*%");
-
-		return word.length() == 1 && operator.contains(word);
-	}
+//	private boolean isOperator(String word) {
+//		String operator = new String("+-/*%");
+//
+//		return word.length() == 1 && operator.contains(word);
+//	}
 
 	/**
 	 * Determines whether received element is numeric or not
@@ -1014,7 +1045,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Obtains index of the current opened tab
 	 * 
-	 * @return index of current opened tab; returns negative if tabbed pane has
+	 * @return index of current opened tab; returns negative if tab pane has
 	 *         no more tab
 	 * 
 	 * @author Sumandang, AJ Ruth H.
