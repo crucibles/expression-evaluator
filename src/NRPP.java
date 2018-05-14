@@ -19,6 +19,7 @@
  */
 
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 import javax.swing.JTable;
@@ -29,11 +30,13 @@ public class NRPP {
 	private JTable tblParse;
 	private JTable tblProduction;
 	private String errors = "";
+	private ArrayList<Integer> lineNumberErrors = new ArrayList<Integer>();
 
 	/**
 	 * Constructor
 	 */
 	public NRPP(String text) {
+		
 		String strProdRules = "1,SNuBL,DEFINE VarDef END COMMAND Statements END\n"
 				+ "2,VarDef,FLOAT IDENT FloatVarDef VarDef\n" + "3,VarDef,INT IDENT IntVarDef VarDef\n"
 				+ "4,VarDef,STR IDENT VarDef\n" + "5,VarDef,e\n" + "6,FloatVarDef,IS FLOAT_LIT\n" + "7,FloatVarDef,e\n"
@@ -111,6 +114,7 @@ public class NRPP {
 			String currentStack = "";
 			String produced = "";
 			int lineNum = 1;
+			Boolean isNextLine = false;
 			TableModel pdt = tblProduction.getModel();
 			TableModel prt = tblParse.getModel();
 			production = pdt.getValueAt(index, 1).toString();
@@ -119,6 +123,7 @@ public class NRPP {
 			result += currentStack + ",";
 			result += inputBuffer + ",";
 			result += action + "\n";
+
 
 			while (!action.equals("Match $")) {
 				if(production.equals("VarDef") || production.equals("Statements")){
@@ -142,6 +147,7 @@ public class NRPP {
 					currentStack = currentStack.substring(production.length(), currentStack.length());
 					currentStack = currentStack.trim();
 					while(inputWords[index].equals("ln")){
+						isNextLine = true;
 						lineNum++;
 						index++;
 					}
@@ -185,15 +191,24 @@ public class NRPP {
 						result += inputBuffer + ",";
 						result += action + "\n";
 					} else {
-						action = "Error on " + currentStack + " trying to parse " + currentWord;
-						if(row < 0){
-							errors += "(Line #" + lineNum + ") Syntax Error: Missing " + production + "\n";
+						int errLineNum = lineNum;
+						if(isNextLine){
+							errLineNum -= 1;
 						}
 						
+						action = "Error on " + currentStack + " trying to parse " + currentWord;
+						if(row < 0){
+							errors += "(Line #" + errLineNum + ") Syntax Error: Missing " + production + "\n";
+						} else {
+							errLineNum = isNextLine? errLineNum + 1 : errLineNum; 
+							errors += "(Line #" + errLineNum + ") Syntax Error: Error on trying to parse " + currentWord + "\n";							
+						}
+						lineNumberErrors.add(errLineNum);
+						
 						while(!inputWords[index].equals("ln") && !inputWords[index].equals("END") && !inputWords[index].equals("$")){
-							lineNum++;
 							index++;
 						}
+
 						
 						if(inputWords[index].equals("$")){
 							result += currentStack + ",";
@@ -211,6 +226,7 @@ public class NRPP {
 						
 						if(inputWords[index].equals("ln")){
 							index++;
+							lineNum++;
 							currentWord = inputWords[index];
 							currentStack = currProduction + " " + currentStack;
 						}
@@ -224,7 +240,7 @@ public class NRPP {
 						result += inputBuffer + ",";
 						result += action + "\n";
 					}
-
+					isNextLine = false;
 				}
 
 			}
