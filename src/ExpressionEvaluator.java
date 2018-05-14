@@ -65,7 +65,8 @@ public class ExpressionEvaluator {
 	public FileHandler fileHandler = new FileHandler();
 	private JFrame frame;
 	public Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
-
+	String sourceString = "";
+	String parsedString = "";
 	private String[] errorMsg = new String[100];
 
 	/**
@@ -93,8 +94,8 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Initialize the variables for the program. Adds the corresponding actions
-	 * to the buttons, menu tab, etc.
+	 * Initialize the variables for the program. Adds the corresponding actions to
+	 * the buttons, menu tab, etc.
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
@@ -134,8 +135,8 @@ public class ExpressionEvaluator {
 		gui.mntmNew.setAction(newAction);
 
 		/*
-		 * Open an existing file and put its content to a new text editor also
-		 * adding a new tab.
+		 * Open an existing file and put its content to a new text editor also adding a
+		 * new tab.
 		 */
 		Action openAction = new AbstractAction("Open") {
 			private static final long serialVersionUID = 1L;
@@ -164,8 +165,7 @@ public class ExpressionEvaluator {
 		gui.mntmOpenFile.setAction(openAction);
 
 		/*
-		 * Saving the texts written in the text editor and making an output file
-		 * for it.
+		 * Saving the texts written in the text editor and making an output file for it.
 		 */
 		Action saveAction = new AbstractAction("Save") {
 			private static final long serialVersionUID = 1L;
@@ -182,8 +182,7 @@ public class ExpressionEvaluator {
 		gui.mntmSave.setAction(saveAction);
 
 		/*
-		 * Saving the texts written in the text editor and making an output file
-		 * for it.
+		 * Saving the texts written in the text editor and making an output file for it.
 		 */
 		Action saveAsAction = new AbstractAction("SaveAs") {
 			private static final long serialVersionUID = 1L;
@@ -201,8 +200,7 @@ public class ExpressionEvaluator {
 		gui.mntmSaveAs.setAction(saveAsAction);
 
 		/*
-		 * Closes the currently opened tab and deleting/erasing necessary
-		 * information.
+		 * Closes the currently opened tab and deleting/erasing necessary information.
 		 */
 		Action closeAction = new AbstractAction("Close") {
 			private static final long serialVersionUID = 1L;
@@ -210,7 +208,7 @@ public class ExpressionEvaluator {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int tabIndex = getCurrentTabIndex();
-				String tabText = gui.getEditorText() != null? gui.getEditorText(): "";
+				String tabText = gui.getEditorText() != null ? gui.getEditorText() : "";
 				if (tabIndex >= 0 && gui.closeCurrentTab(tabText)) {
 					symbolTables.remove(tabIndex);
 					fileHandler.removeFileChooserAt(tabIndex);
@@ -251,8 +249,6 @@ public class ExpressionEvaluator {
 	private void compile() throws IOException {
 		String tokenStream = "";
 		String forSyntax = "";
-		String sourceString = "";
-		String parsedString = "";
 		int index = getCurrentTabIndex();
 		String sourceProgram = gui.getEditorText();
 		String file = fileHandler.saveFile(sourceProgram, gui.frame, index);
@@ -282,10 +278,10 @@ public class ExpressionEvaluator {
 
 			String lexicalStmt = lexicalAnalyzer(line, lineNum);
 			forSyntax += lexicalStmt + "ln ";
-			
+
 			sourceString += line + "\n";
 			parsedString += lexicalStmt + "\n";
-			
+
 			tokenStream += lexicalStmt + " ";
 			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
 
@@ -307,21 +303,21 @@ public class ExpressionEvaluator {
 
 		gui.setTabTitle(fileName);
 		fileHandler.reader.close();
+		new SemanticsHandler(parsedString, sourceString, symbolTables.get(getCurrentTabIndex()));
 	}
 
 	/**
 	 * Adding a new tab for multiple files to be opened simultaneously.
 	 * 
-	 * @param title
-	 *            the title of the new tab
+	 * @param title the title of the new tab
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
 	private void addNewTab(String title) {
 		gui.addNewTab(title);
 		/*
-		 * AHJ: unimplemented; there may be something wrong here; check if
-		 * mawagtang ang storing the symbol table
+		 * AHJ: unimplemented; there may be something wrong here; check if mawagtang ang
+		 * storing the symbol table
 		 */
 		symbolTables.add(new SymbolTable());
 	}
@@ -329,12 +325,11 @@ public class ExpressionEvaluator {
 	/**
 	 * Return a string into its lexical form
 	 * 
-	 * @param line
-	 *            the line/statement to be converted into a lexical string
-	 * @return the lexical string of the received line/statement (e.g. : <var-x>
-	 *         = <int-2> <op-+> <int-2>)
-	 * @see wordsLoop, is a loop that iterates each word found in each line of
-	 *      the .in file
+	 * @param line the line/statement to be converted into a lexical string
+	 * @return the lexical string of the received line/statement (e.g. : <var-x> =
+	 *         <int-2> <op-+> <int-2>)
+	 * @see wordsLoop, is a loop that iterates each word found in each line of the
+	 *      .in file
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
@@ -347,8 +342,8 @@ public class ExpressionEvaluator {
 		/*
 		 * String[] words = line.trim().split("\\s"); String result = "";
 		 * 
-		 * for (String word : words) { String firstLetter = "" + word.charAt(0);
-		 * if (isOperator(word)) { // if token is an operator
+		 * for (String word : words) { String firstLetter = "" + word.charAt(0); if
+		 * (isOperator(word)) { // if token is an operator
 		 * 
 		 * result += " <op-" + word + ">";
 		 * 
@@ -359,20 +354,20 @@ public class ExpressionEvaluator {
 		 * } else if (isVariable(word)) { // if token is a variable
 		 * 
 		 * result += " <var-" + word + ">"; if (word.indexOf("+") == 0 ||
-		 * word.indexOf("-") == 0) { word = word.substring(1, word.length()); }
-		 * if (symbolTables.get(1).findVariable(word) == null) { SymbolTable st
-		 * = new SymbolTable(word, "variable", ""); st.getVector().add(st); }
+		 * word.indexOf("-") == 0) { word = word.substring(1, word.length()); } if
+		 * (symbolTables.get(1).findVariable(word) == null) { SymbolTable st = new
+		 * SymbolTable(word, "variable", ""); st.getVector().add(st); }
 		 * 
 		 * } else if (firstLetter.equals("=")) { // if token is an assignment //
 		 * operator
 		 * 
 		 * result += " =";
 		 * 
-		 * } else { // if the token does not fall in the previous categories, //
-		 * hence, encountering an unidentifiable symbol
+		 * } else { // if the token does not fall in the previous categories, // hence,
+		 * encountering an unidentifiable symbol
 		 * 
-		 * errorMsg += "Lexical error: Invalid symbol " + word + " (line " +
-		 * lineNum + ")\n"; return "error: Lexical error - " + word;
+		 * errorMsg += "Lexical error: Invalid symbol " + word + " (line " + lineNum +
+		 * ")\n"; return "error: Lexical error - " + word;
 		 * 
 		 * }
 		 * 
@@ -462,8 +457,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether received element is float point number or not
 	 * 
-	 * @param check
-	 *            the element to be checked
+	 * @param check the element to be checked
 	 * @return true if the received element is float point number; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -489,8 +483,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether the received word is a valid variable or not
 	 * 
-	 * @param word
-	 *            word to be checked
+	 * @param word word to be checked
 	 * @return true if word is a valid variable; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -498,8 +491,10 @@ public class ExpressionEvaluator {
 	public boolean isVariable(String word) {
 		if (word != "") {
 			String firstLetter = "" + word.charAt(0);
-			if (word.length() > 1 ? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_")
-					&& word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+") : word.matches("[a-zA-Z]+")) {
+			if (word.length() > 1
+					? (firstLetter.matches("[a-zA-Z]+") || firstLetter == "_")
+							&& word.substring(1, word.length()).matches("[a-zA-Z0-9_ ]+")
+					: word.matches("[a-zA-Z]+")) {
 				return true;
 			} else {
 				return false;
@@ -511,8 +506,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether the received word is a valid variable or not
 	 * 
-	 * @param word
-	 *            word to be checked
+	 * @param word word to be checked
 	 * @return true if word is a valid variable; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -528,8 +522,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether the received word is an operator or not
 	 * 
-	 * @param word
-	 *            word to be checked
+	 * @param word word to be checked
 	 * @return true if word is an operator; false if not
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -543,8 +536,7 @@ public class ExpressionEvaluator {
 	/**
 	 * Determines whether received element is numeric or not
 	 * 
-	 * @param check
-	 *            the element to be checked
+	 * @param check the element to be checked
 	 * @return true if the received element is numeric; false if not
 	 * 
 	 * @author Sumandang, AJ Ruth H.
@@ -565,8 +557,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Obtains index of the current opened tab
 	 * 
-	 * @return index of current opened tab; returns negative if tab pane has no
-	 *         more tab
+	 * @return index of current opened tab; returns negative if tab pane has no more
+	 *         tab
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
