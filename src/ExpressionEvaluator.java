@@ -380,6 +380,7 @@ public class ExpressionEvaluator {
 			runningWord = word + c;
 
 			if ((c == ' ' && !word.equals("")) || ((i == lastIndex) && (runningWord != "" && runningWord != " "))) {
+
 				if ((i == lastIndex) && c != ' ') {
 					word += c;
 				}
@@ -416,24 +417,31 @@ public class ExpressionEvaluator {
 						result += "FLOAT_LIT ";
 						word = "";
 					} else if (word.charAt(0) == '*') {
-						if (word.charAt(word.length() - 1) != '*') {
-							while (c != '*' && i < lastIndex) {
-								word += c;
-								i++;
-								c = line.charAt(i);
-							}
+						System.out.println("word:" + word + ":");
 
-							if (c != '*') {
-								result += "ERR_LEX ";
-								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-										+ ") Lexical Error: Undefined symbol " + word + "\n";
-							}
-							i++;
-							if (i < lastIndex) {
-								c = line.charAt(i);
-							}
+						String holder = "";
+						holder = word + line.substring(i, lastIndex + 1);
+						System.out.println("holder:" + holder + ":");
+						int last = holder.lastIndexOf('*');
+						word = holder;
+						System.out.println("last:" + last);
+						if (last == 0) {
+							System.out.println("1");
+							result += "ERR_LEX ";
+							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
+									+ ") Lexical Error: Error Comment format " + word + "\n";
+							break;
 						}
 
+						if (line.length() == 1) {
+							result += "ERR_LEX ";
+							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
+									+ ") Lexical Error: Error Comment format " + word + "\n";
+							break;
+						}
+
+						result += "COMMENT ";
+						i = line.lastIndexOf('*');
 						word = "";
 					} else {
 						result += "ERR_LEX ";
@@ -450,8 +458,20 @@ public class ExpressionEvaluator {
 			}
 
 		}
+
+		System.out.println("running:" + result);
 		return result;
 
+	}
+
+	public int CharCounter(String x, Character y) {
+		int counter = 0;
+		for (int i = 0; i < x.length(); i++) {
+			if (x.charAt(i) == 'y') {
+				counter++;
+			}
+		}
+		return counter;
 	}
 
 	/**
