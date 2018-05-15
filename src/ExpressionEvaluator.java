@@ -284,7 +284,7 @@ public class ExpressionEvaluator {
 			forSyntax += lexicalStmt + "ln ";
 			
 			sourceString += line + "\n";
-			parsedString += lexicalStmt + "\n";
+			parsedString += lexicalStmt.trim() + "\n";
 			
 			tokenStream += lexicalStmt + " ";
 			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
@@ -297,6 +297,7 @@ public class ExpressionEvaluator {
 		NRPP syntaxAnalyzer = new NRPP(forSyntax);
 		errorMsg[getCurrentTabIndex()] += syntaxAnalyzer.getErrors();
 		gui.console(errorMsg[getCurrentTabIndex()]);
+		new Evaluator(sourceString, parsedString, syntaxAnalyzer.getLineNumErrors(), "", 5);
 
 		// displayAdditionalOutput();
 		String varOutput = gui.getVariableTableInformation();
