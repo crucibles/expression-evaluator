@@ -12,7 +12,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.JTextPane;
-import javax.swing.JFormattedTextField;
 
 /**
  * This class evaluates the received string.
@@ -21,19 +20,25 @@ import javax.swing.JFormattedTextField;
  *
  */
 public class Evaluator {
-	private Stack<Operand> stack = new Stack<Operand>();
-	private JFrame frame;
-	private JTextPane txtOutput = new JTextPane();
+	//for GUI
 	private String output = "";
-	private String outputLine = "";
-	private String outputLineRight = "";
-	private int[] lastIndex = {-1, -1};
-	private String[][] parsedWords = new String[500][];
-	private String[][] sourceWords = new String[500][];
+	private JFrame frame;
+	private JTextField txtInput;
+	private JTextPane txtOutput = new JTextPane();
+	
+	//for operations
+	private Stack<Operand> stack = new Stack<Operand>();
+	private Stack<String> operationStack = new Stack<String>();
+	
+	//for source inputs
+	private ArrayList<String[]> parsedWords = new ArrayList<String[]>();
+	private ArrayList<String[]> sourceWords = new ArrayList<String[]>();
 	private ArrayList<Integer> exclude;
 	private String fileName;
 	private int numOfErrors;
-	private JTextField txtInput;
+	
+	//for flags (checking whether to execute, where to execute, etc.)
+	private int[] lastIndex = { -1, -1 };
 	private boolean isStartExecution = false;
 	private boolean isPaused = false;
 
@@ -42,35 +47,36 @@ public class Evaluator {
 	 * @author Sumandang, AJ Ruth H.
 	 */
 	public Evaluator(String sourceString, String parsedString, ArrayList<Integer> exclud, String file, int errors) {
+		//initialize GUI
 		initialize();
+		
+		//intro
 		output += fileName + "compiled with " + numOfErrors
 				+ " error(s) found. Program test will now be executed...\n\n";
 		output += "SNuBL Executition: \n\n";
 
+		//split code to words
 		String[] srcStmt = sourceString.trim().split("\n");
 		String[] prsStmt = parsedString.trim().split("\n");
-		for(int i = 0; i < srcStmt.length; i++){
-			sourceWords[i] = srcStmt[i].trim().split("\\s");
-			parsedWords[i] = prsStmt[i].trim().split("\\s");			
+		for (int i = 0; i < srcStmt.length; i++) {
+			sourceWords.add(srcStmt[i].trim().split("\\s"));
+			parsedWords.add(prsStmt[i].trim().split("\\s"));
 		}
-		
-		for(int i = 0; i < sourceWords.length; i++){
-			for(int j = 0; sourceWords[i] != null && j < sourceWords[i].length; j++){
-				System.out.println("NUM: " + j);
-				System.out.println(sourceWords[i][j]);
-				System.out.println(parsedWords[i][j]);		
-			}	
-		}
-		
-		System.out.println();
 
+		//store received params
 		exclude = exclud;
 		fileName = file;
 		numOfErrors = errors;
 
+		//evaluate
 		evaluate();
 	}
 
+	/**
+	 * Initializes the frame contents.
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	private void initialize() {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 450, 300);
@@ -101,74 +107,106 @@ public class Evaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				outputLine = outputLine + begInput(true) + "\n" + outputLineRight;
+				output += begInput(true) + "\n";
 				evaluate();
 			}
 		};
 		txtInput.setAction(action);
 	}
 
+	/**
+	 * Evaluates the parsed string.
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	private void evaluate() {
-		int row = lastIndex[0] < 0? 0: lastIndex[0];
-		for (int i = row; i < parsedWords.length; i++) {
-			System.out.println("row:" + row);
-			String[] srcStmt = sourceWords[i];
-			String[] prsStmt = parsedWords[i];
-			System.out.println(lastIndex[1]);
-			
-			if(prsStmt == null){
+		int row = lastIndex[0] < 0 ? 0 : lastIndex[0];
+		System.out.println("LENGTH:" + parsedWords.size());
+		for (int i = row; i < parsedWords.size(); i++) {
+			String[] srcStmt = sourceWords.get(i);
+			String[] prsStmt = parsedWords.get(i);
+
+			if (prsStmt == null) {
 				continue;
 			}
-			
-			int column = lastIndex[1] < 0? prsStmt.length - 1: lastIndex[1];
-			
-			for(int j = column; j >= 0; j--){
+
+			int column = lastIndex[1] < 0 ? 0 : lastIndex[1];
+			String operation = "";
+			for (int j = column; j < prsStmt.length; j++) {
 				String currentWord = prsStmt[j];
 				String sourceWord = srcStmt[j];
-				if(currentWord.equals("COMMAND")){
+				if (currentWord.equals("COMMAND")) {
 					isStartExecution = true;
-				} 
-				
-				if(!isStartExecution){
+					continue;
+				} else if (!isStartExecution) {
+					continue;
+				}
+				if (currentWord.equals("NEWLN")) {
+					output += "\n";
 					continue;
 				}
 				
-				System.out.println("col:" + column);
+				if (isOperator(currentWord) || isRelationalOp(currentWord) || isLogicalOp(currentWord)
+						|| currentWord.equals("INTO") || currentWord.equals("BEG") || currentWord.equals("PRINT")) {
+					operationStack.push(currentWord);
+					System.out.println("pushed OP:" + currentWord);
+				}
+
 				if (isOperand(currentWord)) {
 					Float value = Float.valueOf(sourceWord);
-					// AHJ: unimplemented: get type of operand in the symboltable
 					stack.push(new Operand(sourceWord, value, "FLOAT", null));
-				} else if (isOperator(currentWord)) {
-					evaluateStmt(currentWord);
-				} else if (isRelationalOp(currentWord)) {
-					compareRelation(currentWord);
-				} else if (isLogicalOp(currentWord)) {
-					compareLogic(currentWord);
-				} else if(currentWord.equals("INTO")){
-					
-				} else if (currentWord.equals("BEG")) {
-					outputLineRight = outputLine;
-					outputLine = "";
-					begInput();
-					isPaused = true;
-				} else if (currentWord.equals("PRINT")) {
-					outputLine = print(currentWord) + outputLine;
-				} else if (currentWord.equals("NEWLN")) {
-					outputLine = "\n" + outputLine;
+					// AHJ: unimplemented: get type of operand in the
+					operation = operationStack.peek();
+					while (operate(operation) && !operationStack.isEmpty()) {
+						operation = operationStack.peek();
+						System.out.println("SET OP:" + operation);
+					}
 				}
-				
-			}
-			output += outputLine;
-			if(isPaused){
-				txtOutput.setText(output);
-				lastIndex[0] = i + 1;
-				lastIndex[1] = -1;
-				return;
+
+				if (isPaused) {
+					lastIndex[1] = j + 1 > prsStmt.length - 1 ? -1 : j + 1;
+					lastIndex[0] = lastIndex[1] < 0 ? i + 1 : i;
+					return;
+				}
 			}
 		}
 		System.out.println(lastIndex);
 		output += "Program terminated successfully...";
 		txtOutput.setText(output);
+	}
+
+	/**
+	 * Operate based the given operation.
+	 * @param currentWord the operation to be used
+	 * @return true; if operation is successful; false if not.
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	private boolean operate(String currentWord) {
+		System.out.println("______________");
+		System.out.println("ENTERED OPERATE");
+		System.out.println("CURRWORD:" + currentWord);
+		System.out.println("stacksize:" + stack.size());
+		if (isOperator(currentWord) && stack.size() > 1) {
+			evaluateStmt(currentWord);
+		} else if (isRelationalOp(currentWord) && stack.size() > 1) {
+			compareRelation(currentWord);
+		} else if (isLogicalOp(currentWord)) {
+			compareLogic(currentWord);
+		} else if (currentWord.equals("INTO") && stack.size() > 0) {
+
+		} else if (currentWord.equals("BEG") && stack.size() > 0) {
+			begInput();
+			System.out.println("BEEEGIIING");
+			isPaused = true;
+		} else if (currentWord.equals("PRINT") && stack.size() > 0) {
+			output += print(currentWord);
+			System.out.println("ADDED OUTPUT: " + output);
+		} else {
+			return false;
+		}
+		operationStack.pop();
+		return true;
 	}
 
 	private void compareLogic(String operator) {
@@ -220,8 +258,8 @@ public class Evaluator {
 	}
 
 	private void evaluateStmt(String operator) {
-		Operand op1 = stack.pop();
 		Operand op2 = stack.pop();
+		Operand op1 = stack.pop();
 		Float result = null;
 		switch (operator) {
 		case "ADD":
@@ -255,8 +293,8 @@ public class Evaluator {
 	}
 
 	private void begInput() {
-		Operand op = stack.peek();
-		outputLine += "Input for " + op.sourceName + ": ";
+		Operand op = stack.pop();
+		output += "Input for " + op.sourceName + ": ";
 		txtOutput.setText(output);
 		txtInput.setText("");
 		txtInput.setEditable(true);
@@ -264,7 +302,6 @@ public class Evaluator {
 	}
 
 	private String begInput(boolean b) {
-		Operand op = stack.pop();
 		String result = txtInput.getText();
 		txtInput.setEditable(false);
 		txtInput.setEnabled(false);
