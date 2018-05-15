@@ -349,6 +349,10 @@ public class NRPP {
 	public String getErrors() {
 		return errors;
 	}
+	
+	public ArrayList<Integer> getLineNumErrors(){
+		return lineNumberErrors;
+	}
 
 	/**
 	 * Sets the parse table when a .ptbl file is loaded.
