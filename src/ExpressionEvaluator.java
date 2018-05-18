@@ -292,7 +292,6 @@ public class ExpressionEvaluator {
 		}
 
 		forSyntax = forSyntax.trim();
-		System.out.println(forSyntax);
 		NRPP syntaxAnalyzer = new NRPP(forSyntax);
 		errorMsg[getCurrentTabIndex()] += syntaxAnalyzer.getErrors();
 		gui.console(errorMsg[getCurrentTabIndex()]);
@@ -314,10 +313,11 @@ public class ExpressionEvaluator {
 		gui.setTablesInfo(sb);
 		
 		// evaluate code
-		Evaluator eval = new Evaluator(sourceString, parsedString, syntaxAnalyzer.getLineNumErrors(), fileName, 5, sb, this);
-		sb = eval.getSymbolTable();
+		if(errorMsg[getCurrentTabIndex()].isEmpty()){
+			Evaluator eval = new Evaluator(sourceString, parsedString, fileName, 5, sb, this);
+			sb = eval.getSymbolTable();			
+		}
 		
-		System.out.println("EVALUATEEN8888D");
 		// set symbol table
 		sb = symbolTables.set(getCurrentTabIndex(), sb);
 		System.out.println(sb.findVariable("x").getValue());
@@ -477,7 +477,6 @@ public class ExpressionEvaluator {
 
 		}
 
-		System.out.println("running:" + result);
 		return result;
 
 	}
