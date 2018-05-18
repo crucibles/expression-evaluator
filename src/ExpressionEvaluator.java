@@ -464,6 +464,8 @@ public class ExpressionEvaluator {
 							break;
 						}
 
+						
+
 						result += "COMMENT ";
 						i = line.lastIndexOf('*');
 						word = "";
