@@ -135,6 +135,20 @@ public class SemanticsHandler {
                 String op2 = parseWords[x + 2];
                 getDataTypeOfExpression(op1, op2, sourceWords, x);
 
+            } else if (isRelational(parseWords[x])) {
+                String op1 = parseWords[x + 1];
+                String op2 = parseWords[x + 2];
+
+                if (getType(x + 1, sourceWords).equals("STR")) {
+                    error += "String type cannot be of type boolean.\n";
+                }
+
+            } else if (isConditional(parseWords[x])) {
+                String op1 = parseWords[x + 1];
+
+                if (getType(x + 1, sourceWords).equals("STR")) {
+                    error += "String type cannot be of type boolean.\n";
+                }
             }
 
         }
