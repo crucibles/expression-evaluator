@@ -117,7 +117,6 @@ public class NRPP {
 		String currentStack = "";
 		String produced = "";
 		int lineNum = 1;
-		Boolean isNextLine = false;
 		TableModel pdt = tblProduction.getModel();
 		TableModel prt = tblParse.getModel();
 		production = pdt.getValueAt(index, 1).toString();
@@ -240,7 +239,6 @@ public class NRPP {
 					result += inputBuffer + ",";
 					result += action + "\n";
 				}
-				isNextLine = false;
 
 			}
 

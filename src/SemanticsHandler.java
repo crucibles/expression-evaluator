@@ -27,7 +27,7 @@ public class SemanticsHandler {
         System.out.println("asdasdasdas" + parseWords.length);
         System.out.println(sourceWords.length);
 
-        for (int x = 0; x < parseWords.length && !parseWords[x].equals("COMMAND") ; x++) {
+        for (int x = 0; x < parseWords.length && !parseWords[x].equals("COMMAND"); x++) {
 
             if (isConditional(parseWords[x])) {
                 String op1 = parseWords[x + 1];
@@ -155,12 +155,24 @@ public class SemanticsHandler {
                     identType = parseWords[x - 1];
                     identValue = sourceWords[x + 2];
                     this.st.findVariable(sourceWords[identHolder]).setType(identType);
-                    this.st.findVariable(sourceWords[identHolder]).setValue(identValue);
+
+                    if (sourceWords[x + 1].equals("IS")) {
+                        this.st.findVariable(sourceWords[identHolder]).setValue(identValue);
+                    } else {
+                        System.out.println("dakshgdjhasgdhjasgjhdgashjhdghjasgdjhasgdgasdgasjgdjhasgdjasgdgajsgdjashgjg");
+                        if (identType.equals("INT")) {
+                            this.st.findVariable(sourceWords[identHolder]).setValue("0");
+                        } else if (identType.equals("FLOAT")) {
+                            this.st.findVariable(sourceWords[identHolder]).setValue("0.0");
+                        }
+                    }
 
                 } else {
                     identHolder = x;
                     identType = parseWords[x - 1];
                     this.st.findVariable(sourceWords[identHolder]).setType(identType);
+                    this.st.findVariable(sourceWords[identHolder]).setValue("");
+
                 }
 
             }
@@ -221,8 +233,8 @@ public class SemanticsHandler {
     public String getValue(int index, String[] sourceWords) {
         return this.st.findVariable(sourceWords[index]).getValue();
     }
-    
-    public SymbolTable getSymbolTable(){
-    	return this.st;
+
+    public SymbolTable getSymbolTable() {
+        return this.st;
     }
 }
