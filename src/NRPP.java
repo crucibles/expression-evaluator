@@ -147,12 +147,9 @@ public class NRPP {
 				inputBuffer = inputBuffer.trim();
 				currentStack = currentStack.substring(production.length(), currentStack.length());
 				currentStack = currentStack.trim();
-				System.out.println(index);
-				System.out.println(inputWords[index]);
 				while (inputWords[index].equals("ln")) {
 					lineNum++;
 					index++;
-					System.out.println(index);
 				}
 				currentWord = inputWords[index];
 				production = nextWord(currentStack);
