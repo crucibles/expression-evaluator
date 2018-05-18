@@ -589,7 +589,10 @@ class Operand {
 	}
 
 	public Float getNumberValue() {
-		return Float.parseFloat(value);
+		if(value!=""){
+			return Float.parseFloat(value);
+		}
+		return Float.parseFloat("0.00");
 	}
 }
 

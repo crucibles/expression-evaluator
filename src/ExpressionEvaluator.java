@@ -310,12 +310,18 @@ public class ExpressionEvaluator {
 		
 		// semantic analysis
 		SemanticsHandler sh = new SemanticsHandler(parsedString, sourceString, sb);
+		errorMsg[getCurrentTabIndex()] += sh.getErrorMsg();
+		gui.console(errorMsg[getCurrentTabIndex()]);
 		sb = sh.getSymbolTable();
 		gui.setTablesInfo(sb);
 		
-		// evaluate code
-		Evaluator eval = new Evaluator(sourceString, parsedString, syntaxAnalyzer.getLineNumErrors(), fileName, 5, sb, this);
-		sb = eval.getSymbolTable();
+		// evaluate code if no errors
+		if(errorMsg.length ==  0){
+			Evaluator eval = new Evaluator(sourceString, parsedString, syntaxAnalyzer.getLineNumErrors(), fileName, 5, sb, this);
+			sb = eval.getSymbolTable();
+		} else {
+			System.out.println("cannot execute failed to compile.");
+		}
 		
 		System.out.println("EVALUATEEN8888D");
 		// set symbol table
@@ -471,7 +477,7 @@ public class ExpressionEvaluator {
 
 			}
 
-			if (c != ' ' && i < lastIndex) {
+			if ((c != ' ' && c!= '\t') && i < lastIndex) {
 				word += c;
 			}
 
