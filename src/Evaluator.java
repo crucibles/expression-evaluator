@@ -20,42 +20,45 @@ import javax.swing.JTextPane;
  *
  */
 public class Evaluator {
-	//for GUI
+	// for GUI
 	private String output = "";
 	private JFrame frame;
 	private JTextField txtInput;
 	private JTextPane txtOutput = new JTextPane();
-	
-	//for operations
+
+	// for operations
+	private Operand variable;
 	private Stack<Operand> stack = new Stack<Operand>();
-	private Stack<String> operationStack = new Stack<String>();
-	
-	//for source inputs
+	private Stack<Operation> pendingStack = new Stack<Operation>();
+
+	// for source inputs
 	private ArrayList<String[]> parsedWords = new ArrayList<String[]>();
 	private ArrayList<String[]> sourceWords = new ArrayList<String[]>();
 	private ArrayList<Integer> exclude;
+	private ExpressionEvaluator exprEval;
 	private String fileName;
 	private int numOfErrors;
-	
-	//for flags (checking whether to execute, where to execute, etc.)
+	private SymbolTable st;
+
+	// for flags (checking whether to execute, where to execute, etc.)
 	private int[] lastIndex = { -1, -1 };
-	private boolean isStartExecution = false;
 	private boolean isPaused = false;
 
 	/**
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	public Evaluator(String sourceString, String parsedString, ArrayList<Integer> exclud, String file, int errors) {
-		//initialize GUI
+	public Evaluator(String sourceString, String parsedString, ArrayList<Integer> exclud, String file, int errors,
+			SymbolTable symbolTable, ExpressionEvaluator exprEval) {
+		// initialize GUI
 		initialize();
-		
-		//intro
+
+		// intro
 		output += fileName + "compiled with " + numOfErrors
 				+ " error(s) found. Program test will now be executed...\n\n";
 		output += "SNuBL Executition: \n\n";
 
-		//split code to words
+		// split code to words
 		String[] srcStmt = sourceString.trim().split("\n");
 		String[] prsStmt = parsedString.trim().split("\n");
 		for (int i = 0; i < srcStmt.length; i++) {
@@ -63,13 +66,35 @@ public class Evaluator {
 			parsedWords.add(prsStmt[i].trim().split("\\s"));
 		}
 
-		//store received params
+		// store received params
 		exclude = exclud;
 		fileName = file;
 		numOfErrors = errors;
+		st = symbolTable;
+		this.exprEval = exprEval;
 
-		//evaluate
-		evaluate();
+		// evaluate
+		setStart();
+		evaluate(lastIndex[0], lastIndex[1]);
+	}
+
+	/**
+	 * Sets the starting indexes of the execution (by finding command).
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	private void setStart() {
+		for (int i = 0; i < parsedWords.size(); i++) {
+			String[] prsStmt = parsedWords.get(i);
+
+			for (int j = 0; j < prsStmt.length; j++) {
+				String currentWord = prsStmt[j];
+				if (currentWord.equals("COMMAND")) {
+					setLastIndex(i, j);
+					return;
+				}
+			}
+		}
 	}
 
 	/**
@@ -107,8 +132,15 @@ public class Evaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				output += begInput(true) + "\n";
-				evaluate();
+				output += begInput() + "\n";
+				while (!pendingStack.isEmpty()) {
+					emptyPendingOperation();
+					if (isPaused) {
+						return;
+					}
+				}
+				evaluate(lastIndex[0], lastIndex[1]);
+				exprEval.gui.setTablesInfo(st);
 			}
 		};
 		txtInput.setAction(action);
@@ -119,94 +151,220 @@ public class Evaluator {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	private void evaluate() {
-		int row = lastIndex[0] < 0 ? 0 : lastIndex[0];
-		System.out.println("LENGTH:" + parsedWords.size());
+	private void evaluate(int row, int column) {
+		int j = column;
 		for (int i = row; i < parsedWords.size(); i++) {
-			String[] srcStmt = sourceWords.get(i);
-			String[] prsStmt = parsedWords.get(i);
-
-			if (prsStmt == null) {
+			if (exclude.contains(i + 1)) {
 				continue;
 			}
 
-			int column = lastIndex[1] < 0 ? 0 : lastIndex[1];
-			String operation = "";
-			for (int j = column; j < prsStmt.length; j++) {
+			String[] srcStmt = sourceWords.get(i);
+			String[] prsStmt = parsedWords.get(i);
+
+			j = j < 0 ? prsStmt.length - 1 : column;
+			if (prsStmt.length - 1 < j) {
+				continue;
+			}
+			while (j >= 0) {
 				String currentWord = prsStmt[j];
 				String sourceWord = srcStmt[j];
-				if (currentWord.equals("COMMAND")) {
-					isStartExecution = true;
-					continue;
-				} else if (!isStartExecution) {
-					continue;
-				}
-				if (currentWord.equals("NEWLN")) {
-					output += "\n";
-					continue;
-				}
-				
-				if (isOperator(currentWord) || isRelationalOp(currentWord) || isLogicalOp(currentWord)
-						|| currentWord.equals("INTO") || currentWord.equals("BEG") || currentWord.equals("PRINT")) {
-					operationStack.push(currentWord);
-					System.out.println("pushed OP:" + currentWord);
-				}
 
-				if (isOperand(currentWord)) {
-					Float value = Float.valueOf(sourceWord);
-					stack.push(new Operand(sourceWord, value, "FLOAT", null));
-					// AHJ: unimplemented: get type of operand in the
-					operation = operationStack.peek();
-					while (operate(operation) && !operationStack.isEmpty()) {
-						operation = operationStack.peek();
-						System.out.println("SET OP:" + operation);
-					}
-				}
+				evaluateExpression(currentWord, sourceWord);
+				j--;
+			}
 
+			while (!pendingStack.isEmpty()) {
+				System.out.println("evaluate");
+				emptyPendingOperation();
 				if (isPaused) {
-					lastIndex[1] = j + 1 > prsStmt.length - 1 ? -1 : j + 1;
-					lastIndex[0] = lastIndex[1] < 0 ? i + 1 : i;
+					// set to i + 1 since the current stmt is finished;
+					// set to -1 so checking of string starts at the end
+					setLastIndex(i + 1, -1);
 					return;
 				}
 			}
+
 		}
-		System.out.println(lastIndex);
+
 		output += "Program terminated successfully...";
 		txtOutput.setText(output);
 	}
 
-	/**
-	 * Operate based the given operation.
-	 * @param currentWord the operation to be used
-	 * @return true; if operation is successful; false if not.
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	private boolean operate(String currentWord) {
-		System.out.println("______________");
-		System.out.println("ENTERED OPERATE");
-		System.out.println("CURRWORD:" + currentWord);
-		System.out.println("stacksize:" + stack.size());
-		if (isOperator(currentWord) && stack.size() > 1) {
+	private void emptyPendingOperation() {
+		while (!pendingStack.isEmpty()) {
+			Operation operation = pendingStack.pop();
+			executeOutput(operation.operation, operation.op1, operation.op2);
+			if (isPaused) {
+				return;
+			}
+		}
+	}
+
+	private void executeOutput(String operation, Operand op1, Operand op2) {
+		if (operation.equals("NEWLN")) {
+			output += "\n";
+		} else if (operation.equals("BEG")) {
+			begInput(op1);
+			isPaused = true;
+		} else if (operation.equals("PRINT")) {
+			System.out.println("HEREprint");
+			output += print(op1);
+		} else if (operation.equals("INTO")) {
+			Integer intVal = Math.round(op2.getNumberValue());
+			String value = op2.type.equals("FLOAT") ? op2.value : intVal.toString();
+			st.storeResult(op1.sourceName, value, op2.type);
+		}
+	}
+
+	private void evaluateExpression(String currentWord, String sourceWord) {
+		if (currentWord.equals("NEWLN") || currentWord.equals("BEG") || currentWord.equals("PRINT")
+				|| currentWord.equals("INTO")) {
+			Operand op1 = null;
+			Operand op2 = null;
+			if (currentWord.equals("INTO")) {
+				op1 = stack.pop();
+				op2 = stack.pop();
+			} else if (currentWord.equals("BEG") || currentWord.equals("PRINT")) {
+				op1 = stack.pop();
+			}
+			System.out.println("==========");
+			System.out.println("sourceWord:" + sourceWord);
+			System.out.println("stackSize@push:" + stack.size());
+			System.out.println("==========");
+			pendingStack.push(new Operation(currentWord, op1, op2));
+		} else if (currentWord.equals("FROM")) {
+			executeLoop(lastIndex[0], lastIndex[1]);
+		}
+		if (isMathematicalOp(currentWord) && stack.size() > 1) {
 			evaluateStmt(currentWord);
 		} else if (isRelationalOp(currentWord) && stack.size() > 1) {
 			compareRelation(currentWord);
 		} else if (isLogicalOp(currentWord)) {
 			compareLogic(currentWord);
-		} else if (currentWord.equals("INTO") && stack.size() > 0) {
+		} else if (currentWord.equals("IS")) {
+			return;
+		} else if (isOperand(currentWord)) {
+			String strValue = sourceWord;
+			if (currentWord.equals("IDENT")) {
+				Entry e = st.findVariable(sourceWord);
+				strValue = e.getValue();
+				currentWord = e.getType();
+			}
 
-		} else if (currentWord.equals("BEG") && stack.size() > 0) {
-			begInput();
-			System.out.println("BEEEGIIING");
-			isPaused = true;
-		} else if (currentWord.equals("PRINT") && stack.size() > 0) {
-			output += print(currentWord);
-			System.out.println("ADDED OUTPUT: " + output);
-		} else {
-			return false;
+			stack.push(new Operand(sourceWord, strValue, currentWord, null));
+
 		}
-		operationStack.pop();
-		return true;
+	}
+	//
+	// private boolean isOperator(String currentWord) {
+	// String[] operators = { "INTO", "BEG", "PRINT", "IS" };
+	// boolean isOper = false;
+	// for (int i = 0; i < operators.length; i++) {
+	// if (operators[i].equals(currentWord)) {
+	// isOper = true;
+	// break;
+	// }
+	// }
+	// return isMathematicalOp(currentWord) || isRelationalOp(currentWord) ||
+	// isLogicalOp(currentWord) || isOper;
+	// }
+
+	private void storeToSymbolTable(String variable, Operand operand) {
+		String value = operand.value;
+		String type = "";
+		System.out.println("TYPE:" + operand.type);
+		switch (operand.type) {
+		case "STR":
+			type = "STR";
+			break;
+		case "FLOAT":
+		case "FLOAT_LIT":
+			type = "FLOAT";
+			break;
+		case "INT":
+		case "INT_LIT":
+			Integer newVal = Math.round(operand.getNumberValue());
+			value = newVal.toString();
+			type = "INT";
+			break;
+		}
+		System.out.println("____________");
+		System.out.println(variable);
+		System.out.println(operand.sourceName);
+		System.out.println(value);
+		System.out.println("____________");
+		st.storeResult(variable, value, type);
+	}
+
+	public SymbolTable getSymbolTable() {
+		return st;
+	}
+
+	private void executeLoop(int i, int j) {
+		Integer[] data = getStartAndEnd(i, j);
+		int countSize = data[1] - data[0] + 1;
+		ArrayList<String[]> loopStmts = getLoopStatements(i, j);
+		for (i = 0; i < countSize; i++) {
+			for (j = 0; j < loopStmts.size(); j++) {
+				evaluateExpression(loopStmts.get(j)[0], loopStmts.get(j)[1]);
+			}
+		}
+	}
+
+	private Integer[] getStartAndEnd(int i, int j) {
+		int column = j;
+		int start = 0;
+		int end = 0;
+		boolean isCondition = true;
+		String prevWord = "";
+
+		for (; i < parsedWords.size(); i++) {
+			String[] prsStmt = parsedWords.get(i);
+
+			String currentWord = parsedWords.get(i)[j];
+			String sourceWord = sourceWords.get(i)[j];
+			for (j = column; j < prsStmt.length; j++) {
+				if (currentWord.equals("FROM") || currentWord.equals("TO")) {
+					isCondition = true;
+					prevWord = currentWord;
+					continue;
+				} else if (isCondition) {
+					if (prevWord.equals("FROM")) {
+						start = Integer.parseInt(sourceWord);
+					} else {
+						end = Integer.parseInt(sourceWord);
+						setLastIndex(i, j - 1);
+						Integer[] result = { start, end };
+						return result;
+					}
+					isCondition = false;
+				}
+			}
+			column = 0;
+		}
+		return null;
+	}
+
+	private ArrayList<String[]> getLoopStatements(int i, int j) {
+		int column = j;
+		ArrayList<String[]> result = new ArrayList<String[]>();
+		for (; i < parsedWords.size(); i++) {
+			String[] prsStmt = parsedWords.get(i);
+
+			String currentWord = parsedWords.get(i)[j];
+			String sourceWord = sourceWords.get(i)[j];
+			for (j = column; j < prsStmt.length; j++) {
+				if (currentWord.equals("ENDFROM")) {
+					setLastIndex(i, j);
+					return result;
+				} else {
+					String[] res = { currentWord, sourceWord };
+					result.add(res);
+				}
+			}
+			column = 0;
+		}
+		return null;
 	}
 
 	private void compareLogic(String operator) {
@@ -235,22 +393,22 @@ public class Evaluator {
 		Boolean result = null;
 		switch (operator) {
 		case "GT?":
-			result = op1.value > op2.value;
+			result = op1.getNumberValue() > op2.getNumberValue();
 			break;
 		case "GTE?":
-			result = op1.value >= op2.value;
+			result = op1.getNumberValue() >= op2.getNumberValue();
 			break;
 		case "LT?":
-			result = op1.value < op2.value;
+			result = op1.getNumberValue() < op2.getNumberValue();
 			break;
 		case "LTE?":
-			result = op1.value <= op2.value;
+			result = op1.getNumberValue() <= op2.getNumberValue();
 			break;
 		case "EQ?":
-			result = op1.value == op2.value;
+			result = op1.getNumberValue() == op2.getNumberValue();
 			break;
 		case "NEQ?":
-			result = op1.value != op2.value;
+			result = op1.getNumberValue() != op2.getNumberValue();
 			break;
 		}
 
@@ -258,28 +416,28 @@ public class Evaluator {
 	}
 
 	private void evaluateStmt(String operator) {
-		Operand op2 = stack.pop();
 		Operand op1 = stack.pop();
+		Operand op2 = stack.pop();
 		Float result = null;
 		switch (operator) {
 		case "ADD":
-			result = op1.value + op2.value;
+			result = op1.getNumberValue() + op2.getNumberValue();
 			break;
 		case "SUB":
-			result = op1.value - op2.value;
+			result = op1.getNumberValue() - op2.getNumberValue();
 			break;
 		case "DIV":
-			result = op1.value / op2.value;
+			result = op1.getNumberValue() / op2.getNumberValue();
 			break;
 		case "MULT":
-			result = op1.value * op2.value;
+			result = op1.getNumberValue() * op2.getNumberValue();
 			break;
 		case "MOD":
-			result = op1.value % op2.value;
+			result = op1.getNumberValue() % op2.getNumberValue();
 			break;
 		}
 
-		stack.push(new Operand(null, result, op1.type, null));
+		stack.push(new Operand(null, result.toString(), op1.type, null));
 	}
 
 	private boolean isOperand(String word) {
@@ -292,8 +450,8 @@ public class Evaluator {
 		return false;
 	}
 
-	private void begInput() {
-		Operand op = stack.pop();
+	private void begInput(Operand op) {
+		variable = op;
 		output += "Input for " + op.sourceName + ": ";
 		txtOutput.setText(output);
 		txtInput.setText("");
@@ -301,32 +459,54 @@ public class Evaluator {
 		txtInput.setEnabled(true);
 	}
 
-	private String begInput(boolean b) {
+	/**
+	 * Stores input after user enters an input.
+	 * Includes type casting and input error checking.
+	 * @param b
+	 * @return
+	 */
+	private String begInput() {
 		String result = txtInput.getText();
 		txtInput.setEditable(false);
 		txtInput.setEnabled(false);
+		
 		isPaused = false;
+		if(variable.type.equals("STR")){
+			variable.value = result;
+			this.storeToSymbolTable(variable.sourceName, variable);
+			result = variable.value;
+		} else if(isFloat(result)){
+			Integer intVal = Math.round(Float.parseFloat(result));
+			variable.value = variable.type.equals("INT")? intVal.toString(): result;
+			System.out.println("STOOOOOOOOOOOOORE");
+			this.storeToSymbolTable(variable.sourceName, variable);
+			result = variable.value;
+		} else {
+			result = "ERROR: Invalid input '" + result + "' for type " + variable.type + ".";
+			
+		}
 		return result;
 	}
 
-	private String print(String word) {
-		Operand op1 = stack.pop();
-		System.out.println("PRINT THIS:" + op1.type);
+	private String print(Operand op1) {
 		String output = "Printing: ";
 		switch (op1.type) {
 		case "INT":
+		case "INT_LIT":
+			output += Math.round(op1.getNumberValue());
+			break;
 		case "FLOAT":
+		case "FLOAT_LIT":
+		case "STR":
 			output += op1.value;
 			break;
-		case "STR":
-			output += op1.strValue;
 		case "BOOL":
 			output += op1.bool;
 		}
 		return output + "\n";
 	}
 
-	private boolean isOperator(String word) {
+	private boolean isMathematicalOp(String word) {
 		String[] operators = { "ADD", "SUB", "MULT", "DIV", "MOD" };
 		for (int i = 0; i < operators.length; i++) {
 			if (word.equals(operators[i])) {
@@ -355,19 +535,73 @@ public class Evaluator {
 		}
 		return false;
 	}
+
+	private void setLastIndex(int i, int j) {
+		lastIndex[0] = i;
+		lastIndex[1] = j;
+	}
+	
+	/**
+	 * Determines whether received element is float point number or not
+	 * 
+	 * @param check the element to be checked
+	 * @return true if the received element is float point number; false if not
+	 * 
+	 * @author Alvaro, Cedric Y.
+	 */
+	private boolean isFloat(String check) {
+		String number = new String("0123456789.");
+		if (check.indexOf('.') != check.lastIndexOf('.')) {
+			return false;
+		} else {
+			for (int i = 0; i < check.length(); i++) {
+				String symbol = "" + check.charAt(i);
+				if (i == 0 && (symbol.equals("-") || symbol.equals("+")) && check.length() > 1) {
+					continue;
+				} else if (!number.contains(symbol)) {
+					return false;
+				}
+			}
+			return check != null && true;
+		}
+
+	}
 }
 
 class Operand {
 	public String sourceName;
-	public Float value;
+	public String value;
 	public String type;
 	public Boolean bool;
-	public String strValue = null;
 
-	public Operand(String src, Float valu, String typ, Boolean boo) {
-		sourceName = src != null ? src : null;
-		value = valu != null ? valu : null;
-		type = typ != null ? typ : null;
-		bool = boo != null ? boo : null;
+	/**
+	 * Constructor for operand
+	 * @param src variable name (actual name in the code)
+	 * @param value value of the variable name
+	 * @param type type of variable
+	 * @param bool boolean of value of the variable (if available)
+	 */
+	public Operand(String sourceName, String value, String type, Boolean bool) {
+		this.sourceName = sourceName;
+		this.value = value;
+		this.type = type;
+		this.bool = bool;
 	}
+
+	public Float getNumberValue() {
+		return Float.parseFloat(value);
+	}
+}
+
+class Operation {
+	public String operation;
+	public Operand op1;
+	public Operand op2;
+
+	public Operation(String operation, Operand op1, Operand op2) {
+		this.operation = operation;
+		this.op1 = op1;
+		this.op2 = op2;
+	}
+
 }
