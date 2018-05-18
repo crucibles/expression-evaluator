@@ -91,7 +91,7 @@ public class FileHandler {
 	 * @param frame
 	 *            frame to center the dialog
 	 * @index index of the file chooser to be used
-	 * @return file's extension (.e.g. in (file.in), out (file.out))
+	 * @return file's extension (.e.g. in (file.snub), out (file.out))
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
@@ -101,7 +101,7 @@ public class FileHandler {
 			if (selectedFile != null) {
 				String name = selectedFile.getName();
 
-				if (!name.contains(".in")) {
+				if (!name.contains(".snub")) {
 					selectedFile = new File(selectedFile.getParentFile(), name + '.' + "in");
 				}
 
@@ -115,7 +115,7 @@ public class FileHandler {
 
 				return fileHandlers.elementAt(index).getSelectedFile().getName();
 			} else {
-				String fileName = createFile(output, frame, ".in", index);
+				String fileName = createFile(output, frame, ".snub", index);
 				return fileName;
 			}
 
@@ -143,7 +143,7 @@ public class FileHandler {
 	public String saveAsFile(String output, JFrame frame, int index) {
 		String fileName = "";
 		try {
-			fileName = createFile(output, frame, ".in", index);
+			fileName = createFile(output, frame, ".snub", index);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -173,10 +173,10 @@ public class FileHandler {
 					// AHJ: unimplemented; #01: weird part here. Filechooser can
 					// choose in or out for extension in saving file... so
 					// unsaon pagkabalo? (Also, this savefile function does not
-					// include saving of .in file)
+					// include saving of .snub file)
 					String fileName = selectedFile.getCanonicalPath();
-					if (!fileName.endsWith(".in")) {
-						selectedFile = new File(fileName + ".in");
+					if (!fileName.endsWith(".snub")) {
+						selectedFile = new File(fileName + ".snub");
 					}
 					writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(selectedFile)));
 					writer.write(output);
@@ -206,7 +206,7 @@ public class FileHandler {
 	 * 
 	 * @param str
 	 *            string whose extension is to be removed
-	 * @return the string/name of the string without extension (.in, etc.)
+	 * @return the string/name of the string without extension (.snub, etc.)
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
@@ -252,7 +252,7 @@ public class FileHandler {
 				// AHJ: unimplemented; #01: weird part here. Filechooser can
 				// choose in or out for extension in saving file... so unsaon
 				// pagkabalo? (Also, this savefile function does not include
-				// saving of .in file)
+				// saving of .snub file)
 				String fileName = stripExtension(getFileNameAt(index));
 
 				writer = new BufferedWriter(
@@ -283,13 +283,13 @@ public class FileHandler {
 	 */
 	public boolean chooseFile(JFrame frame, int index) {
 		if (this.getFileChooserAt(index) == null) {
-			this.addFileChooser(new CustomFileChooser("in"));
+			this.addFileChooser(new CustomFileChooser("snub"));
 		}
 
 		int file = this.getFileChooserAt(index).showOpenDialog(frame);
 		if (file == JFileChooser.APPROVE_OPTION) {
 			File selectedFile = this.getFileChooserAt(index).getSelectedFile();
-			if (selectedFile.isFile() && getFileExtension(getFileNameAt(index)).equals("in")) {
+			if (selectedFile.isFile() && getFileExtension(getFileNameAt(index)).equals("snub")) {
 				fileHandlers.elementAt(index).setSelectedFile(selectedFile);
 				return true;
 			} else {
@@ -355,7 +355,7 @@ public class FileHandler {
 	/**
 	 * Gets the extension of the file selected.
 	 * 
-	 * @return file's extension (.e.g. in (file.in), out (file.out))
+	 * @return file's extension (.e.g. in (file.snub), out (file.out))
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
@@ -366,7 +366,7 @@ public class FileHandler {
 }
 
 /**
- * A CustomFileChooser to implement the overwrite of .in file
+ * A CustomFileChooser to implement the overwrite of .snub file
  * 
  * @author Alvaro, Cedric Y.
  */
@@ -377,7 +377,7 @@ class CustomFileChooser extends JFileChooser {
 	public CustomFileChooser(String extension) {
 		super();
 		this.extension = extension;
-		addChoosableFileFilter(new FileNameExtensionFilter(String.format("*in files", extension), extension));
+		addChoosableFileFilter(new FileNameExtensionFilter(String.format("*snub files", extension), extension));
 	}
 
 	public CustomFileChooser(File file) {

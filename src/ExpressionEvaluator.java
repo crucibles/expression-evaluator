@@ -127,8 +127,8 @@ public class ExpressionEvaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addNewTab("*Untitled_" + (getCurrentTabIndex() + 2) + ".in");
-				fileHandler.addFileChooser(new CustomFileChooser("in"));
+				addNewTab("*Untitled_" + (getCurrentTabIndex() + 2) + ".snub");
+				fileHandler.addFileChooser(new CustomFileChooser("snub"));
 			}
 		};
 		newAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
@@ -347,7 +347,7 @@ public class ExpressionEvaluator {
 	 * @return the lexical string of the received line/statement (e.g. : <var-x> =
 	 *         <int-2> <op-+> <int-2>)
 	 * @see wordsLoop, is a loop that iterates each word found in each line of the
-	 *      .in file
+	 *      .snub file
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
