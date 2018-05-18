@@ -34,7 +34,6 @@ public class Evaluator {
 	// for source inputs
 	private ArrayList<String[]> parsedWords = new ArrayList<String[]>();
 	private ArrayList<String[]> sourceWords = new ArrayList<String[]>();
-	private ArrayList<Integer> exclude;
 	private ExpressionEvaluator exprEval;
 	private String fileName;
 	private int numOfErrors;
@@ -48,7 +47,7 @@ public class Evaluator {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	public Evaluator(String sourceString, String parsedString, ArrayList<Integer> exclud, String file, int errors,
+	public Evaluator(String sourceString, String parsedString, String file, int errors,
 			SymbolTable symbolTable, ExpressionEvaluator exprEval) {
 		// initialize GUI
 		initialize();
@@ -67,7 +66,6 @@ public class Evaluator {
 		}
 
 		// store received params
-		exclude = exclud;
 		fileName = file;
 		numOfErrors = errors;
 		st = symbolTable;
@@ -75,7 +73,7 @@ public class Evaluator {
 
 		// evaluate
 		setStart();
-		evaluate(lastIndex[0], lastIndex[1]);
+		evaluate(lastIndex[0], lastIndex[1], null, null);
 	}
 
 	/**
@@ -139,7 +137,7 @@ public class Evaluator {
 						return;
 					}
 				}
-				evaluate(lastIndex[0], lastIndex[1]);
+				evaluate(lastIndex[0], lastIndex[1], null, null);
 				exprEval.gui.setTablesInfo(st);
 			}
 		};
@@ -151,45 +149,90 @@ public class Evaluator {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	private void evaluate(int row, int column) {
+	private void evaluate(int row, int column, Integer rowEnd, Integer colEnd) {
+		System.out.println("ENTEREVAL");
 		int j = column;
 		for (int i = row; i < parsedWords.size(); i++) {
-			if (exclude.contains(i + 1)) {
-				continue;
-			}
-
+			System.out.println("enterrow" + i);
 			String[] srcStmt = sourceWords.get(i);
 			String[] prsStmt = parsedWords.get(i);
-
+			
 			j = j < 0 ? prsStmt.length - 1 : column;
 			if (prsStmt.length - 1 < j) {
+				j = -1;
 				continue;
 			}
+			
+			int index = colEnd == null? containsFROMLoop(prsStmt): -1;
+			j = index >= 0 ? index: j;
+			if(colEnd != null && rowEnd == i){
+				j = colEnd;		
+			}
+			System.out.println("entering....:" + j);
 			while (j >= 0) {
+				System.out.println("entercol" + j);
 				String currentWord = prsStmt[j];
 				String sourceWord = srcStmt[j];
-
+				System.out.println("CURRWORD:" + currentWord);
 				evaluateExpression(currentWord, sourceWord);
 				j--;
 			}
-
+			
 			while (!pendingStack.isEmpty()) {
 				System.out.println("evaluate");
 				emptyPendingOperation();
 				if (isPaused) {
-					// set to i + 1 since the current stmt is finished;
-					// set to -1 so checking of string starts at the end
-					setLastIndex(i + 1, -1);
+					if(index < 0){
+						// set to i + 1 since the current stmt is finished;
+						// set to -1 so checking of string starts at the end
+						System.out.println("CORRECT");
+						setLastIndex(i + 1, -1);
+					} else {
+						System.out.println("WRONG");
+						setLastIndex(i, index); //if contains FROM loop,  set last index to i and index (location of from loop)
+					}
 					return;
 				}
 			}
-
+			
+			if(index >= 0){
+				executeLoop(i, index); //if contains FROM loop,  set last index to i and index (location of from loop);
+				i = lastIndex[0];
+				j = lastIndex[1];
+			}
+			if(rowEnd != null && i >= rowEnd){
+				return;
+			}
+			j = -1;
 		}
-
-		output += "Program terminated successfully...";
-		txtOutput.setText(output);
+		if(rowEnd == null){
+			output += "Program terminated successfully...";
+			txtOutput.setText(output);						
+		}
+		
+	}
+	
+	/**
+	 * Checks if a statment contains a "FROM" keyword
+	 * @param stmt the statement to check for "FROM" keyword
+	 * @return true if "FROM" is found; false if none
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	private int containsFROMLoop(String[] stmt){
+		for(int i = 0; i < stmt.length; i++){
+			if(stmt[i].equals("FROM")){
+				return i;
+			}
+		}
+		return -1;
 	}
 
+	/**
+	 * Empties the pending operation in the stack.
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
 	private void emptyPendingOperation() {
 		while (!pendingStack.isEmpty()) {
 			Operation operation = pendingStack.pop();
@@ -200,6 +243,12 @@ public class Evaluator {
 		}
 	}
 
+	/**
+	 * Executes output operation. (output operations touches the GUI execution window)
+	 * @param operation operation to operate on the operand
+	 * @param op1 first operand
+	 * @param op2 second operand (if available)
+	 */
 	private void executeOutput(String operation, Operand op1, Operand op2) {
 		if (operation.equals("NEWLN")) {
 			output += "\n";
@@ -216,6 +265,11 @@ public class Evaluator {
 		}
 	}
 
+	/**
+	 * Evaluates based on the operation/operand received.
+	 * @param currentWord the operation/operand
+	 * @param sourceWord the name of the operation/operand
+	 */
 	private void evaluateExpression(String currentWord, String sourceWord) {
 		if (currentWord.equals("NEWLN") || currentWord.equals("BEG") || currentWord.equals("PRINT")
 				|| currentWord.equals("INTO")) {
@@ -232,10 +286,7 @@ public class Evaluator {
 			System.out.println("stackSize@push:" + stack.size());
 			System.out.println("==========");
 			pendingStack.push(new Operation(currentWord, op1, op2));
-		} else if (currentWord.equals("FROM")) {
-			executeLoop(lastIndex[0], lastIndex[1]);
-		}
-		if (isMathematicalOp(currentWord) && stack.size() > 1) {
+		} else if (isMathematicalOp(currentWord) && stack.size() > 1) {
 			evaluateStmt(currentWord);
 		} else if (isRelationalOp(currentWord) && stack.size() > 1) {
 			compareRelation(currentWord);
@@ -255,20 +306,12 @@ public class Evaluator {
 
 		}
 	}
-	//
-	// private boolean isOperator(String currentWord) {
-	// String[] operators = { "INTO", "BEG", "PRINT", "IS" };
-	// boolean isOper = false;
-	// for (int i = 0; i < operators.length; i++) {
-	// if (operators[i].equals(currentWord)) {
-	// isOper = true;
-	// break;
-	// }
-	// }
-	// return isMathematicalOp(currentWord) || isRelationalOp(currentWord) ||
-	// isLogicalOp(currentWord) || isOper;
-	// }
-
+	
+	/**
+	 * Stores the variable and its attributes to the symbol table.
+	 * @param variable the name of the variable
+	 * @param operand the attributes of the variable
+	 */
 	private void storeToSymbolTable(String variable, Operand operand) {
 		String value = operand.value;
 		String type = "";
@@ -296,22 +339,45 @@ public class Evaluator {
 		st.storeResult(variable, value, type);
 	}
 
+	/**
+	 * Gets the symbol table of the class.
+	 * @return symbol table
+	 */
 	public SymbolTable getSymbolTable() {
 		return st;
 	}
 
+	/**
+	 * Executes the loop.
+	 * @param i the 
+	 * @param j
+	 */
 	private void executeLoop(int i, int j) {
 		Integer[] data = getStartAndEnd(i, j);
 		int countSize = data[1] - data[0] + 1;
-		ArrayList<String[]> loopStmts = getLoopStatements(i, j);
+		int row = data[2];
+		int column = data[3];
+		
+		data = getEndLoop(row, column);
+		int rowEnd = data[0];
+		int colEnd = data[1];
+		System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<LOOPSTART");
+		System.out.println(countSize);
+		System.out.println("row:"+row);
+		System.out.println("col:"+column);
+		System.out.println("rowE:"+rowEnd);
+		System.out.println("colE:"+colEnd);
 		for (i = 0; i < countSize; i++) {
-			for (j = 0; j < loopStmts.size(); j++) {
-				evaluateExpression(loopStmts.get(j)[0], loopStmts.get(j)[1]);
-			}
+			System.out.println("__________");
+			System.out.println("iteration:" + i);
+			evaluate(row, column, rowEnd, colEnd);
 		}
+		setLastIndex(rowEnd, colEnd);
 	}
 
 	private Integer[] getStartAndEnd(int i, int j) {
+		System.out.println("i:" + i);
+		System.out.println("j:" + j);
 		int column = j;
 		int start = 0;
 		int end = 0;
@@ -321,9 +387,9 @@ public class Evaluator {
 		for (; i < parsedWords.size(); i++) {
 			String[] prsStmt = parsedWords.get(i);
 
-			String currentWord = parsedWords.get(i)[j];
-			String sourceWord = sourceWords.get(i)[j];
 			for (j = column; j < prsStmt.length; j++) {
+				String currentWord = parsedWords.get(i)[j];
+				String sourceWord = sourceWords.get(i)[j];
 				if (currentWord.equals("FROM") || currentWord.equals("TO")) {
 					isCondition = true;
 					prevWord = currentWord;
@@ -333,8 +399,11 @@ public class Evaluator {
 						start = Integer.parseInt(sourceWord);
 					} else {
 						end = Integer.parseInt(sourceWord);
-						setLastIndex(i, j - 1);
-						Integer[] result = { start, end };
+						if(j >= prsStmt.length){
+							j = 0;
+							++i;
+						}
+						Integer[] result = { start, end, i, j + 1};
 						return result;
 					}
 					isCondition = false;
@@ -345,22 +414,23 @@ public class Evaluator {
 		return null;
 	}
 
-	private ArrayList<String[]> getLoopStatements(int i, int j) {
+	private Integer[] getEndLoop(int i, int j) {
 		int column = j;
-		ArrayList<String[]> result = new ArrayList<String[]>();
 		for (; i < parsedWords.size(); i++) {
 			String[] prsStmt = parsedWords.get(i);
 
-			String currentWord = parsedWords.get(i)[j];
-			String sourceWord = sourceWords.get(i)[j];
 			for (j = column; j < prsStmt.length; j++) {
+				String currentWord = parsedWords.get(i)[j];
 				if (currentWord.equals("ENDFROM")) {
+					if(j - 1 < 0){
+						j = parsedWords.get(i - 1).length;
+						i = i - 1;
+						System.out.println("JJJ:" + j);
+					}
+					Integer[] result = {i, j - 1};
 					setLastIndex(i, j);
 					return result;
-				} else {
-					String[] res = { currentWord, sourceWord };
-					result.add(res);
-				}
+				} 
 			}
 			column = 0;
 		}
