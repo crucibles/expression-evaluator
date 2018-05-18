@@ -110,125 +110,7 @@ public class SemanticsHandler {
 
         for (int x = index; x < sourceOutput.length && !parseWords[x].equals("END"); x++) {
 
-            if (isConditional(parseWords[x])) {
-                String op1 = parseWords[x + 1];
-
-                if (op1.equals("0") || getValue(x + 1, sourceWords).equals("0")) {
-                    sourceWords[x + 1] = "false";
-                }
-
-                sourceWords[x + 1] = "true";
-                x++;
-            } else if (isRelational(parseWords[x])) {
-
-                String op1 = parseWords[x + 1];
-                String op2 = parseWords[x + 2];
-
-                if (op1.equals("IDENT") && op2.equals("IDENT")) {
-
-                    if (!getValue(x + 1, sourceWords).equals("") && !getValue(x + 1, sourceWords).equals("0")) {
-                        setValue(x + 1, sourceWords, "true");
-                    } else {
-                        setValue(x + 1, sourceWords, "false");
-                    }
-
-                    if (!getValue(x + 2, sourceWords).equals("") && !getValue(x + 2, sourceWords).equals("0")) {
-                        setValue(x + 2, sourceWords, "true");
-                    } else {
-                        setValue(x + 2, sourceWords, "false");
-                    }
-
-                } else if (op2.equals("IDENT") && !op1.equals("IDENT")) {
-
-                    if (!getValue(x + 2, sourceWords).equals("") && !getValue(x + 2, sourceWords).equals("0")) {
-                        setValue(x + 2, sourceWords, "true");
-                    } else {
-                        setValue(x + 2, sourceWords, "false");
-                    }
-
-                    if (!op1.equals("0")) {
-                        sourceWords[x + 1] = "true";
-                    } else {
-                        sourceWords[x + 1] = "false";
-                    }
-
-                } else if (op1.equals("IDENT") && !op2.equals("IDENT")) {
-
-                    if (!getValue(x + 1, sourceWords).equals("") && !getValue(x + 1, sourceWords).equals("0")) {
-                        setValue(x + 1, sourceWords, "true");
-                    } else {
-                        setValue(x + 1, sourceWords, "false");
-                    }
-
-                    if (!op2.equals("0")) {
-                        sourceWords[x + 2] = "true";
-                    } else {
-                        sourceWords[x + 2] = "false";
-                    }
-
-                } else {
-                    if (!op1.equals("0")) {
-                        sourceWords[x + 1] = "true";
-                    } else {
-                        sourceWords[x + 1] = "false";
-                    }
-
-                    if (!op2.equals("0")) {
-                        sourceWords[x + 2] = "true";
-                    } else {
-                        sourceWords[x + 2] = "false";
-                    }
-                }
-
-                x += 2;
-
-            } else if (isOperator(parseWords[x])) {
-
-                String op1 = parseWords[x + 1];
-                String op2 = parseWords[x + 2];
-
-                if (op1.equals("IDENT") && op2.equals("IDENT")) {
-                    if (!(getType(x + 1, sourceWords).equals(getType(x + 2, sourceWords)))) {
-                        if (getType(x + 1, sourceWords).equals("INT")) {
-                            setType(x + 1, sourceWords, "FLOAT");
-                            setValue(x + 1, sourceWords, getValue(x + 1, sourceWords) + ".00");
-                        }
-                    }
-                } else if (op2.equals("IDENT") && !op1.equals("IDENT")) {
-
-                    if (getType(x + 2, sourceWords).equals("INT") && op1.equals("FLOAT_LIT")) {
-                        setType(x + 2, sourceWords, "FLOAT");
-                        setValue(x + 2, sourceWords, getValue(x + 1, sourceWords) + ".00");
-                    } else {
-                        sourceWords[x + 1] = sourceWords[x + 1] + ".00";
-                    }
-
-                } else if (op1.equals("IDENT") && !op2.equals("IDENT")) {
-
-                    if (getType(x + 1, sourceWords).equals("INT") && op2.equals("FLOAT_LIT")) {
-                        setType(x + 1, sourceWords, "FLOAT");
-                        setValue(x + 1, sourceWords, getValue(x + 1, sourceWords) + ".00");
-                    } else {
-                        sourceWords[x + 2] = sourceWords[x + 2] + ".00";
-                    }
-
-                } else {
-
-                    if (!op1.equals(op2)) {
-
-                        if (op1.equals("INT_LIT")) {
-                            sourceWords[x + 1] = sourceWords[x + 1] + ".00";
-                        } else {
-                            sourceWords[x + 2] = sourceWords[x + 2] + ".00";
-                        }
-
-                    }
-
-                }
-
-                x += 2;
-
-            } else if (parseWords[x].equals("INTO")) {
+            if (parseWords[x].equals("INTO")) {
                 String op1 = parseWords[x + 1];
                 String op2 = parseWords[x + 3];
                 String op3 = parseWords[x + 4];
@@ -243,13 +125,15 @@ public class SemanticsHandler {
 
                 } else if (isOperator(op3)) {
 
-                    if (!(getType(x + 4, sourceWords).equals(getDataTypeOfExpression(op3, op4, sourceWords, x)))) {
+                    if (!(getType(x + 4, sourceWords).equals(getDataTypeOfExpression(op4, op5, sourceWords, x)))) {
                         error += "Different data type than expected " + '\n';
                     }
 
-                } else {
-                    error += "error data type near INTO at token number " + x + "\n";
                 }
+            } else if (isOperator(parseWords[x])) {
+                String op1 = parseWords[x + 1];
+                String op2 = parseWords[x + 2];
+                getDataTypeOfExpression(op1, op2, sourceWords, x);
 
             }
 
@@ -266,15 +150,11 @@ public class SemanticsHandler {
         if (op1.equals("IDENT") && op2.equals("IDENT")) {
             if (!(getType(x + 1, sourceWords).equals(getType(x + 2, sourceWords)))) {
                 if (getType(x + 1, sourceWords).equals("INT")) {
-                    setType(x + 1, sourceWords, "FLOAT");
-                    setValue(x + 1, sourceWords, getValue(x + 1, sourceWords) + ".00");
                     return "FLOAT";
                 } else if (getType(x + 2, sourceWords).equals("INT")) {
-                    setType(x + 2, sourceWords, "FLOAT");
-                    setValue(x + 2, sourceWords, getValue(x + 2, sourceWords) + ".00");
                     return "FLOAT";
                 } else {
-                    error += "error data type";
+                    error += "error data type at token " + x + "\n";
                     return "ERROR";
                 }
             }
@@ -282,45 +162,34 @@ public class SemanticsHandler {
         } else if (op2.equals("IDENT") && !op1.equals("IDENT")) {
 
             if (getType(x + 2, sourceWords).equals("INT") && op1.equals("FLOAT_LIT")) {
-                setType(x + 2, sourceWords, "FLOAT");
-                setValue(x + 2, sourceWords, getValue(x + 2, sourceWords) + ".00");
                 return "FLOAT";
             } else if (getType(x + 2, sourceWords).equals("FLOAT") && op1.equals("INT_LIT")) {
-                sourceWords[x + 1] = sourceWords[x + 1] + ".00";
                 return "FLOAT";
             } else if (getType(x + 2, sourceWords).equals("FLOAT") && op1.equals("FLOAT_LIT")) {
                 return "FLOAT";
             } else {
-                error += "error data type";
+                error += "error data type at token " + x + "\n";
                 return "ERROR";
             }
 
         } else if (op1.equals("IDENT") && !op2.equals("IDENT")) {
 
             if (getType(x + 1, sourceWords).equals("INT") && op2.equals("FLOAT_LIT")) {
-                setType(x + 1, sourceWords, "FLOAT");
-                setValue(x + 1, sourceWords, getValue(x + 1, sourceWords) + ".00");
                 return "FLOAT";
             } else {
-                sourceWords[x + 2] = sourceWords[x + 2] + ".00";
                 return "FLOAT";
             }
+
         } else if (!op1.equals("IDENT") && !op2.equals("IDENT")) {
 
             if (!op1.equals(op2)) {
 
-                if (op1.equals("INT_LIT")) {
-                    sourceWords[x + 1] = sourceWords[x + 1] + ".00";
-                    return "FLOAT";
-                } else {
-                    sourceWords[x + 2] = sourceWords[x + 2] + ".00";
-                    return "FLOAT";
-                }
+                return "FLOAT";
 
             }
             return "INT";
         } else {
-            error += "error data type";
+            error += "error data type at token " + x + "\n";
             return "ERROR";
         }
 
