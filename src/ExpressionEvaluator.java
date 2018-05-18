@@ -247,8 +247,10 @@ public class ExpressionEvaluator {
 	 * @author Alvaro, Cedric Y.
 	 */
 	private void compile() throws IOException {
+		// initialize variables
 		String tokenStream = "";
 		String forSyntax = "";
+		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
 		int index = getCurrentTabIndex();
 		String sourceProgram = gui.getEditorText();
 		String file = fileHandler.saveFile(sourceProgram, gui.frame, index);
@@ -265,7 +267,8 @@ public class ExpressionEvaluator {
 		String line = fileHandler.reader.readLine();
 
 		// clearing of necessary information
-		SymbolTable sb = symbolTables.get(getCurrentTabIndex());
+		sourceString = "";
+		parsedString = "";
 		sb.clear();
 		gui.clearConsole();
 		errorMsg[getCurrentTabIndex()] = "";
@@ -293,7 +296,6 @@ public class ExpressionEvaluator {
 		NRPP syntaxAnalyzer = new NRPP(forSyntax);
 		errorMsg[getCurrentTabIndex()] += syntaxAnalyzer.getErrors();
 		gui.console(errorMsg[getCurrentTabIndex()]);
-		new Evaluator(sourceString, parsedString, syntaxAnalyzer.getLineNumErrors(), "", 5);
 
 		// displayAdditionalOutput();
 		String varOutput = gui.getVariableTableInformation();
@@ -302,9 +304,24 @@ public class ExpressionEvaluator {
 		String fileName = fileHandler.createNewFile(tokenStream, gui.frame, ".sobj", sourceProgram, index);
 		fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram, index);
 
+		
 		gui.setTabTitle(fileName);
 		fileHandler.reader.close();
-		new SemanticsHandler(parsedString, sourceString, symbolTables.get(getCurrentTabIndex()));
+		
+		// semantic analysis
+		SemanticsHandler sh = new SemanticsHandler(parsedString, sourceString, sb);
+		sb = sh.getSymbolTable();
+		gui.setTablesInfo(sb);
+		
+		// evaluate code
+		Evaluator eval = new Evaluator(sourceString, parsedString, syntaxAnalyzer.getLineNumErrors(), fileName, 5, sb, this);
+		sb = eval.getSymbolTable();
+		
+		System.out.println("EVALUATEEN8888D");
+		// set symbol table
+		sb = symbolTables.set(getCurrentTabIndex(), sb);
+		System.out.println(sb.findVariable("x").getValue());
+		gui.setTablesInfo(sb);
 	}
 
 	/**
