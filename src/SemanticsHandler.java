@@ -1,6 +1,3 @@
-import java.security.cert.Extension;
-import java.sql.Array;
-
 public class SemanticsHandler {
     public String parsed;
     public String source;
@@ -30,7 +27,7 @@ public class SemanticsHandler {
         System.out.println("asdasdasdas" + parseWords.length);
         System.out.println(sourceWords.length);
 
-        for (int x = 0; x < parseWords.length; x++) {
+        for (int x = 0; x < parseWords.length && !parseWords[x].equals("COMMAND") ; x++) {
 
             if (isConditional(parseWords[x])) {
                 String op1 = parseWords[x + 1];
@@ -156,7 +153,7 @@ public class SemanticsHandler {
 
                     identHolder = x;
                     identType = parseWords[x - 1];
-                    identValue = sourceWords[x + 1];
+                    identValue = sourceWords[x + 2];
                     this.st.findVariable(sourceWords[identHolder]).setType(identType);
                     this.st.findVariable(sourceWords[identHolder]).setValue(identValue);
 
@@ -223,5 +220,9 @@ public class SemanticsHandler {
 
     public String getValue(int index, String[] sourceWords) {
         return this.st.findVariable(sourceWords[index]).getValue();
+    }
+    
+    public SymbolTable getSymbolTable(){
+    	return this.st;
     }
 }
