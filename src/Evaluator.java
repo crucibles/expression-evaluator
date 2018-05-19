@@ -32,6 +32,7 @@ public class Evaluator {
 	private Operand variable;
 	private Stack<Operand> stack = new Stack<Operand>();
 	private Stack<Operation> pendingStack = new Stack<Operation>();
+	private Helper helper = new Helper();
 
 	// for source inputs
 	private ArrayList<String[]> parsedWords = new ArrayList<String[]>();
@@ -110,58 +111,6 @@ public class Evaluator {
 	}
 
 	/**
-	 * Initializes the frame contents.
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	private void initialize() {
-		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
-		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		frame.setVisible(true);
-
-		JScrollPane spOutput = new JScrollPane();
-		frame.getContentPane().add(spOutput, BorderLayout.CENTER);
-
-		txtOutput.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		txtOutput.setText("");
-		txtOutput.setEditable(false);
-		spOutput.setViewportView(txtOutput);
-
-		JPanel pnInput = new JPanel();
-		pnInput.setPreferredSize(new Dimension(10, 30));
-		frame.getContentPane().add(pnInput, BorderLayout.SOUTH);
-		pnInput.setLayout(new BoxLayout(pnInput, BoxLayout.X_AXIS));
-
-		JLabel lblInput = new JLabel("Input:");
-		pnInput.add(lblInput);
-
-		txtInput = new JTextField();
-		txtInput.setMaximumSize(new Dimension(2147483647, 20));
-		txtInput.setMinimumSize(new Dimension(6, 15));
-		txtInput.setPreferredSize(new Dimension(6, 15));
-		txtInput.setEditable(false);
-		txtInput.setEnabled(false);
-		pnInput.add(txtInput);
-		txtInput.setColumns(30);
-		Action action = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				output += begInput() + "\n";
-				emptyPendingOperation();
-				if (isPaused) {
-					return;
-				}
-				evaluate(lastIndex[0], lastIndex[1], null, null);
-				exprEval.gui.setTablesInfo(st);
-			}
-		};
-		txtInput.setAction(action);
-	}
-
-	/**
 	 * Evaluates the parsed string.
 	 * 
 	 * @author Sumandang, AJ Ruth H.
@@ -172,6 +121,7 @@ public class Evaluator {
 			String[] srcStmt = sourceWords.get(i);
 			String[] prsStmt = parsedWords.get(i);
 
+			// stores the value of column if available; for call
 			j = j < 0 ? prsStmt.length - 1 : column;
 			if (prsStmt.length - 1 < j) {
 				j = -1;
@@ -247,7 +197,6 @@ public class Evaluator {
 	private void executeIfStatement(int i, int j) {
 		int elseIndex = getIndexes("ELSE", i, j, 0, false)[1];
 		elseIndex = elseIndex >= 0 ? elseIndex - 1 : parsedWords.get(i).length - 1;
-		System.out.println("<<<<<<<<<<<<<<<<<<<<<STARTIF");
 		while (elseIndex > j) {
 			String[] ps = parsedWords.get(i);
 			String currentWord = ps[elseIndex];
@@ -257,10 +206,6 @@ public class Evaluator {
 			elseIndex--;
 		}
 		Operand condition = stack.pop();
-		System.out.println("_________");
-		System.out.println(condition.sourceName);
-		System.out.println(condition.bool);
-		System.out.println("_________");
 
 		if (condition.bool) {
 			emptyPendingOperation();
@@ -305,7 +250,7 @@ public class Evaluator {
 			}
 		}
 	}
-
+	
 	/**
 	 * Executes output operation. (output operations touches the GUI execution
 	 * window)
@@ -330,6 +275,82 @@ public class Evaluator {
 			st.storeResult(op1.sourceName, value, op2.type);
 		}
 	}
+	
+	/**
+	 * Asks for user input. Enables the input textfield, allowing the user to
+	 * type.
+	 * 
+	 * @param op
+	 *            operand in which the input will be stored
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	private void begInput(Operand op) {
+		variable = op;
+		output += "Input for " + op.sourceName + ": ";
+		txtOutput.setText(output);
+		txtInput.setText("");
+		txtInput.requestFocusInWindow();
+		txtInput.setEditable(true);
+		txtInput.setEnabled(true);
+	}
+
+	/**
+	 * Stores input after user enters an input. Includes type casting and input
+	 * error checking.
+	 * 
+	 * @return the string to be added to the output
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	private String begInput() {
+		String result = txtInput.getText();
+		txtInput.setEditable(false);
+		txtInput.setEnabled(false);
+
+		isPaused = false;
+		if (variable.type.equals("STR")) {
+			variable.setValue(result);
+			this.storeToSymbolTable(variable.sourceName, variable);
+			result = variable.getStrFloatValue();
+		} else if (helper.isFloat(result) || helper.isInteger(result)) {
+			Integer intVal = Math.round(Float.parseFloat(result));
+			variable.setValue(variable.type.equals("INT") ? intVal.toString() : result);
+			this.storeToSymbolTable(variable.sourceName, variable);
+			result = variable.getStrFloatValue();
+		} else {
+			result = "ERROR: Invalid input '" + result + "' for type " + variable.type + ".";
+
+		}
+		return result;
+	}
+	
+	/**
+	 * Gets the obtained operand to be printed.
+	 * 
+	 * @param op1
+	 *            the operand to be printed.
+	 * @return string to be printed (or placed in the execution GUI window)
+	 * 
+	 * @author Sumandang, AJ Ruth H.
+	 */
+	private String print(Operand op1) {
+		String output = "Print: ";
+		switch (op1.type) {
+		case "INT":
+		case "INT_LIT":
+			output += Math.round(op1.getNumberValue());
+			break;
+		case "FLOAT":
+		case "FLOAT_LIT":
+		case "STR":
+			output += op1.getStrFloatValue();
+			break;
+		case "BOOL":
+			output += op1.bool;
+		}
+		return output + "\n";
+	}
 
 	/**
 	 * Evaluates based on the operation/operand received.
@@ -353,17 +374,17 @@ public class Evaluator {
 				op1 = stack.pop();
 			}
 			pendingStack.push(new Operation(currentWord, op1, op2));
-		} else if (isMathematicalOp(currentWord) && stack.size() > 1) {
+		} else if (helper.isOperator(currentWord) && stack.size() > 1) {
 			if (!solveMath(currentWord)) {
 				output += "ERROR: Invalid operand!\n";
 			}
-		} else if (isRelationalOp(currentWord) && stack.size() > 1) {
+		} else if (helper.isRelational(currentWord) && stack.size() > 1) {
 			compareRelation(currentWord);
-		} else if (isLogicalOp(currentWord) && stack.size() > 0) {
+		} else if (helper.isLogicalOp(currentWord) && stack.size() > 0) {
 			compareLogic(currentWord);
 		} else if (currentWord.equals("IS")) {
 			return;
-		} else if (isOperand(currentWord)) {
+		} else if (helper.isOperand(currentWord)) {
 			String strValue = sourceWord;
 			if (currentWord.equals("IDENT")) {
 				Entry e = st.findVariable(sourceWord);
@@ -643,149 +664,6 @@ public class Evaluator {
 	}
 
 	/**
-	 * Determines if obtained word is an operand or not.
-	 * 
-	 * @param word
-	 *            word to be checked
-	 * @return true if word is operand; false if not
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	private boolean isOperand(String word) {
-		String[] operands = { "IDENT", "INT_LIT", "FLOAT_LIT" };
-		for (int i = 0; i < operands.length; i++) {
-			if (word.equals(operands[i])) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Asks for user input. Enables the input textfield, allowing the user to
-	 * type.
-	 * 
-	 * @param op
-	 *            operand in which the input will be stored
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	private void begInput(Operand op) {
-		variable = op;
-		output += "Input for " + op.sourceName + ": ";
-		txtOutput.setText(output);
-		txtInput.setText("");
-		txtInput.requestFocusInWindow();
-		txtInput.setEditable(true);
-		txtInput.setEnabled(true);
-	}
-
-	/**
-	 * Stores input after user enters an input. Includes type casting and input
-	 * error checking.
-	 * 
-	 * @return the string to be added to the output
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	private String begInput() {
-		String result = txtInput.getText();
-		txtInput.setEditable(false);
-		txtInput.setEnabled(false);
-
-		isPaused = false;
-		if (variable.type.equals("STR")) {
-			variable.setValue(result);
-			this.storeToSymbolTable(variable.sourceName, variable);
-			result = variable.getStrFloatValue();
-		} else if (isFloat(result) || isInteger(result)) {
-			Integer intVal = Math.round(Float.parseFloat(result));
-			variable.setValue(variable.type.equals("INT") ? intVal.toString() : result);
-			this.storeToSymbolTable(variable.sourceName, variable);
-			result = variable.getStrFloatValue();
-		} else {
-			result = "ERROR: Invalid input '" + result + "' for type " + variable.type + ".";
-
-		}
-		return result;
-	}
-
-	/**
-	 * Gets the obtained operand to be printed.
-	 * 
-	 * @param op1
-	 *            the operand to be printed.
-	 * @return string to be printed (or placed in the execution GUI window)
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	private String print(Operand op1) {
-		String output = "Print: ";
-		switch (op1.type) {
-		case "INT":
-		case "INT_LIT":
-			output += Math.round(op1.getNumberValue());
-			break;
-		case "FLOAT":
-		case "FLOAT_LIT":
-		case "STR":
-			output += op1.getStrFloatValue();
-			break;
-		case "BOOL":
-			output += op1.bool;
-		}
-		return output + "\n";
-	}
-
-	/**
-	 * Checks if the received word is a mathematical operator or not.
-	 * 
-	 * @param word
-	 *            the word to be checked
-	 * @return true if word is mathematical operator; false if not
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	private boolean isMathematicalOp(String word) {
-		String[] operators = { "ADD", "SUB", "MULT", "DIV", "MOD" };
-		for (int i = 0; i < operators.length; i++) {
-			if (word.equals(operators[i])) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Checks if the received word is a logical operator or not.
-	 * 
-	 * @param word
-	 *            the word to be checked
-	 * @return true if word is logical operator; false if not
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	private boolean isLogicalOp(String word) {
-		String[] logicalOperators = { "AND?", "OR?", "NOT?" };
-		for (int i = 0; i < logicalOperators.length; i++) {
-			if (word.equals(logicalOperators[i])) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean isRelationalOp(String word) {
-		String[] relationalOperators = { "GT?", "GTE?", "LT?", "LTE?", "EQ?", "NEQ?" };
-		for (int i = 0; i < relationalOperators.length; i++) {
-			if (word.equals(relationalOperators[i])) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Sets the last index visited.
 	 * 
 	 * @param i
@@ -799,54 +677,58 @@ public class Evaluator {
 		lastIndex[0] = i;
 		lastIndex[1] = j;
 	}
-
+	
+	
 	/**
-	 * Determines whether received element is float point number or not
-	 * 
-	 * @param check
-	 *            the element to be checked
-	 * @return true if the received element is float point number; false if not
-	 * 
-	 * @author Alvaro, Cedric Y.
-	 */
-	private boolean isFloat(String check) {
-		String number = new String("0123456789.");
-		if (check.indexOf('.') != check.lastIndexOf('.')) {
-			return false;
-		} else {
-			for (int i = 0; i < check.length(); i++) {
-				String symbol = "" + check.charAt(i);
-				if (i == 0 && (symbol.equals("-") || symbol.equals("+")) && check.length() > 1) {
-					continue;
-				} else if (!number.contains(symbol)) {
-					return false;
-				}
-			}
-			return check != null && true;
-		}
-
-	}
-
-	/**
-	 * Determines whether received element is numeric or not
-	 * 
-	 * @param check
-	 *            the element to be checked
-	 * @return true if the received element is numeric; false if not
+	 * Initializes the frame contents.
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	public boolean isInteger(String check) {
-		String number = new String("0123456789");
-		for (int i = 0; i < check.length(); i++) {
-			String symbol = "" + check.charAt(i);
-			if (i == 0 && (symbol.equals("-") || symbol.equals("+")) && check.length() > 1) {
-				continue;
-			} else if (!number.contains(symbol)) {
-				return false;
+	private void initialize() {
+		frame = new JFrame();
+		frame.setBounds(100, 100, 450, 300);
+		frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		frame.setVisible(true);
+
+		JScrollPane spOutput = new JScrollPane();
+		frame.getContentPane().add(spOutput, BorderLayout.CENTER);
+
+		txtOutput.setFont(new Font("Monospaced", Font.PLAIN, 11));
+		txtOutput.setText("");
+		txtOutput.setEditable(false);
+		spOutput.setViewportView(txtOutput);
+
+		JPanel pnInput = new JPanel();
+		pnInput.setPreferredSize(new Dimension(10, 30));
+		frame.getContentPane().add(pnInput, BorderLayout.SOUTH);
+		pnInput.setLayout(new BoxLayout(pnInput, BoxLayout.X_AXIS));
+
+		JLabel lblInput = new JLabel("Input:");
+		pnInput.add(lblInput);
+
+		txtInput = new JTextField();
+		txtInput.setMaximumSize(new Dimension(2147483647, 20));
+		txtInput.setMinimumSize(new Dimension(6, 15));
+		txtInput.setPreferredSize(new Dimension(6, 15));
+		txtInput.setEditable(false);
+		txtInput.setEnabled(false);
+		pnInput.add(txtInput);
+		txtInput.setColumns(30);
+		Action action = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				output += begInput() + "\n";
+				emptyPendingOperation();
+				if (isPaused) {
+					return;
+				}
+				evaluate(lastIndex[0], lastIndex[1], null, null);
+				exprEval.gui.setTablesInfo(st);
 			}
-		}
-		return check != null && true;
+		};
+		txtInput.setAction(action);
 	}
 }
 
