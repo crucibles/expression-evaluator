@@ -24,11 +24,7 @@ public class SemanticsHandler {
         String[] parseWords = input.split("\\s");
         String[] sourceWords = input2.split("\\s");
         String[] parseStmts = input.split("\n");
-        String[] sourceStmts = input.split("\n");
 
-        System.out.println("asdasdasdas" + parseWords.length);
-        System.out.println(sourceWords.length);
-        
         int lineNum = 1;
         int currLength = 0;
 

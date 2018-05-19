@@ -17,7 +17,6 @@
  * > Click 'Close' under 'File' if you want to close an open tab. Shortcut key: Ctrl + W
  * > Click 'Save' under 'File' if you want to save the current open tab's file. Shortcut key: Ctrl + S
  * > To compile (and check for lexical errors), click 'Compile' under 'Execute'. Shortcut key: F5
- * 
  * > Open 'Program Description' under 'Help' if you need help with something.
  * 
  * [Lexical Checking]
@@ -34,14 +33,19 @@
  * - Correct ordering of the tokens
  * 
  * [Evaluation Checking]
- * - Under Construction
+ * - Able to do mathematical, relational, and logical operations.
+ * 		- Has error checking of the operands involved
+ * - Able to obtain input from user, and print values.
+ * 		- Has error checking from obtained input
  * 
  * [Backlogs]
  * - (Fixed but check for further errors)Program compiles/saves if save dialog canceled when there is a name input 
- * - The program does not include error-checking if the file is already open or not.
- * - Errors when opening without new tab
- * - Opening a file (not 'New')
- * - Cannot determine if the same file is opened
+ * - (Fixed) Errors when opening without new tab
+ * - (Fixed) Opening a file (not 'New')
+ * - (Fixed) Able to maximize the window pane
+ * - () The program does not include error-checking if the file is already open or not.
+ * - () No nested loops/if stmts
+ * - () Program description scroll placed at the top
  */
 
 import java.awt.EventQueue;
@@ -320,7 +324,6 @@ public class ExpressionEvaluator {
 		
 		// set symbol table
 		sb = symbolTables.set(getCurrentTabIndex(), sb);
-		System.out.println(sb.findVariable("x").getValue());
 		gui.setTablesInfo(sb);
 	}
 
@@ -421,8 +424,6 @@ public class ExpressionEvaluator {
 					if (isVariable(word)) {
 						if (sb.findVariable(word) == null) {
 							sb.add(word, "IDENT", "", "");
-							// System.out.println("FINDVAR: " +
-							// sb.findVariable(word).getLexeme());
 						}
 						result += "IDENT ";
 						word = "";
@@ -435,16 +436,11 @@ public class ExpressionEvaluator {
 						result += "FLOAT_LIT ";
 						word = "";
 					} else if (word.charAt(0) == '*') {
-						System.out.println("word:" + word + ":");
-
 						String holder = "";
 						holder = word + line.substring(i, lastIndex + 1);
-						System.out.println("holder:" + holder + ":");
 						int last = holder.lastIndexOf('*');
 						word = holder;
-						System.out.println("last:" + last);
 						if (last == 0) {
-							System.out.println("1");
 							result += "ERR_LEX ";
 							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
 									+ ") Lexical Error: Error Comment format " + word + "\n";

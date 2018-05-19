@@ -22,8 +22,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.GridLayout;
-import javax.swing.table.TableModel;
-import javax.swing.BoxLayout;
 
 public class GUI {
 	public JFrame frame;
@@ -150,47 +148,32 @@ public class GUI {
 		tpConsole.setEditable(false);
 		spConsole.setViewportView(tpConsole);
 
-		String[] varTableHeader = { "Var", "Type", "Value" };
-		
-				plTable = new JPanel();
-				plTable.setPreferredSize(new Dimension(300, 10));
-				plTable.setMinimumSize(new Dimension(200, 10));
-				viewOutputPanel.add(plTable, BorderLayout.EAST);
-				plTable.setMaximumSize(new Dimension(500, 32767));
-				plTable.setLayout(new GridLayout(0, 1, 0, 0));
-				
-				spVariables = new JScrollPane();
-				spVariables.setAlignmentX(Component.RIGHT_ALIGNMENT);
-				plTable.add(spVariables);
-				
-				tblVariables = new JTable();
-				tblVariables.setModel(new DefaultTableModel(
-					new Object[][] {
-					},
-					new String[] {
-						"Var", "Type", "Value"
-					}
-				));
-				spVariables.setViewportView(tblVariables);
-				
-				spTokens = new JScrollPane();
-				spTokens.setAlignmentX(Component.RIGHT_ALIGNMENT);
-				plTable.add(spTokens);
-				
-				tblTokens = new JTable();
-				tblTokens.setModel(new DefaultTableModel(
-					new Object[][] {
-					},
-					new String[] {
-						"Token", "Lexeme"
-					}
-				));
-				spTokens.setViewportView(tblTokens);
-		
-		
 
+		plTable = new JPanel();
+		plTable.setPreferredSize(new Dimension(300, 10));
+		plTable.setMinimumSize(new Dimension(200, 10));
+		viewOutputPanel.add(plTable, BorderLayout.EAST);
+		plTable.setMaximumSize(new Dimension(500, 32767));
+		plTable.setLayout(new GridLayout(0, 1, 0, 0));
+
+		spVariables = new JScrollPane();
+		spVariables.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		plTable.add(spVariables);
+		String[] varTableHeader = { "Var", "Type", "Value" };
+
+		tblVariables = new JTable();
+		tblVariables.setModel(new DefaultTableModel(new Object[][] {}, varTableHeader));
+		spVariables.setViewportView(tblVariables);
+
+		spTokens = new JScrollPane();
+		spTokens.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		plTable.add(spTokens);
+		
 		String[] tknTableHeader = { "Token", "Lexeme" };
 
+		tblTokens = new JTable();
+		tblTokens.setModel(new DefaultTableModel(new Object[][] {}, tknTableHeader));
+		spTokens.setViewportView(tblTokens);
 
 		tbpEditor = new JTabbedPane(JTabbedPane.TOP);
 		viewOutputPanel.add(tbpEditor);
