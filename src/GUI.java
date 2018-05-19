@@ -36,7 +36,6 @@ public class GUI {
 	public JMenuItem mntmCompileRun;
 	public JMenuItem mntmProgDescript;
 	public JMenuItem mntmAboutUs;
-	public JTextPane tpEditor;
 	private JTextPane tpConsole;
 	public JTabbedPane tbpEditor;
 	public JScrollPane spEditor;
@@ -181,7 +180,10 @@ public class GUI {
 		viewOutputPanel.add(tbpEditor);
 
 		spEditor = new JScrollPane();
+		JTextPane tpEditor = new JTextPane();
 		spEditor.setViewportView(tpEditor);
+		TextLineNumber tln = new TextLineNumber(tpEditor);
+		spEditor.setRowHeaderView( tln );
 	}
 
 	/**
@@ -227,9 +229,11 @@ public class GUI {
 		});
 		spEditor = new JScrollPane();
 		spEditor.setViewportView(tpEditor);
+		TextLineNumber tln = new TextLineNumber(tpEditor);
 		tbpEditor.addTab(title, spEditor);
 		int lastIndex = tbpEditor.getTabCount() - 1;
 		tbpEditor.setSelectedIndex(lastIndex);
+		spEditor.setRowHeaderView( tln );
 
 	}
 
