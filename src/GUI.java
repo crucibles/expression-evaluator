@@ -18,6 +18,12 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.StyledDocument;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.GridLayout;
+import javax.swing.table.TableModel;
+import javax.swing.BoxLayout;
 
 public class GUI {
 	public JFrame frame;
@@ -34,10 +40,13 @@ public class GUI {
 	public JMenuItem mntmAboutUs;
 	public JTextPane tpEditor;
 	private JTextPane tpConsole;
-	public JTable tblVariables;
-	public JTable tblTokens;
 	public JTabbedPane tbpEditor;
 	public JScrollPane spEditor;
+	private JPanel plTable;
+	private JScrollPane spVariables;
+	private JTable tblVariables;
+	private JScrollPane spTokens;
+	private JTable tblTokens;
 
 	public GUI() {
 		initializeFrameContents();
@@ -45,8 +54,8 @@ public class GUI {
 
 	private void initializeFrameContents() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 667, 515);
-		frame.setResizable(false);
+		frame.setBounds(new Rectangle(0, 0, 700, 500));
+		frame.setResizable(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new CardLayout(0, 0));
 
@@ -130,48 +139,60 @@ public class GUI {
 		// 'View Output' panel
 		JPanel viewOutputPanel = new JPanel();
 		viewOutputPanel.setBackground(SystemColor.inactiveCaption);
-		viewOutputPanel.setLayout(null);
 		frame.getContentPane().add(viewOutputPanel, "viewOutputPanel");
+		viewOutputPanel.setLayout(new BorderLayout(0, 0));
 
 		JScrollPane spConsole = new JScrollPane();
-		spConsole.setBounds(20, 303, 420, 149);
-		viewOutputPanel.add(spConsole);
+		spConsole.setPreferredSize(new Dimension(2, 150));
+		viewOutputPanel.add(spConsole, BorderLayout.SOUTH);
 
 		tpConsole = new JTextPane();
 		tpConsole.setEditable(false);
 		spConsole.setViewportView(tpConsole);
 
 		String[] varTableHeader = { "Var", "Type", "Value" };
-
-		JScrollPane spVariables = new JScrollPane();
-		spVariables.setBounds(450, 33, 201, 203);
-		viewOutputPanel.add(spVariables);
-
-		tblVariables = new JTable(new DefaultTableModel(varTableHeader, 0)) {
-			private static final long serialVersionUID = 1L;
-
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
-		};
-		spVariables.setViewportView(tblVariables);
-
-		JScrollPane spTokens = new JScrollPane();
-		spTokens.setBounds(450, 247, 199, 205);
-		viewOutputPanel.add(spTokens);
+		
+				plTable = new JPanel();
+				plTable.setPreferredSize(new Dimension(300, 10));
+				plTable.setMinimumSize(new Dimension(200, 10));
+				viewOutputPanel.add(plTable, BorderLayout.EAST);
+				plTable.setMaximumSize(new Dimension(500, 32767));
+				plTable.setLayout(new GridLayout(0, 1, 0, 0));
+				
+				spVariables = new JScrollPane();
+				spVariables.setAlignmentX(Component.RIGHT_ALIGNMENT);
+				plTable.add(spVariables);
+				
+				tblVariables = new JTable();
+				tblVariables.setModel(new DefaultTableModel(
+					new Object[][] {
+					},
+					new String[] {
+						"Var", "Type", "Value"
+					}
+				));
+				spVariables.setViewportView(tblVariables);
+				
+				spTokens = new JScrollPane();
+				spTokens.setAlignmentX(Component.RIGHT_ALIGNMENT);
+				plTable.add(spTokens);
+				
+				tblTokens = new JTable();
+				tblTokens.setModel(new DefaultTableModel(
+					new Object[][] {
+					},
+					new String[] {
+						"Token", "Lexeme"
+					}
+				));
+				spTokens.setViewportView(tblTokens);
+		
+		
 
 		String[] tknTableHeader = { "Token", "Lexeme" };
-		tblTokens = new JTable(new DefaultTableModel(tknTableHeader, 0)) {
-			private static final long serialVersionUID = 1L;
 
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
-		};
-		spTokens.setViewportView(tblTokens);
 
 		tbpEditor = new JTabbedPane(JTabbedPane.TOP);
-		tbpEditor.setBounds(20, 11, 420, 281);
 		viewOutputPanel.add(tbpEditor);
 
 		spEditor = new JScrollPane();
@@ -410,7 +431,7 @@ public class GUI {
 	 */
 	public String getEditorText() {
 		JTextPane tp = this.getCurrentTextPane();
-		return tp != null? tp.getText(): "";
+		return tp != null ? tp.getText() : "";
 	}
 
 	/**
