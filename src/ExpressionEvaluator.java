@@ -313,13 +313,17 @@ public class ExpressionEvaluator {
 		
 		// semantic analysis
 		SemanticsHandler sh = new SemanticsHandler(parsedString, sourceString, sb);
+		errorMsg[getCurrentTabIndex()] += sh.getErrorMsg();
 		sb = sh.getSymbolTable();
 		gui.setTablesInfo(sb);
 		
-		// evaluate code
-		if(errorMsg[getCurrentTabIndex()].isEmpty()){
-			Evaluator eval = new Evaluator(sourceString, parsedString, fileName, 5, sb, this);
-			sb = eval.getSymbolTable();			
+		// evaluate code if no errors
+		if(errorMsg[getCurrentTabIndex()].length() == 0){
+			Evaluator eval = new Evaluator(sourceString, parsedString, syntaxAnalyzer.getLineNumErrors(), fileName, 5, sb, this);
+			sb = eval.getSymbolTable();
+		} else {
+			errorMsg[getCurrentTabIndex()] += "Failed to compile due to the above errors." + "\n";
+			gui.console(errorMsg[getCurrentTabIndex()]);
 		}
 		
 		// set symbol table
@@ -454,6 +458,8 @@ public class ExpressionEvaluator {
 							break;
 						}
 
+						
+
 						result += "COMMENT ";
 						i = line.lastIndexOf('*');
 						word = "";
@@ -467,7 +473,7 @@ public class ExpressionEvaluator {
 
 			}
 
-			if (c != ' ' && i < lastIndex) {
+			if ((c != ' ' && c!= '\t') && i < lastIndex) {
 				word += c;
 			}
 

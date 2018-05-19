@@ -161,8 +161,7 @@ public class NRPP {
 				int column = getColumnIndex(prt, currentWord);
 				String prodNum = "";
 				if (row >= 0 && column >= 0) {
-					prodNum = prt.getValueAt(row, column).toString(); // why
-																		// string?
+					prodNum = prt.getValueAt(row, column).toString();
 				}
 
 				if (prodNum != "") {
@@ -191,6 +190,7 @@ public class NRPP {
 					result += action + "\n";
 				} else {
 					int errLineNum = lineNum;
+					System.out.println("dsadasdjasgdashgdjhasj"+inputWords[index - 1]);
 					if (inputWords[index - 1].equals("ln")) {
 						errLineNum -= 1;
 					}
@@ -258,7 +258,7 @@ public class NRPP {
 
 		for (int i = 0; i < inputted.length(); i++) {
 
-			if (inputted.charAt(i) == ' ' || temp.equals("ln")) {
+			if (inputted.charAt(i) == ' ' || temp.equals("ln") || inputted.charAt(i) == '\t') {
 				splitted[x] = temp;
 				x++;
 				temp = "";
