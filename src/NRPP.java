@@ -259,7 +259,7 @@ public class NRPP {
 
 		for (int i = 0; i < inputted.length(); i++) {
 
-			if (inputted.charAt(i) == ' ' || temp.equals("ln")) {
+			if (inputted.charAt(i) == ' ' || temp.equals("ln") || inputted.charAt(i) == '\t') {
 				splitted[x] = temp;
 				x++;
 				temp = "";

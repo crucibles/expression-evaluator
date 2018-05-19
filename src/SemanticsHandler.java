@@ -1,13 +1,9 @@
-import java.util.Stack;
 
 public class SemanticsHandler {
     public String parsed;
     public String source;
     public SymbolTable st;
     public String error;
-
-    private Stack<Operand> stack = new Stack<Operand>();
-    private Stack<Operation> pendingStack = new Stack<Operation>();
 
     public SemanticsHandler(String parsed, String source, SymbolTable st) {
         this.parsed = parsed;
@@ -22,8 +18,6 @@ public class SemanticsHandler {
     }
 
     public void semanticsAnalyze() {
-        System.out.println("===================================================");
-        System.out.println(this.source);
         String input = this.parsed;
         String input2 = this.source;
         int identHolder = 0;
@@ -87,22 +81,18 @@ public class SemanticsHandler {
         String[] parseWords = input.split("\\s");
         String[] sourceWords = input2.split("\\s");
 
-        System.out.println("asdasdasdas" + parseWords.length);
-        System.out.println(sourceWords.length);
 
         for (int x = index; x < sourceOutput.length && !parseWords[x].equals("END"); x++) {
-            System.out.println(x);
+            
             if (parseWords[x].equals("IDENT")) {
-                System.out.println("im in");
-                System.out.println(sourceWords[x]);
+
                 if (!isDefined(sourceWords[x], defined)) {
-                    System.out.println("undef");
                     error += "Error undefined variable " + sourceWords[x] + " at token number " + x + '\n';
                 }
+
             }
 
         }
-        System.out.println(error);
 
     }
 
@@ -117,13 +107,11 @@ public class SemanticsHandler {
         for (int x = index; x < sourceOutput.length && !parseWords[x].equals("END"); x++) {
 
             if (parseWords[x].equals("INTO")) {
-                String op1 = parseWords[x + 1];
-                String op2 = parseWords[x + 3];
                 String op3 = parseWords[x + 4];
-                String op4 = parseWords[x + 5];
-                String op5 = parseWords[x + 6];
 
                 if (isOperator(op3)) {
+                    String op4 = parseWords[x + 5];
+                    String op5 = parseWords[x + 6];
 
                     if (isOperator(op4)) {
                         type = exploreExpression(sourceWords, parseWords, x + 5, type, type, x + 5);
@@ -157,7 +145,7 @@ public class SemanticsHandler {
 
                 if (parseWords[x].equals("MOD")) {
                     if (!type.equals("INT")) {
-                        error += "Invalid modulo data type.\n";
+                        error += "Invalid modulo data type at token number " + x +".\n";
                     }
                 }
 
@@ -229,6 +217,7 @@ public class SemanticsHandler {
     }
 
     private boolean isOperand(String word) {
+
         String[] operands = { "IDENT", "INT_LIT", "FLOAT_LIT" };
         for (int i = 0; i < operands.length; i++) {
             if (word.equals(operands[i])) {
@@ -236,22 +225,23 @@ public class SemanticsHandler {
             }
         }
         return false;
+
     }
 
     public String getDataTypeOfExpression(String op1, String op2, String[] sourceWords, int x) {
 
         if (op1.equals("IDENT") && op2.equals("IDENT")) {
+            
             if (!(getType(x + 1, sourceWords).equals(getType(x + 2, sourceWords)))) {
-                if (getType(x + 1, sourceWords).equals("INT")) {
-                    return "FLOAT";
-                } else if (getType(x + 2, sourceWords).equals("INT")) {
+                if (!getType(x + 1, sourceWords).equals("STR")) {
                     return "FLOAT";
                 } else {
-                    error += "error data type at token " + x + "\n";
+                    error += "1error data type at token " + x + "\n";
                     return "ERROR";
                 }
             }
-            return "INT";
+
+            return getType(x + 1, sourceWords);
         } else if (op2.equals("IDENT") && !op1.equals("IDENT")) {
 
             if (getType(x + 2, sourceWords).equals("INT") && op1.equals("FLOAT_LIT")) {
@@ -261,7 +251,7 @@ public class SemanticsHandler {
             } else if (getType(x + 2, sourceWords).equals("FLOAT") && op1.equals("FLOAT_LIT")) {
                 return "FLOAT";
             } else {
-                error += "error data type at token " + x + "\n";
+                error += "2error data type at token " + x + "\n";
                 return "ERROR";
             }
 
@@ -282,7 +272,7 @@ public class SemanticsHandler {
             }
             return "INT";
         } else {
-            error += "error data type at token " + x + "\n";
+            error += "3error data type at token " + x + "\n";
             return "ERROR";
         }
 
@@ -331,7 +321,9 @@ public class SemanticsHandler {
     public String getType(int index, String[] sourceWords) {
         System.out.println(sourceWords[index]);
         if (sourceWords[index].charAt(0) != '*') {
+            
             return this.st.findVariable(sourceWords[index]).getType();
+
         }
         return "ERROR";
 
@@ -353,45 +345,4 @@ public class SemanticsHandler {
         return this.st;
     }
 
-    class Operand {
-        public String sourceName;
-        public String value;
-        public String type;
-        public Boolean bool;
-
-        /**
-         * Constructor for operand
-         * 
-         * @param src   variable name (actual name in the code)
-         * @param value value of the variable name
-         * @param type  type of variable
-         * @param bool  boolean of value of the variable (if available)
-         */
-        public Operand(String sourceName, String value, String type, Boolean bool) {
-            this.sourceName = sourceName;
-            this.value = value;
-            this.type = type;
-            this.bool = bool;
-        }
-
-        public Float getNumberValue() {
-            if (value != "") {
-                return Float.parseFloat(value);
-            }
-            return Float.parseFloat("0.00");
-        }
-    }
-
-    class Operation {
-        public String operation;
-        public Operand op1;
-        public Operand op2;
-
-        public Operation(String operation, Operand op1, Operand op2) {
-            this.operation = operation;
-            this.op1 = op1;
-            this.op2 = op2;
-        }
-
-    }
 }
