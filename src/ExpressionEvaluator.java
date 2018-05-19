@@ -290,7 +290,7 @@ public class ExpressionEvaluator {
 
 			sourceString += line + "\n";
 			parsedString += lexicalStmt.trim() + "\n";
-			
+
 			tokenStream += lexicalStmt + " ";
 			gui.setTablesInfo(symbolTables.get(getCurrentTabIndex()));
 
@@ -309,16 +309,15 @@ public class ExpressionEvaluator {
 		String fileName = fileHandler.createNewFile(tokenStream, gui.frame, ".sobj", sourceProgram, index);
 		fileName = fileHandler.createNewFile(varOutput, gui.frame, ".stv", sourceProgram, index);
 
-		
 		gui.setTabTitle(fileName);
 		fileHandler.reader.close();
-		
+
 		// semantic analysis
 		SemanticsHandler sh = new SemanticsHandler(parsedString, sourceString, sb);
 		errorMsg[getCurrentTabIndex()] += sh.getErrorMsg();
 		sb = sh.getSymbolTable();
 		gui.setTablesInfo(sb);
-		
+
 		// evaluate code if no errors
 		if(errorMsg[getCurrentTabIndex()].length() == 0){
 			Evaluator eval = new Evaluator(sourceString, parsedString, fileName, 5, sb, this);
@@ -419,7 +418,7 @@ public class ExpressionEvaluator {
 
 				for (int j = 0; j < acceptedStrings.length; j++) {
 					if (word.equals(acceptedStrings[j])) {
-						sb.add(word, word, "", "");
+						sb.add(word.trim(), word.trim(), "", "");
 						result += word + " ";
 						word = "";
 						break;
@@ -429,41 +428,66 @@ public class ExpressionEvaluator {
 				if (word != "") {
 					if (isVariable(word)) {
 						if (sb.findVariable(word) == null) {
-							sb.add(word, "IDENT", "", "");
+							sb.add(word.trim(), "IDENT", "", "");
+							// System.out.println("FINDVAR: " +
+							// sb.findVariable(word).getLexeme());
 						}
 						result += "IDENT ";
 						word = "";
 					} else if (isInteger(word)) {
-						sb.add(word, "INT_LIT", "INT", word);
+						sb.add(word.trim(), "INT_LIT", "INT", word.trim());
 						result += "INT_LIT ";
 						word = "";
 					} else if (isFloat(word)) {
-						sb.add(word, "FLOAT_LIT", "FLOAT", word);
+						sb.add(word.trim(), "FLOAT_LIT", "FLOAT", word.trim());
 						result += "FLOAT_LIT ";
 						word = "";
 					} else if (word.charAt(0) == '*') {
+						System.out.println("word:" + word.trim() + ":");
+
 						String holder = "";
-						holder = word + line.substring(i, lastIndex + 1);
-						int last = holder.lastIndexOf('*');
-						word = holder;
-						if (last == 0) {
+						holder = line.substring(i, lastIndex + 1);
+						System.out.println("holder:" + holder + ":");
+						int last = holder.indexOf('*');
+						word = word + holder;
+						System.out.println("last:" + last);
+
+						if (last < 0) {
+							
 							result += "ERR_LEX ";
 							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
 									+ ") Lexical Error: Error Comment format " + word + "\n";
 							break;
-						}
 
-						if (line.length() == 1) {
+						} else if (holder.charAt(last) == '*' && holder.length() > 1) {
+
+							if (holder.charAt(last + 1) != '\n' || holder.charAt(last + 1) != ' ') {
+								System.out.println("1");
+								result += "ERR_LEX ";
+								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
+										+ ") Lexical Error: Error Comment format " + word + "\n";
+								break;
+							}
+
+						} else if (line.length() == 1) {
+
 							result += "ERR_LEX ";
 							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
 									+ ") Lexical Error: Error Comment format " + word + "\n";
 							break;
-						}
 
-						
+						} else if (CharCounter(word, '*') <= 1) {
+
+							result += "ERR_LEX ";
+							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
+									+ ") Lexical Error: Error Comment format " + word + "\n";
+							break;
+
+						}
 
 						result += "COMMENT ";
-						i = line.lastIndexOf('*');
+						i = i + word.length() + last + 1;
+						System.out.println(i);
 						word = "";
 					} else {
 						result += "ERR_LEX ";
@@ -475,7 +499,7 @@ public class ExpressionEvaluator {
 
 			}
 
-			if ((c != ' ' && c!= '\t') && i < lastIndex) {
+			if ((c != ' ' && c != '\t') && i < lastIndex) {
 				word += c;
 			}
 

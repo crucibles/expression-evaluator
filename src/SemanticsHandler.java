@@ -14,6 +14,31 @@ public class SemanticsHandler {
         semanticChecker();
     }
 
+    /**
+     * @return array of inputted words
+     * @author Alvaro, Cedric Y.
+     */
+    public String[] splitter(String input) {
+        String inputted = input.trim();
+        String[] splitted = new String[input.split("\\s").length];
+        String temp = "";
+        int x = 0;
+
+        for (int i = 0; i < inputted.length(); i++) {
+
+            if (inputted.charAt(i) == ' ' || temp.equals("ln") || inputted.charAt(i) == '\t') {
+                splitted[x] = temp;
+                x++;
+                temp = "";
+                i++;
+            }
+
+            temp += inputted.charAt(i);
+
+        }
+        return splitted;
+    }
+
     public void semanticChecker() {
         semanticsAnalyze();
     }
@@ -262,7 +287,7 @@ public class SemanticsHandler {
     public String getDataTypeOfExpression(String op1, String op2, String[] sourceWords, int x, int lineNum) {
 
         if (op1.equals("IDENT") && op2.equals("IDENT")) {
-            
+
             if (!(getType(x + 1, sourceWords).equals(getType(x + 2, sourceWords)))) {
                 if (!getType(x + 1, sourceWords).equals("STR")) {
                     return "FLOAT";
@@ -321,7 +346,7 @@ public class SemanticsHandler {
     public String getType(int index, String[] sourceWords) {
         System.out.println(sourceWords[index]);
         if (sourceWords[index].charAt(0) != '*') {
-            
+
             return this.st.findVariable(sourceWords[index]).getType();
 
         }
