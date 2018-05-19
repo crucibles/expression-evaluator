@@ -68,6 +68,7 @@ public class ExpressionEvaluator {
 	public GUI gui;
 	public FileHandler fileHandler = new FileHandler();
 	private JFrame frame;
+	private Helper helper = new Helper();
 	public Vector<SymbolTable> symbolTables = new Vector<SymbolTable>();
 	String sourceString = "";
 	String parsedString = "";
@@ -94,6 +95,7 @@ public class ExpressionEvaluator {
 	 */
 	public ExpressionEvaluator() {
 		gui = new GUI();
+		
 		initializeVariables();
 	}
 
@@ -319,7 +321,7 @@ public class ExpressionEvaluator {
 		
 		// evaluate code if no errors
 		if(errorMsg[getCurrentTabIndex()].length() == 0){
-			Evaluator eval = new Evaluator(sourceString, parsedString, syntaxAnalyzer.getLineNumErrors(), fileName, 5, sb, this);
+			Evaluator eval = new Evaluator(sourceString, parsedString, fileName, 5, sb, this);
 			sb = eval.getSymbolTable();
 		} else {
 			errorMsg[getCurrentTabIndex()] += "Failed to compile due to the above errors." + "\n";
@@ -481,16 +483,6 @@ public class ExpressionEvaluator {
 
 		return result;
 
-	}
-
-	public int CharCounter(String x, Character y) {
-		int counter = 0;
-		for (int i = 0; i < x.length(); i++) {
-			if (x.charAt(i) == 'y') {
-				counter++;
-			}
-		}
-		return counter;
 	}
 
 	/**
