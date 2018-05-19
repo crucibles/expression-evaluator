@@ -162,6 +162,7 @@ public class GUI {
 		String[] varTableHeader = { "Var", "Type", "Value" };
 
 		tblVariables = new JTable();
+		tblVariables.setEnabled(false);
 		tblVariables.setModel(new DefaultTableModel(new Object[][] {}, varTableHeader));
 		spVariables.setViewportView(tblVariables);
 
@@ -172,6 +173,7 @@ public class GUI {
 		String[] tknTableHeader = { "Token", "Lexeme" };
 
 		tblTokens = new JTable();
+		tblTokens.setEnabled(false);
 		tblTokens.setModel(new DefaultTableModel(new Object[][] {}, tknTableHeader));
 		spTokens.setViewportView(tblTokens);
 
