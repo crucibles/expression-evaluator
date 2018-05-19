@@ -172,7 +172,7 @@ class Entry {
 	 * @author Alvaro, Cedric Y.
 	 */
 	public String getLexeme() {
-		return this.lexeme;
+		return trimString(this.lexeme);
 	}
 
 	/**
@@ -183,7 +183,7 @@ class Entry {
 	 * @author Alvaro, Cedric Y.
 	 */
 	public String getToken() {
-		return this.token;
+		return trimString(this.token);
 	}
 
 	/**
@@ -210,5 +210,24 @@ class Entry {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+	
+	/**
+	 * Trims both ends of the received string.
+	 * @param word trimmed string of the word
+	 */
+	private String trimString(String word){
+		int i = 0;
+		while(i < word.length() && Character.isWhitespace(word.charAt(i))){
+			i++;
+		}
+		word = word.substring(i);
+		
+		i = word.length() - 1;
+		while(i >= 0 && Character.isWhitespace(word.charAt(i))){
+			i--;
+		}
+		word = word.substring(0, i + 1);
+		return word;
 	}
 }
