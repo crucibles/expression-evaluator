@@ -81,8 +81,8 @@ public class NRPP {
 	/**
 	 * Parse the input of the user if .prod and .pbtl file is loaded.
 	 * 
-	 * @return the output from the user input based on the specified grammar
-	 *         found in .prod and .ptbl files.
+	 * @return the output from the user input based on the specified grammar found
+	 *         in .prod and .ptbl files.
 	 * 
 	 * @author Alvaro, Cedric Y.
 	 */
@@ -127,11 +127,33 @@ public class NRPP {
 		result += action + "\n";
 
 		while (!action.equals("Match $")) {
+
 			if (production.equals("VarDef") || production.equals("Statements")) {
 				currProduction = production;
 			}
 
-			if (production.equals(currentWord)) {
+			System.out.println(lineNum);
+			System.out.println("cp:" + currProduction + ":");
+			System.out.println("prod:" + production + ":");
+			System.out.println("cw:" + currentWord + ":");
+			System.out.println("cs:" + currentStack);
+
+			if ((production.equals("SNuBL") || production.equals("DEFINE") || production.equals("COMMAND")
+					|| production.equals("END") || production.equals("VarDef")) && currentWord.equals("COMMENT")) {
+
+				action = "Accepted " + currentWord;
+				index++;
+				while (inputWords[index].equals("ln")) {
+					lineNum++;
+					index++;
+				}
+				currentWord = inputWords[index];
+
+				result += currentStack + ",";
+				result += inputBuffer + ",";
+				result += action + "\n";
+
+			} else if (production.equals(currentWord)) {
 				if (production.equals("" + "$")) {
 					action = "Match $";
 					result += ",";
@@ -190,7 +212,7 @@ public class NRPP {
 					result += action + "\n";
 				} else {
 					int errLineNum = lineNum;
-					System.out.println("dsadasdjasgdashgdjhasj"+inputWords[index - 1]);
+
 					if (inputWords[index - 1].equals("ln")) {
 						errLineNum -= 1;
 					}
@@ -243,6 +265,7 @@ public class NRPP {
 			}
 
 		}
+
 		System.out.println(result);
 		return result;
 	}
@@ -297,10 +320,8 @@ public class NRPP {
 	/**
 	 * Get the index of the row where the searched string is found
 	 * 
-	 * @param table
-	 *            table where the string will be searched
-	 * @param rowName
-	 *            string to be searched
+	 * @param table   table where the string will be searched
+	 * @param rowName string to be searched
 	 * 
 	 * @return the index where the searched string is found
 	 * 
@@ -321,10 +342,8 @@ public class NRPP {
 	/**
 	 * Get the index of the column where the searched string is found
 	 * 
-	 * @param table
-	 *            table where the string will be searched
-	 * @param columnName
-	 *            string to be searched
+	 * @param table      table where the string will be searched
+	 * @param columnName string to be searched
 	 * 
 	 * @return the index of the column where the searched string is found
 	 * 
@@ -344,16 +363,15 @@ public class NRPP {
 	public String getErrors() {
 		return errors;
 	}
-	
-	public ArrayList<Integer> getLineNumErrors(){
+
+	public ArrayList<Integer> getLineNumErrors() {
 		return lineNumberErrors;
 	}
 
 	/**
 	 * Sets the parse table when a .ptbl file is loaded.
 	 * 
-	 * @param text
-	 *            the text whose content will be placed in the table
+	 * @param text the text whose content will be placed in the table
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
@@ -394,8 +412,7 @@ public class NRPP {
 	/**
 	 * Sets the production table when a .prod file is loaded.
 	 * 
-	 * @param text
-	 *            the text whose content will be placed in the table
+	 * @param text the text whose content will be placed in the table
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */

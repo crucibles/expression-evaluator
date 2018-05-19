@@ -13,6 +13,31 @@ public class SemanticsHandler {
         semanticChecker();
     }
 
+    /**
+     * @return array of inputted words
+     * @author Alvaro, Cedric Y.
+     */
+    public String[] splitter(String input) {
+        String inputted = input.trim();
+        String[] splitted = new String[input.split("\\s").length];
+        String temp = "";
+        int x = 0;
+
+        for (int i = 0; i < inputted.length(); i++) {
+
+            if (inputted.charAt(i) == ' ' || temp.equals("ln") || inputted.charAt(i) == '\t') {
+                splitted[x] = temp;
+                x++;
+                temp = "";
+                i++;
+            }
+
+            temp += inputted.charAt(i);
+
+        }
+        return splitted;
+    }
+
     public void semanticChecker() {
         semanticsAnalyze();
     }
@@ -24,13 +49,15 @@ public class SemanticsHandler {
         String identType = "";
         String identValue = "";
         String output = "";
-        String[] parseWords = input.split("\\s");
+        String[] parseWords = input.split("\\s"); //input.split("\\s");
         String[] sourceWords = input2.split("\\s");
         String[] defined = new String[parseWords.length];
         int x;
 
         for (x = 0; x < parseWords.length && !parseWords[x].equals("COMMAND"); x++) {
-
+            System.out.println("IM INSIDE");
+            System.out.println(":"+parseWords[x]+":");
+            System.out.println(":"+sourceWords[x]+":");
             if (parseWords[x].equals("IDENT")) {
 
                 if (!parseWords[x - 1].equals("STR")) {
@@ -81,9 +108,9 @@ public class SemanticsHandler {
         String[] parseWords = input.split("\\s");
         String[] sourceWords = input2.split("\\s");
 
-
         for (int x = index; x < sourceOutput.length && !parseWords[x].equals("END"); x++) {
-            
+            System.out.println(parseWords[x]);
+            System.out.println(sourceWords[x]);
             if (parseWords[x].equals("IDENT")) {
 
                 if (!isDefined(sourceWords[x], defined)) {
@@ -105,7 +132,8 @@ public class SemanticsHandler {
         String[] sourceWords = input2.split("\\s");
 
         for (int x = index; x < sourceOutput.length && !parseWords[x].equals("END"); x++) {
-
+            System.out.println(parseWords[x]);
+            System.out.println(sourceWords[x]);
             if (parseWords[x].equals("INTO")) {
                 String op3 = parseWords[x + 4];
 
@@ -145,7 +173,7 @@ public class SemanticsHandler {
 
                 if (parseWords[x].equals("MOD")) {
                     if (!type.equals("INT")) {
-                        error += "Invalid modulo data type at token number " + x +".\n";
+                        error += "Invalid modulo data type at token number " + x + ".\n";
                     }
                 }
 
@@ -231,7 +259,7 @@ public class SemanticsHandler {
     public String getDataTypeOfExpression(String op1, String op2, String[] sourceWords, int x) {
 
         if (op1.equals("IDENT") && op2.equals("IDENT")) {
-            
+
             if (!(getType(x + 1, sourceWords).equals(getType(x + 2, sourceWords)))) {
                 if (!getType(x + 1, sourceWords).equals("STR")) {
                     return "FLOAT";
@@ -321,7 +349,7 @@ public class SemanticsHandler {
     public String getType(int index, String[] sourceWords) {
         System.out.println(sourceWords[index]);
         if (sourceWords[index].charAt(0) != '*') {
-            
+
             return this.st.findVariable(sourceWords[index]).getType();
 
         }
