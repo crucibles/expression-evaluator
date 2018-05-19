@@ -23,12 +23,22 @@ public class SemanticsHandler {
         String output = "";
         String[] parseWords = input.split("\\s");
         String[] sourceWords = input2.split("\\s");
+        String[] parseStmts = input.split("\n");
+        String[] sourceStmts = input.split("\n");
 
         System.out.println("asdasdasdas" + parseWords.length);
         System.out.println(sourceWords.length);
+        
+        int lineNum = 1;
+        int currLength = 0;
 
         for (int x = 0; x < parseWords.length && !parseWords[x].equals("COMMAND") ; x++) {
-
+        	if(currLength < parseStmts[lineNum - 1].length()){
+        		lineNum++;
+        		currLength = 0;        		
+        	} else {
+        		currLength++;
+        	}
             if (isConditional(parseWords[x])) {
                 String op1 = parseWords[x + 1];
 
