@@ -79,8 +79,8 @@ public class NRPP {
 	}
 
 	/**
-	 * Parse the input of the user if .prod and .pbtl file is loaded.
-	 * 
+	 * Parse the input of the user baesed on the specified grammar.
+	 * @param text the text to parse based on the rules
 	 * @return the output from the user input based on the specified grammar
 	 *         found in .prod and .ptbl files.
 	 * 
@@ -117,7 +117,6 @@ public class NRPP {
 		String currentStack = "";
 		String produced = "";
 		int lineNum = 1;
-		Boolean isNextLine = false;
 		TableModel pdt = tblProduction.getModel();
 		TableModel prt = tblParse.getModel();
 		production = pdt.getValueAt(index, 1).toString();
@@ -240,12 +239,10 @@ public class NRPP {
 					result += inputBuffer + ",";
 					result += action + "\n";
 				}
-				isNextLine = false;
 
 			}
 
 		}
-		System.out.println(result);
 		return result;
 	}
 
