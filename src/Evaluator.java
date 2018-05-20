@@ -43,8 +43,10 @@ public class Evaluator {
 	private SymbolTable st;
 
 	// for flags (checking whether to execute, where to execute, etc.)
-	private int[] lastIndex = { -1, -1 };
+	private Integer[] lastIndex = { -1, -1, null, null};
+	private Integer[] lastLoopIteration = { -1, -1};
 	private boolean isPaused = false;
+	private boolean isLoopOngoing = false;
 
 	/**
 	 * Constructor for Evaluator.
@@ -78,8 +80,7 @@ public class Evaluator {
 		for (int i = 0; i < srcStmt.length; i++) {
 			sourceWords.add(srcStmt[i].trim().split("\\s"));
 			parsedWords.add(prsStmt[i].trim().split("\\s"));
-		}
-
+		}		
 		// store received params
 		fileName = file;
 		numOfErrors = errors;
@@ -103,7 +104,7 @@ public class Evaluator {
 			for (int j = 0; j < prsStmt.length; j++) {
 				String currentWord = prsStmt[j];
 				if (currentWord.equals("COMMAND")) {
-					setLastIndex(i, j);
+					setLastIndex(i, j, null, null);
 					return;
 				}
 			}
@@ -115,8 +116,9 @@ public class Evaluator {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	private void evaluate(int row, int column, Integer rowEnd, Integer colEnd) {
+	private boolean evaluate(int row, int column, Integer rowEnd, Integer colEnd) {
 		int j = column;
+		System.out.println("-Entered Eval-");
 		for (int i = row; i < parsedWords.size(); i++) {
 			String[] srcStmt = sourceWords.get(i);
 			String[] prsStmt = parsedWords.get(i);
@@ -142,6 +144,8 @@ public class Evaluator {
 			int start = colEnd != null && row == i && column >= 0 ? column : 0;
 			
 			while (j >= start) {
+				System.out.println("c:" + prsStmt[j]);
+				System.out.println("s:" + srcStmt[j]);
 				String currentWord = prsStmt[j];
 				String sourceWord = srcStmt[j];
 				evaluateExpression(currentWord, sourceWord);
@@ -151,22 +155,29 @@ public class Evaluator {
 			emptyPendingOperation();
 
 			if (isPaused) { // pauses when BEG operation has been encountered
+				System.out.println("isentered?");
 				if (index < 0) {
 					// set to i + 1 since the current stmt is finished;
 					// set to -1 so checking of string starts at the end
-					setLastIndex(i + 1, -1);
+					System.out.println("1isentered?");
+					setLastIndex(i + 1, -1, null, null);
 				} else {
-					setLastIndex(i, index); // if contains FROM loop, set
+					System.out.println("2isentered?");
+					setLastIndex(i, index, null, null); // if contains FROM loop, set
 											// last index to i and index
 											// (location of from loop)
 				}
-				return;
+				return false;
 			}
 
 			if (index >= 0) {
-				executeLoop(i, index); // if contains FROM loop, set last index
-										// to i and index (location of from
-										// loop);
+				// if contains FROM loop, set last index
+				// to i and index (location of from
+				// loop);
+				if(!executeLoop(i, index)){
+					return false;
+				}
+										
 				i = lastIndex[0];
 				j = lastIndex[1];
 			}
@@ -177,15 +188,15 @@ public class Evaluator {
 				j = lastIndex[1];
 			}
 			if (rowEnd != null && i >= rowEnd) {
-				return;
+				return true;
 			}
 			j = -1;
 		}
-		if (rowEnd == null) {
+		if (rowEnd == null && !isLoopOngoing) {
 			output += "Program terminated successfully...";
 			txtOutput.setText(output);
 		}
-
+		return true;
 	}
 
 	/**
@@ -201,7 +212,6 @@ public class Evaluator {
 			String[] ps = parsedWords.get(i);
 			String currentWord = ps[elseIndex];
 			String sourceWord = sourceWords.get(i)[elseIndex];
-			System.out.println("CURR:" + currentWord);
 			evaluateExpression(currentWord, sourceWord);
 			elseIndex--;
 		}
@@ -213,7 +223,6 @@ public class Evaluator {
 			pendingStack.removeAllElements();
 		}
 
-		System.out.println(condition.bool);
 
 		// evaluate
 		Integer[] startIndex = condition.bool ? null : getIndexes("ELSE", i, j, 1, true);
@@ -233,7 +242,7 @@ public class Evaluator {
 		evaluate(row, column, rowEnd, columnEnd);
 
 		endIndex = getIndexes("ENDIF", i, j, 1, true);
-		setLastIndex(endIndex[0], endIndex[1]);
+		setLastIndex(endIndex[0], endIndex[1], null, null);
 	}
 
 	/**
@@ -313,11 +322,13 @@ public class Evaluator {
 			variable.setValue(result);
 			this.storeToSymbolTable(variable.sourceName, variable);
 			result = variable.getStrFloatValue();
+			System.out.println("<<<STORED " + result + "|" + variable.sourceName);
 		} else if (helper.isFloat(result) || helper.isInteger(result)) {
 			Integer intVal = Math.round(Float.parseFloat(result));
 			variable.setValue(variable.type.equals("INT") ? intVal.toString() : result);
 			this.storeToSymbolTable(variable.sourceName, variable);
 			result = variable.getStrFloatValue();
+			System.out.println("<<<STORED " + result + "|" + variable.sourceName);
 		} else {
 			result = "ERROR: Invalid input '" + result + "' for type " + variable.type + ".";
 
@@ -336,6 +347,11 @@ public class Evaluator {
 	 */
 	private String print(Operand op1) {
 		String output = "Print: ";
+		if (op1.isIdent) {
+			Entry e = st.findVariable(op1.sourceName);
+			op1.setValue(e.getValue());
+		}
+		
 		switch (op1.type) {
 		case "INT":
 		case "INT_LIT":
@@ -349,6 +365,7 @@ public class Evaluator {
 		case "BOOL":
 			output += op1.bool;
 		}
+		System.out.println("printing " + op1.sourceName + "<" + output + ">");
 		return output + "\n";
 	}
 
@@ -361,8 +378,6 @@ public class Evaluator {
 	 *            the name of the operation/operand
 	 */
 	private void evaluateExpression(String currentWord, String sourceWord) {
-		System.out.println("CURR:" + currentWord);
-		System.out.println("SRC:" + sourceWord);
 		if (currentWord.equals("NEWLN") || currentWord.equals("BEG") || currentWord.equals("PRINT")
 				|| currentWord.equals("INTO")) {
 			Operand op1 = null;
@@ -386,13 +401,15 @@ public class Evaluator {
 			return;
 		} else if (helper.isOperand(currentWord)) {
 			String strValue = sourceWord;
+			Boolean isIdent = false;
 			if (currentWord.equals("IDENT")) {
 				Entry e = st.findVariable(sourceWord);
 				strValue = e.getValue();
 				currentWord = e.getType();
+				isIdent = true;
 			}
 
-			stack.push(new Operand(sourceWord, strValue, currentWord, null));
+			stack.push(new Operand(sourceWord, isIdent, strValue, currentWord, null));
 
 		}
 	}
@@ -443,7 +460,9 @@ public class Evaluator {
 	 * @param j
 	 *            the starting column index (location of FROM)
 	 */
-	private void executeLoop(int i, int j) {
+	private boolean executeLoop(int i, int j) {
+		System.out.println("--------------STARTLOOP---------------");
+		isLoopOngoing = true;
 		Integer[] data = getStartAndEnd(i, j);
 		int countSize = data[1] - data[0] + 1;
 
@@ -455,9 +474,19 @@ public class Evaluator {
 		int rowEnd = data[0];
 		int colEnd = data[1];
 		for (i = 0; i < countSize; i++) {
-			evaluate(row, column, rowEnd, colEnd);
+			if(!evaluate(row, column, rowEnd, colEnd)){
+				System.out.println("ADDEDLOOP");
+				lastLoopIteration[0] = i + 1;
+				lastLoopIteration[1] = countSize;
+				setLastIndex(row, column, rowEnd, colEnd);
+				System.out.println("<<<<i:" + i);
+				System.out.println("<<<<csize:" + countSize);
+				return false;
+			}
 		}
-		setLastIndex(rowEnd, colEnd);
+		isLoopOngoing = false;
+		setLastIndex(rowEnd, colEnd, null, null);
+		return true;
 	}
 
 	/**
@@ -536,7 +565,7 @@ public class Evaluator {
 						j = 0;
 					}
 					Integer[] result = { i, j };
-					setLastIndex(i, j);
+					setLastIndex(i, j, null, null);
 					return result;
 				}
 			}
@@ -673,9 +702,12 @@ public class Evaluator {
 	 * 
 	 * @author Sumandang, AJ Ruth H.
 	 */
-	private void setLastIndex(int i, int j) {
+	private void setLastIndex(int i, int j, Integer rowEnd, Integer colEnd) {
+		System.out.println("[changed index]");
 		lastIndex[0] = i;
 		lastIndex[1] = j;
+		lastIndex[2] = rowEnd;
+		lastIndex[3] = colEnd;
 	}
 	
 	
@@ -719,12 +751,53 @@ public class Evaluator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				output += begInput() + "\n";
+				String in = begInput();
+				System.out.println("---Entered Enter---");
+				System.out.println("Input:" + in);
+				output += in + "\n";
 				emptyPendingOperation();
+				
 				if (isPaused) {
 					return;
 				}
-				evaluate(lastIndex[0], lastIndex[1], null, null);
+				
+				if(isLoopOngoing){
+					System.out.println("HEREENTER" + "|" + isLoopOngoing + "|" + "lp[0]:" + lastLoopIteration[0] + "|" + lastLoopIteration[1]);
+					int row = lastIndex[0];
+					int col = lastIndex[1];
+					int rowEnd = lastIndex[2];
+					int colEnd = lastIndex[3];
+					
+					if(isLoopOngoing && lastLoopIteration[0] >= lastLoopIteration[1]){
+						isLoopOngoing =  false;
+						Integer[] startIndex = getIndexes("ENDFROM", row, col, 0, true);
+						row = startIndex[0];
+						col = startIndex[1];
+						if(row == parsedWords.get(startIndex[0]).length - 1){
+							row++;
+							col = parsedWords.get(row).length - 1;
+						} else {
+							col++;
+						}
+						evaluate(row, col, null, null);
+						System.out.println("HELLO!");
+					}
+					
+					while(lastLoopIteration[0] < lastLoopIteration[1]){
+						if(!evaluate(row, col, rowEnd, colEnd) && isLoopOngoing){
+							setLastIndex(row, col, rowEnd, colEnd);
+							System.out.println("ITERATION:" +lastLoopIteration[0]);
+							System.out.println("ITERATION:" +lastLoopIteration[1]);
+							lastLoopIteration[0]++;
+							break;
+						}
+						lastLoopIteration[0]++;
+					}
+				} else {
+					evaluate(lastIndex[0], lastIndex[1], null, null);
+				}
+
+				System.out.println("---Exited Enter---" + "|" + isLoopOngoing + "|lp[0]:" + lastLoopIteration[0] + "|" + lastLoopIteration[1]);
 				exprEval.gui.setTablesInfo(st);
 			}
 		};
@@ -742,6 +815,7 @@ public class Evaluator {
 class Operand {
 	public String sourceName;
 	private String value;
+	public Boolean isIdent;
 	public String type;
 	public Boolean bool;
 
@@ -759,6 +833,25 @@ class Operand {
 	 */
 	public Operand(String sourceName, String value, String type, Boolean bool) {
 		this.sourceName = sourceName;
+		this.value = value;
+		this.type = type;
+		this.bool = bool;
+	}
+	/**
+	 * Constructor for operand
+	 * 
+	 * @param src
+	 *            variable name (actual name in the code)
+	 * @param value
+	 *            value of the variable name
+	 * @param type
+	 *            type of variable
+	 * @param bool
+	 *            boolean of value of the variable (if available)
+	 */
+	public Operand(String sourceName, Boolean isIdent, String value, String type, Boolean bool) {
+		this.sourceName = sourceName;
+		this.isIdent = isIdent;
 		this.value = value;
 		this.type = type;
 		this.bool = bool;
