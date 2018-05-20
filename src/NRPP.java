@@ -61,13 +61,14 @@ public class NRPP {
 				+ "FloatVarDef,,,7,7,,7,7,6,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n"
 				+ "IntVarDef,,,9,9,,9,9,8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n"
 				+ "Statements,,,18,,,,,,,,17,10,11,12,13,13,13,13,13,14,14,14,14,14,14,14,14,14,15,18,18,16,,18,,,\n"
-				+ "Assignment,,,,,,,,,,,,19,,,,,,,,,,,,,,,,,,,,,,,,,\n" + "Input,,,,,,,,,,,,,20,,,,,,,,,,,,,,,,,,,,,,,,\n"
-				+ "Output,,,,,,,,,,,,,,21,,,,,,,,,,,,,,,,,,,,,,,\n"
+				+ "Assignment,,,,,,,,,,,,19,,,,,,,,,,,,,,,,,,,,,,,,,\n"
+				+ "Input,,,,,,,,,,,,,20,,,,,,,,,,,,,,,,,,,,,,,,\n" + "Output,,,,,,,,,,,,,,21,,,,,,,,,,,,,,,,,,,,,,,\n"
 				+ "OutputOptions,,,,,22,,,,22,22,,,,,22,22,22,22,22,,23,23,23,23,,23,23,23,,,,,,,,,\n"
 				+ "NumericOperations,,,,,,,,,,,,,,,24,25,26,27,28,,,,,,,,,,,,,,,,,,\n"
 				+ "Relational,,,,,,,,,,,,,,,,,,,,29,30,31,32,33,34,,,,,,,,,,,,\n"
 				+ "Logical,,,,,,,,,,,,,,,,,,,,,,,,,,,36,37,,,,,,,,,\n"
-				+ "Conditional,,,,,,,,,,,,,,,,,,,,,,,,,,,,,38,,,,,,,,\n" + "Loop,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,39,,,,,\n"
+				+ "Conditional,,,,,,,,,,,,,,,,,,,,,,,,,,,,,38,,,,,,,,\n"
+				+ "Loop,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,39,,,,,\n"
 				+ "Expr,,,,,42,,,,40,41,,,,,43,43,43,43,43,,,,,,,,,,,,,,,,,,\n"
 				+ "BoolExpr,,,,,,,,,,,,,,,,,,,,44,44,44,44,44,44,45,45,45,,,,,,,,,\n";
 
@@ -137,7 +138,8 @@ public class NRPP {
 			System.out.println("cs:" + currentStack);
 
 			if ((production.equals("SNuBL") || production.equals("DEFINE") || production.equals("COMMAND")
-					|| production.equals("END") || production.equals("VarDef")) && currentWord.equals("COMMENT")) {
+					|| production.equals("END") || production.equals("VarDef") || production.equals("Statements"))
+					&& currentWord.equals("COMMENT")) {
 
 				action = "Accepted " + currentWord;
 				index++;
@@ -218,7 +220,7 @@ public class NRPP {
 					action = "Error on " + currentStack + " trying to parse " + currentWord + ">" + production;
 					if (row < 0 && !currentWord.equals("COMMENT")) {
 						errors += "(Line #" + errLineNum + ") Syntax Error: Missing " + production + "\n";
-					} else if(!currentWord.equals("COMMENT")) {
+					} else if (!currentWord.equals("COMMENT")) {
 						errors += "(Line #" + errLineNum + ") Syntax Error: Error on trying to parse " + currentWord
 								+ "\n";
 					}
