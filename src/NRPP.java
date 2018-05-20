@@ -48,30 +48,28 @@ public class NRPP {
 				+ "23,OutputOptions,RelationalAndLogical\n" + "24,NumericOperations,ADD Expr Expr\n"
 				+ "25,NumericOperations,SUB Expr Expr\n" + "26,NumericOperations,MULT Expr Expr\n"
 				+ "27,NumericOperations,DIV Expr Expr\n" + "28,NumericOperations,MOD Expr Expr\n"
-				+ "29,RelationalAndLogical,GT? Expr Expr\n" + "30,RelationalAndLogical,GTE? Expr Expr\n"
-				+ "31,RelationalAndLogical,LT? Expr Expr\n" + "32,RelationalAndLogical,LTE? Expr Expr\n"
-				+ "33,RelationalAndLogical,EQ? Expr Expr\n" + "34,RelationalAndLogical,NEQ? Expr Expr\n"
-				+ "35,RelationalAndLogical,AND? Expr Expr\n" + "36,RelationalAndLogical,OR? Expr Expr\n"
-				+ "37,RelationalAndLogical,NOT? Expr\n"
-				+ "38,Conditional,IF BoolExpr Statements ELSE Statements ENDIF\n"
-				+ "39,Loop,FROM INT_LIT TO INT_LIT Statements ENDFROM\n" + "40,Expr,FLOAT_LIT\n" + "41,Expr,INT_LIT\n"
-				+ "42,Expr,IDENT\n" + "43,Expr,NumericOperations\n" + "44,BoolExpr,TRUE\n" + "45,BoolExpr,FALSE\n"
-				+ "46,BoolExpr,RelationalAndLogical\n";
+				+ "29,Relational,GT? Expr Expr\n" + "30,Relational,GTE? Expr Expr\n" + "31,Relational,LT? Expr Expr\n"
+				+ "32,Relational,LTE? Expr Expr\n" + "33,Relational,EQ? Expr Expr\n" + "34,Relational,NEQ? Expr Expr\n"
+				+ "35,Logical,AND? BoolExpr BoolExpr\n" + "36,Logical,OR? BoolExpr BoolExpr\n"
+				+ "37,Logical,NOT? BoolExpr\n" + "38,Conditional,IF BoolExpr Statements ELSE Statements ENDIF\n"
+				+ "39,Loop,FROM Expr TO Expr Statements ENDFROM\n" + "40,Expr,FLOAT_LIT\n" + "41,Expr,INT_LIT\n"
+				+ "42,Expr,IDENT\n" + "43,Expr,NumericOperations\n" + "44,BoolExpr,Relational\n"
+				+ "45,BoolExpr,Logical\n";
 
 		String strParse = "PRODUCTIONS,DEFINE,COMMAND,END,FLOAT,IDENT,INT,STR,IS,FLOAT_LIT,INT_LIT,NEWLN,INTO,BEG,PRINT,ADD,SUB,MULT,DIV,MOD,GT?,GTE?,LT?,LTE?,EQ?,NEQ?,AND?,OR?,NOT?,IF,ELSE,ENDIF,FROM,TO,ENDFROM,TRUE,FALSE,$\n"
-				+ "SNuBL ,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n" + "VarDef,,,5,2,,3,4,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n"
+				+ "SNuBL,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n" + "VarDef,,,5,2,,3,4,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n"
 				+ "FloatVarDef,,,7,7,,7,7,6,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n"
-				+ "IntVarDef ,,,9,9,,9,9,8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n"
+				+ "IntVarDef,,,9,9,,9,9,8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n"
 				+ "Statements,,,18,,,,,,,,17,10,11,12,13,13,13,13,13,14,14,14,14,14,14,14,14,14,15,18,18,16,,18,,,\n"
-				+ "Assignment,,,,,,,,,,,,19,,,,,,,,,,,,,,,,,,,,,,,,,\n"
-				+ "Input ,,,,,,,,,,,,,20,,,,,,,,,,,,,,,,,,,,,,,,\n" + "Output,,,,,,,,,,,,,,21,,,,,,,,,,,,,,,,,,,,,,,\n"
+				+ "Assignment,,,,,,,,,,,,19,,,,,,,,,,,,,,,,,,,,,,,,,\n" + "Input,,,,,,,,,,,,,20,,,,,,,,,,,,,,,,,,,,,,,,\n"
+				+ "Output,,,,,,,,,,,,,,21,,,,,,,,,,,,,,,,,,,,,,,\n"
 				+ "OutputOptions,,,,,22,,,,22,22,,,,,22,22,22,22,22,,23,23,23,23,,23,23,23,,,,,,,,,\n"
-				+ "NumericOperations ,,,,,,,,,,,,,,,24,25,26,27,28,,,,,,,,,,,,,,,,,,\n"
-				+ "RelationalAndLogical ,,,,,,,,,,,,,,,,,,,,29,30,31,32,33,34,35,36,37,,,,,,,,,\n"
-				+ "Conditional ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,38,,,,,,,,\n"
-				+ "Loop ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,39,,,,,\n"
+				+ "NumericOperations,,,,,,,,,,,,,,,24,25,26,27,28,,,,,,,,,,,,,,,,,,\n"
+				+ "Relational,,,,,,,,,,,,,,,,,,,,29,30,31,32,33,34,,,,,,,,,,,,\n"
+				+ "Logical,,,,,,,,,,,,,,,,,,,,,,,,,,,36,37,,,,,,,,,\n"
+				+ "Conditional,,,,,,,,,,,,,,,,,,,,,,,,,,,,,38,,,,,,,,\n" + "Loop,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,39,,,,,\n"
 				+ "Expr,,,,,42,,,,40,41,,,,,43,43,43,43,43,,,,,,,,,,,,,,,,,,\n"
-				+ "BoolExpr,,,,,,,,,,,,,,,,,,,,46,46,46,46,46,46,46,46,46,,,,,,,44,45,\n";
+				+ "BoolExpr,,,,,,,,,,,,,,,,,,,,44,44,44,44,44,44,45,45,45,,,,,,,,,\n";
 
 		setProductionTable(strProdRules);
 		setParseTable(strParse);
