@@ -82,7 +82,7 @@ public class ExpressionEvaluator {
 			public void run() {
 				try {
 					ExpressionEvaluator window = new ExpressionEvaluator();
-					window.gui.frame.setVisible(true);
+					window.gui.frame.setVisible(true);	
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -434,11 +434,11 @@ public class ExpressionEvaluator {
 						}
 						result += "IDENT ";
 						word = "";
-					} else if (isInteger(word)) {
+					} else if (helper.isInteger(word)) {
 						sb.add(word.trim(), "INT_LIT", "INT", word.trim());
 						result += "INT_LIT ";
 						word = "";
-					} else if (isFloat(word)) {
+					} else if (helper.isFloat(word)) {
 						sb.add(word.trim(), "FLOAT_LIT", "FLOAT", word.trim());
 						result += "FLOAT_LIT ";
 						word = "";
@@ -476,7 +476,7 @@ public class ExpressionEvaluator {
 									+ ") Lexical Error: Error Comment format " + word + "\n";
 							break;
 
-						} else if (CharCounter(word, '*') <= 1) {
+						} else if (helper.CharCounter(word, '*') <= 1) {
 
 							result += "ERR_LEX ";
 							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
@@ -506,32 +506,6 @@ public class ExpressionEvaluator {
 		}
 
 		return result;
-
-	}
-
-	/**
-	 * Determines whether received element is float point number or not
-	 * 
-	 * @param check the element to be checked
-	 * @return true if the received element is float point number; false if not
-	 * 
-	 * @author Alvaro, Cedric Y.
-	 */
-	private boolean isFloat(String check) {
-		String number = new String("0123456789.");
-		if (check.indexOf('.') != check.lastIndexOf('.')) {
-			return false;
-		} else {
-			for (int i = 0; i < check.length(); i++) {
-				String symbol = "" + check.charAt(i);
-				if (i == 0 && (symbol.equals("-") || symbol.equals("+")) && check.length() > 1) {
-					continue;
-				} else if (!number.contains(symbol)) {
-					return false;
-				}
-			}
-			return check != null && true;
-		}
 
 	}
 
@@ -587,27 +561,6 @@ public class ExpressionEvaluator {
 	//
 	// return word.length() == 1 && operator.contains(word);
 	// }
-
-	/**
-	 * Determines whether received element is numeric or not
-	 * 
-	 * @param check the element to be checked
-	 * @return true if the received element is numeric; false if not
-	 * 
-	 * @author Sumandang, AJ Ruth H.
-	 */
-	public boolean isInteger(String check) {
-		String number = new String("0123456789");
-		for (int i = 0; i < check.length(); i++) {
-			String symbol = "" + check.charAt(i);
-			if (i == 0 && (symbol.equals("-") || symbol.equals("+")) && check.length() > 1) {
-				continue;
-			} else if (!number.contains(symbol)) {
-				return false;
-			}
-		}
-		return check != null && true;
-	}
 
 	/**
 	 * Obtains index of the current opened tab

@@ -5,22 +5,26 @@ import java.util.ArrayList;
  */
 
 /**
- * Class that contains functions that are useful to most or all of the other classes.
+ * Class that contains functions that are useful to most or all of the other
+ * classes.
  * 
  * @author Alvaro, Cedric Y.
  * @author Sumandang, AJ Ruth H.
  *
  */
 public class Helper {
-	
-	public Helper(){
-		
+
+	public Helper() {
+
 	}
-	
+
 	/**
 	 * Counts the character found in a string.
-	 * @param x the string to look for the searched character
-	 * @param y the character to be searched in the string
+	 * 
+	 * @param x
+	 *            the string to look for the searched character
+	 * @param y
+	 *            the character to be searched in the string
 	 * @return the index where the character is found
 	 * 
 	 * @author Alvaro, Cedric Y.
@@ -34,15 +38,16 @@ public class Helper {
 		}
 		return counter;
 	}
+
 	public boolean isConditional(String input) {
-		
+
 		if (input.equals("IF")) {
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Checks if the received word is a logical operator or not.
 	 * 
@@ -61,7 +66,7 @@ public class Helper {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Checks if the received word is a mathematical operator or not.
 	 * 
@@ -72,28 +77,28 @@ public class Helper {
 	 * @author Alvaro, Cedric Y.
 	 */
 	public boolean isOperator(String input) {
-        String[] operators = { "ADD", "SUB", "MULT", "DIV", "MOD" };
+		String[] operators = { "ADD", "SUB", "MULT", "DIV", "MOD" };
 
-        for (int i = 0; i < operators.length; i++) {
-            if (input.equals(operators[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
+		for (int i = 0; i < operators.length; i++) {
+			if (input.equals(operators[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    public boolean isRelational(String input) {
-        String[] operators = { "GT?", "GTE?", "LT?", "LTE?", "EQ?", "NEQ?", "AND?", "OR?", "NOT?" };
+	public boolean isRelational(String input) {
+		String[] operators = { "GT?", "GTE?", "LT?", "LTE?", "EQ?", "NEQ?", "AND?", "OR?", "NOT?" };
 
-        for (int i = 0; i < operators.length; i++) {
-            if (input.equals(operators[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
+		for (int i = 0; i < operators.length; i++) {
+			if (input.equals(operators[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Determines if obtained word is an operand or not.
 	 * 
 	 * @param word
@@ -111,8 +116,8 @@ public class Helper {
 		}
 		return false;
 	}
-    
-    /**
+
+	/**
 	 * Determines whether received element is float point number or not
 	 * 
 	 * @param check
@@ -138,7 +143,7 @@ public class Helper {
 		}
 
 	}
-	
+
 	/**
 	 * Determines whether received element is numeric or not
 	 * 
@@ -163,6 +168,7 @@ public class Helper {
 
 	/**
 	 * Returns the splitted version of the string
+	 * 
 	 * @return array of inputted words
 	 * @author Alvaro, Cedric Y.
 	 */
@@ -172,19 +178,19 @@ public class Helper {
 		String word = "";
 
 		for (int i = 0; i < inputted.length(); i++) {
-			if(i == inputted.length() - 1 || (!Character.isWhitespace(inputted.charAt(i)) && !word.equals("ln"))){
+			if (i == inputted.length() - 1 || (!Character.isWhitespace(inputted.charAt(i)) && !word.equals("ln"))) {
 				word += inputted.charAt(i);
 			} else {
-				if(!word.isEmpty() && !word.equals("ln")){
+				if (!word.isEmpty() && !word.equals("ln")) {
 					tmpArr.add(word);
 				}
 				word = "";
 			}
 		}
-		if(!word.isEmpty() && !word.equals("ln")){
+		if (!word.isEmpty() && !word.equals("ln")) {
 			tmpArr.add(word);
 		}
-		
+
 		String[] splitted = tmpArr.toArray(new String[tmpArr.size()]);
 		System.out.println(input);
 		System.out.println("_________");
@@ -193,36 +199,36 @@ public class Helper {
 		System.out.println("_________");
 		return splitted;
 	}
-	
+
 	/**
 	 * Returns the splitted version of the string
+	 * 
 	 * @return array of inputted words
 	 * @author Alvaro, Cedric Y.
 	 */
-	public String[] splitter(String input, String split) {
+	public String[] splitter(String input, Character ch) {
 		String inputted = input.trim();
 		ArrayList<String> tmpArr = new ArrayList<String>();
 		String word = "";
-		
+
 		for (int i = 0; i < inputted.length(); i++) {
-			if(i == inputted.length() - 1 || (!split.equals(inputted.charAt(i)) && !word.equals("ln"))){
+			if(ch != null && ch == inputted.charAt(i)){
+				System.out.println("FOUND");
+			}
+			if (i == inputted.length() - 1 || ch != inputted.charAt(i)) {
 				word += inputted.charAt(i);
 			} else {
-				if(!word.isEmpty() && !word.equals("ln")){
+				if (!word.isEmpty() && !word.equals("ln")) {
 					tmpArr.add(word);
 				}
 				word = "";
 			}
 		}
-		if(!word.isEmpty() && !word.equals("ln")){
+		if (!word.isEmpty() && !word.equals("ln")) {
 			tmpArr.add(word);
 		}
-		
+
 		String[] splitted = tmpArr.toArray(new String[tmpArr.size()]);
-		System.out.println("_________");
-		System.out.println(splitted.length);
-		System.out.println(input.split(split).length);
-		System.out.println("_________");
 		return splitted;
 	}
 }
