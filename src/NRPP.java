@@ -216,9 +216,9 @@ public class NRPP {
 					}
 
 					action = "Error on " + currentStack + " trying to parse " + currentWord + ">" + production;
-					if (row < 0) {
+					if (row < 0 && !currentWord.equals("COMMENT")) {
 						errors += "(Line #" + errLineNum + ") Syntax Error: Missing " + production + "\n";
-					} else {
+					} else if(!currentWord.equals("COMMENT")) {
 						errors += "(Line #" + errLineNum + ") Syntax Error: Error on trying to parse " + currentWord
 								+ "\n";
 					}
