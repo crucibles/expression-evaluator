@@ -14,6 +14,8 @@ import javax.swing.text.*;
  *
  *  This class was designed to be used as a component added to the row header
  *  of a JScrollPane.
+ *  
+ *  @reference https://tips4java.wordpress.com/2009/05/23/text-component-line-number/
  */
 public class TextLineNumber extends JPanel
 	implements CaretListener, DocumentListener, PropertyChangeListener
