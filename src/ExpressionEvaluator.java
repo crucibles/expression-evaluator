@@ -300,7 +300,6 @@ public class ExpressionEvaluator {
 		forSyntax = forSyntax.trim();
 		NRPP syntaxAnalyzer = new NRPP(forSyntax);
 		errorMsg[getCurrentTabIndex()] += syntaxAnalyzer.getErrors();
-		gui.console(errorMsg[getCurrentTabIndex()]);
 
 		// displayAdditionalOutput();
 		String varOutput = gui.getVariableTableInformation();
@@ -444,51 +443,74 @@ public class ExpressionEvaluator {
 						word = "";
 					} else if (word.charAt(0) == '*') {
 						System.out.println("word:" + word.trim() + ":");
-
 						String holder = "";
-						holder = line.substring(i, lastIndex + 1);
-						System.out.println("holder:" + holder + ":");
-						int last = holder.indexOf('*');
-						word = word + holder;
-						System.out.println("last:" + last);
 
-						if (last < 0) {
-							
-							result += "ERR_LEX ";
-							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-									+ ") Lexical Error: Error Comment format " + word + "\n";
-							break;
+						if (helper.CharCounter(word, '*') <= 1) {
+							holder = line.substring(i, lastIndex + 1);
+							System.out.println("holder:" + holder + ":");
+							int last = holder.indexOf('*');
+							word = word + holder;
+							last = word.length() + last;
+							System.out.println("last:" + last + ":wordlen:" + word.length());
 
-						} else if (holder.charAt(last) == '*' && holder.length() > 1) {
+							if (last < 0 || last < word.length()) {
 
-							if (holder.charAt(last + 1) != '\n' || holder.charAt(last + 1) != ' ') {
-								System.out.println("1");
 								result += "ERR_LEX ";
 								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
 										+ ") Lexical Error: Error Comment format " + word + "\n";
-								break;
+
+								word = "";
+
+							} else if (holder.charAt(last) == '*' && holder.length() > 1) {
+
+								if (holder.charAt(last + 1) != '\n' || holder.charAt(last + 1) != ' ') {
+									System.out.println("1");
+									result += "ERR_LEX ";
+									errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
+											+ ") Lexical Error: Error Comment format " + word + "\n";
+								}
+
+								word = "";
+
+							} else if (line.length() == 1) {
+
+								result += "ERR_LEX ";
+								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
+										+ ") Lexical Error: Error Comment format " + word + "\n";
+
+								word = "";
+
+							} else if (helper.CharCounter(word, '*') <= 1) {
+
+								result += "ERR_LEX ";
+								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
+										+ ") Lexical Error: Error Comment format " + word + "\n";
+
+								word = "";
+
+							} else {
+
+								result += "COMMENT ";
+								System.out.println(i);
+								word = "";
 							}
 
-						} else if (line.length() == 1) {
+						} else {
+							if (word.lastIndexOf('*') != word.length() - 1) {
+								result += "ERR_LEX ";
+								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
+										+ ") Lexical Error: Error Comment format " + word + "\n";
 
-							result += "ERR_LEX ";
-							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-									+ ") Lexical Error: Error Comment format " + word + "\n";
-							break;
+								word = "";
+							} else {
 
-						} else if (helper.CharCounter(word, '*') <= 1) {
-
-							result += "ERR_LEX ";
-							errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-									+ ") Lexical Error: Error Comment format " + word + "\n";
-							break;
+								result += "COMMENT ";
+								System.out.println(i);
+								word = "";
+							}
 
 						}
 
-						result += "COMMENT ";
-						i = i + word.length() + last + 1;
-						System.out.println(i);
-						word = "";
 					} else {
 						result += "ERR_LEX ";
 						errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum + ") Lexical Error: Undefined symbol "
