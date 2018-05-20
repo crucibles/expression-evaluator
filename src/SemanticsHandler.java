@@ -49,9 +49,9 @@ public class SemanticsHandler {
         int identHolder = 0;
         String identType = "";
         String identValue = "";
-        String[] parseWords = input.split("\\s");
-        String[] sourceWords = input2.split("\\s");
-        String[] parseStmts = input.split("\n");
+        String[] parseWords = helper.splitter(input);
+        String[] sourceWords = helper.splitter(input2);
+        String[] parseStmts = helper.splitter(input, '\n');
 
         int[] indexes = getIndexes(parseStmts);
         int lineNum = indexes[0] + 1;
@@ -66,7 +66,6 @@ public class SemanticsHandler {
         	if(currLength < parseStmt.length){
         		currLength++;
         	} else {
-        		System.out.println(parseStmt.length);
         		parseStmt = parseStmts[lineNum].split("\\s");
         		lineNum++;
         		currLength = 0; 
@@ -116,28 +115,25 @@ public class SemanticsHandler {
     }
 
     public void checkUndefined(int index, String[] sourceOutput, String[] defined, int lineNum, int currLength) {
-    	System.out.println("CHECK UNDEF");
-    	System.out.println("linenum:" + lineNum);
-    	System.out.println("currlength:" + currLength);
         String input = this.parsed;
         String input2 = this.source;
 
-        String[] parseStmts = input.split("\n");
-        String[] parseStmt = parseStmts[lineNum - 1].split(" ");
-        String[] parseWords = input.split("\\s");
-        String[] sourceWords = input2.split("\\s");
+        String[] parseStmts = helper.splitter(input, '\n');
+        System.out.println(input);
+        System.out.println(".>>>>>>>>>>>>>>>>>>>>>SIZESTMT:" + parseStmts.length);
+        String[] parseStmt = helper.splitter(parseStmts[lineNum - 1], ' ');
+        String[] parseWords = helper.splitter(input);
+        String[] sourceWords = helper.splitter(input2);
         
         for (int x = index; x < sourceOutput.length && !parseWords[x].equals("END"); x++) {
         	if(currLength >= parseStmt.length){
         		lineNum++;
-        		System.out.println("<NEWLINENUM>:" + lineNum);
-        		currLength = 0;        		
-        		parseStmt = parseStmts[lineNum - 1].split("\\s");
+        		currLength = 0;    
+        		System.out.println("LINE:" + lineNum);
+        		System.out.println("SIZESTMT:" + parseStmts.length);
+        		parseStmt = helper.splitter(parseStmts[lineNum - 1], ' ');
         	}
-        	System.out.println("curr:" + parseWords[x]);
-        	System.out.println("curr2:" + parseStmt[currLength]);
         	
-            
             if (parseWords[x].equals("IDENT")) {
 
                 if (!isDefined(sourceWords[x], defined)) {
@@ -157,21 +153,18 @@ public class SemanticsHandler {
         String input2 = this.source;
         String type = "";
 
-        String[] parseStmts = input.split("\n");
-        String[] parseStmt = parseStmts[lineNum - 1].split(" ");
-        String[] parseWords = input.split("\\s");
-        String[] sourceWords = input2.split("\\s");
+        String[] parseStmts = helper.splitter(input, '\n');
+        String[] parseStmt = helper.splitter(parseStmts[lineNum - 1], ' ');
+        String[] parseWords = helper.splitter(input);
+        String[] sourceWords = helper.splitter(input2);
         
         for (int x = index; x < sourceOutput.length && !parseWords[x].equals("END"); x++) {
         	if (currLength >= parseStmt.length){
         		lineNum++;
-        		System.out.println("NEWLINENUM:" + lineNum);
         		currLength = 0;      
         		parseStmt = parseStmts[lineNum - 1].split("\\s");
         	}
         	
-        	System.out.println("curr:" + parseWords[x]);
-
             if (parseWords[x].equals("INTO")) {
                 String op3 = parseWords[x + 4];
 
@@ -344,7 +337,6 @@ public class SemanticsHandler {
     }
 
     public String getType(int index, String[] sourceWords) {
-        System.out.println(sourceWords[index]);
         if (sourceWords[index].charAt(0) != '*') {
 
             return this.st.findVariable(sourceWords[index]).getType();
@@ -375,7 +367,6 @@ public class SemanticsHandler {
     		String[] stmt = stmts[i].split("\n");
     		for(int j = 0; j < stmt.length; j++){
     			if(stmt[j].equals("COMMAND")){
-    				System.out.println("LINENUM:" + i);
     				int[] result = {i , j};
     				return result;
     			}
