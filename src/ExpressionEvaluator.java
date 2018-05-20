@@ -447,34 +447,37 @@ public class ExpressionEvaluator {
 							holder = line.substring(i, lastIndex + 1);
 							System.out.println("holder:" + holder + ":");
 							int last = holder.indexOf('*');
-							word = word + holder;
-							last = word.length() + last;
 							System.out.println("last:" + last + ":wordlen:" + word.length());
+							word = word + holder;
 
-							if (last < 0 || last < word.length()) {
+							System.out.println("last:" + last + ":wordlen:" + word.length() + "word:" + word);
+
+							if (last < 0) {
 
 								result += "ERR_LEX ";
 								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-										+ ") Lexical Error: Error Comment format " + word + "\n";
+										+ ") Lexical Error22: Error Comment format " + word + "\n";
 
 								word = "";
 
-							} else if (holder.charAt(last) == '*' && holder.length() > 1) {
-
-								if (holder.charAt(last + 1) != '\n' || holder.charAt(last + 1) != ' ') {
+							} else if (holder.length() > 1 && last > 0) {
+								System.out.println(line.length());
+								if (holder.indexOf('*') > holder.length() + 1) {
 									System.out.println("1");
 									result += "ERR_LEX ";
 									errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-											+ ") Lexical Error: Error Comment format " + word + "\n";
+											+ ") Lexical Error1: Error Comment format " + word + "\n";
 								}
 
+								result += "COMMENT ";
+								System.out.println(i);
 								word = "";
-
+								i += last+1;
 							} else if (line.length() == 1) {
 
 								result += "ERR_LEX ";
 								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-										+ ") Lexical Error: Error Comment format " + word + "\n";
+										+ ") Lexical Error2: Error Comment format " + word + "\n";
 
 								word = "";
 
@@ -482,7 +485,7 @@ public class ExpressionEvaluator {
 
 								result += "ERR_LEX ";
 								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-										+ ") Lexical Error: Error Comment format " + word + "\n";
+										+ ") Lexical Error3: Error Comment format " + word + "\n";
 
 								word = "";
 
@@ -497,7 +500,7 @@ public class ExpressionEvaluator {
 							if (word.lastIndexOf('*') != word.length() - 1) {
 								result += "ERR_LEX ";
 								errorMsg[getCurrentTabIndex()] += "(Line #" + lineNum
-										+ ") Lexical Error: Error Comment format " + word + "\n";
+										+ ") Lexical Error5: Error Comment format " + word + "\n";
 
 								word = "";
 							} else {
